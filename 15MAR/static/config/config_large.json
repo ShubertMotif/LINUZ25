@@ -1,0 +1,10 @@
+{
+  "max_length": 2000,
+  "temperature": 0.9,
+  "device": "cpu",
+  "truncation": true,
+  "num_return_sequences": 1,
+  "max_new_token": 250
+}
+
+

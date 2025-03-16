@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Intelligenza Artificiale v 1.0 Mar 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        input[type="text"],
+        input[type="file"],
+        select,
+        input[type="submit"],
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input[type="submit"],
+        button {
+            background-color: #5c67f2;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #4a54e1;
+        }
+        h1, h2 {
+            color: #5c67f2;
+        }
+        label {
+            font-weight: bold;
+        }
+        img.logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="static/logo.png" alt="Logo" class="logo">
+        <h1>Intelligenza Artificiale v 1.0 Mar 2025</h1>
+    </header>
+
+    <form method="post">
+        <h2>Genera Testo</h2>
+        <label for="user_input">Input Text:</label>
+        <input type="text" name="user_input" required>
+        <label for="config_type">Choose config:</label>
+        <select name="config_type">
+            <option value="short">Short Response</option>
+            <option value="medium">Medium Response</option>
+            <option value="large">Large Response</option>
+        </select>
+        <input type="submit" value="Generate">
+    </form>
+
+    {% if output %}
+        <div>
+            <h2>Generated Text:</h2>
+            <p>{{ output }}</p>
+            <p>Response Time: {{ generation_time }} seconds</p>
+        </div>
+    {% endif %}
+
+    <form method="post" action="/feedback">
+        <h2>Feedback</h2>
+        <input type="hidden" name="user_input" value="{{ user_input }}">
+        <input type="hidden" name="response" value="{{ output }}">
+        <label for="feedback">Was this response helpful?</label>
+        <select name="feedback">
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select>
+        <input type="submit" value="Submit Feedback">
+    </form>
+
+    <form method="post" action="/extract-text" enctype="multipart/form-data">
+        <h2>Analyze PDF</h2>
+        <label for="file">Carica un file PDF per l'analisi:</label>
+        <input type="file" id="file" name="file" accept="application/pdf" required>
+        <button type="submit">Analizza PDF</button>
+    </form>
+
+    <form method="post" action="/analyze-wikipedia">
+        <h2>Analyze Wikipedia</h2>
+        <label for="keyword">Inserisci la parola chiave per l'analisi su Wikipedia:</label>
+        <input type="text" id="keyword" name="keyword" required>
+        <button type="submit">Analizza</button>
+    </form>
+
+</body>
+</html>
