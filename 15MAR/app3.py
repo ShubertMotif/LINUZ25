@@ -181,6 +181,13 @@ def analyze_wikipedia():
 
     return render_template('analyze_wikipedia.html')  # Crea un template HTML per questa funzione
 
+@app.route('/database')
+def database_view():
+    # Recupera tutte le interazioni dal database
+    interactions = Interaction.query.all()
+    return render_template('database.html', interactions=interactions)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
