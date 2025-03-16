@@ -1,10 +1,10 @@
 {
-  "max_length": 500,
-  "temperature": 0.9,
+  "max_length": 800,
+  "temperature": 0.85,
   "device": "cpu",
   "truncation": true,
   "num_return_sequences": 1,
-  "max_new_token": 100
+  "max_new_token": 150
 }
 
 

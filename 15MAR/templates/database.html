@@ -2,27 +2,45 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Database Interactions</title>
+    <title>Interazioni Database</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-    <h1>Database Interactions</h1>
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>User Input</th>
-            <th>Bot Response</th>
-            <th>Feedback</th>
-            <th>Saved</th>
-        </tr>
-        {% for interaction in interactions %}
-        <tr>
-            <td>{{ interaction.id }}</td>
-            <td>{{ interaction.user_input }}</td>
-            <td>{{ interaction.bot_response }}</td>
-            <td>{{ interaction.feedback }}</td>
-            <td>Yes</td>
-        </tr>
-        {% endfor %}
+    <h1>Interazioni Database</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Input Utente</th>
+                <th>Risposta Bot</th>
+                <th>Feedback</th>
+                <th>Salvato</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for interaction in interactions %}
+            <tr>
+                <td>{{ interaction.id }}</td>
+                <td>{{ interaction.user_input }}</td>
+                <td>{{ interaction.bot_response }}</td>
+                <td>{{ interaction.feedback }}</td>
+                <td>Sì</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 </body>
 </html>

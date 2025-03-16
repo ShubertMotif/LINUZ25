@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify,json
+from flask import Flask, request, render_template, jsonify,json,redirect
 from flask_sqlalchemy import SQLAlchemy
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import requests
@@ -120,8 +120,16 @@ def index():
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
-    save_interaction(request.form.get('user_input'), request.form.get('response'), request.form.get('feedback'))
+    user_input = request.form['user_input']
+    response = request.form['response']
+    feedback = request.form['feedback']
+    save_interaction(user_input, response, feedback)
+    return redirect('/thank_you')
+
+@app.route('/thank_you')
+def thank_you():
     return render_template('thank_you.html')
+
 
 
 @app.route('/extract-text', methods=['POST'])
@@ -165,7 +173,7 @@ def analyze_wikipedia():
         if len(summary) > 500:
             summary = summary[:500]  # Assicurati che la lunghezza non superi 90 parole
 
-        config = load_config('medium')  # Puoi scegliere una configurazione appropriata
+        config = load_config('short')  # Puoi scegliere una configurazione appropriata
         if not config:
             return render_template('index.html', error="Configurazione non caricata correttamente.")
 
@@ -183,8 +191,8 @@ def analyze_wikipedia():
 
 @app.route('/database')
 def database_view():
-    # Recupera tutte le interazioni dal database
-    interactions = Interaction.query.all()
+    # Recupera tutte le interazioni dal database, ordinate in modo decrescente per ID
+    interactions = Interaction.query.order_by(Interaction.id.desc()).all()
     return render_template('database.html', interactions=interactions)
 
 

@@ -1,0 +1,12 @@
+selettore complessità wikipedia
+
+addestrare su pdf
+
+preparare serie di input da svolgere, lui svolge tutti poi si dice si o no
+
+stampa livello config json risultato
+
+feedback senza ricarica
+
+aggiungi modello in salva database
+
