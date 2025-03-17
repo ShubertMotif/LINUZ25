@@ -10,3 +10,7 @@ feedback senza ricarica
 
 aggiungi modello in salva database
 
+scheduled training cose da fare in serie
+
+DIFESA: genera un database per tenere in memoeria le informazioni militari di un determinato paese
+

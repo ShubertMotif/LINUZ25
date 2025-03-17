@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <title>Military Information</title>
+</head>
+<body>
+    <h1>Military Information</h1>
+    {% for item in info %}
+        <p>{{ item.country_name }}: {{ item.military_personnel }} personnel, {{ item.tanks }} tanks</p>
+    {% endfor %}
+</body>
+</html>
+
