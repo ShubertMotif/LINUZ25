@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify,json,redirect
+from flask import Flask, request, render_template, jsonify,json,redirect,session
 from flask_sqlalchemy import SQLAlchemy
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import requests
@@ -9,8 +9,13 @@ import time
 import os
 from pypdf import PdfReader
 
+from transformers import BertTokenizer, BertForSequenceClassification
+from torch.utils.data import DataLoader, SequentialSampler, TensorDataset
+
+
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'SKYNET'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'DATA', 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -61,7 +66,7 @@ class MilitaryInfo(db.Model):
 
 
 
-
+#MODEL TRASFORMER
 
 tokenizer = AutoTokenizer.from_pretrained("GroNLP/gpt2-medium-italian-embeddings")
 model = AutoModelForCausalLM.from_pretrained("GroNLP/gpt2-medium-italian-embeddings")
@@ -92,25 +97,28 @@ def load_config(config_type):
     return None
 
 
-
-def save_interaction(user_input, bot_response, feedback=None, model_used="Default Model"):
+def save_interaction(user_input, bot_response, feedback, model_used, summary='', config_details='', generation_time=0.0):
     interaction = Interaction(
         user_input=user_input,
         bot_response=bot_response,
         feedback=feedback,
-        model_used=model_used
+        model_used=model_used,
+        additional_info=summary,  # This field stores the summary
+        config_details=config_details,  # Optional details about configuration
+        generation_time=generation_time  # Default to 0 if not specified
     )
     db.session.add(interaction)
     db.session.commit()
 
-    # Calcolo della dimensione del database (numero di interazioni)
+    # Diagnostic printouts
+    print(f"Numero totale di interazioni nel database: {Interaction.query.count()}")
+    #print(f"Ultima interazione salvata: Input: {interaction.user_input}, Output: {interaction.bot_response}, Feedback: {interaction.feedback}, Model Used: {interaction.model_used}, Config Details: {interaction.config_details}, Summary: {interaction.additional_info}")
+
+
+    # Print the count of interactions and details of the most recently saved interaction
     interaction_count = Interaction.query.count()
     print(f"Numero totale di interazioni nel database: {interaction_count}")
-
-    # Stampa un estratto di ciò che è stato appena salvato
-    print(
-        f"Ultima interazione salvata: Input: {interaction.user_input}, Output: {interaction.bot_response}, Feedback: {interaction.feedback}")
-
+    print(f"Ultima interazione salvata: Input: {interaction.user_input}, Output: {interaction.bot_response}, Feedback: {interaction.feedback}, Model Used: {interaction.model_used}, Config Details: {interaction.config_details}")
 
 
 def extract_text_from_pdf(pdf_path):
@@ -122,27 +130,43 @@ def extract_text_from_pdf(pdf_path):
             text += page_text + ' '
     return text
 
-def fetch_wiki_summary(topic):
-    url = f"https://it.wikipedia.org/wiki/{topic}"
-    response = requests.get(url)
+
+def fetch_wiki_summaries(topic):
+    search_url = f"https://it.wikipedia.org/w/index.php?search={topic}"
+    response = requests.get(search_url)
+    print("Status Code:", response.status_code)  # Print the status code of the response
+
     if response.status_code != 200:
         return "Contenuto non trovato o errore nella richiesta."
 
-    soup = BeautifulSoup(response.content, 'html.parser')
-    content = ''
-    for p in soup.find_all('p'):
-        if len(content) < 90:
-            content += p.text + ' '
-        else:
-            break
-    return content[:90]  # Limita a 90 parole per assicurare il rispetto delle linee guida
+    # Print the first 500 characters of the response content to get an idea of what was fetched
+    print("Response Content (snippet):", response.text[:500] + '...')
 
+    soup = BeautifulSoup(response.content, 'html.parser')
+    summaries = []
+
+    # Find all paragraphs in the search page
+    for p in soup.find_all('p', limit=5):  # Limit to 5 to prevent too many results
+        text = p.get_text()
+        if text:
+            # Limit the text to 90 words for guidelines respect
+            shortened_text = ' '.join(text.split()[:90]) + '...'
+            summaries.append(shortened_text)
+
+    return summaries
+
+
+
+# Uso della funzione:
+#summaries = fetch_wiki_summaries("Leonardo da Vinci")
+#for summary in summaries:
+#    print(summary)  # Stampa ciascun riassunto per valutazione
 
 ######### MACHINE LEARNING
 
-from transformers import BertTokenizer, BertForSequenceClassification
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-import torch
+#from transformers import BertTokenizer, BertForSequenceClassification
+#from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
+#import torch
 
 # Carica il tokenizer e il modello
 #tokenizerML = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -241,14 +265,16 @@ def index():
 def feedback():
     user_input = request.form.get('user_input', '')
     response = request.form.get('response', '')
+    summary = request.form.get('summary', '')
     feedback = request.form.get('feedback', '')
-    model_used = "GPT-2 Medium"  # or fetch dynamically based on your application logic
+    model_used = "MBart"  # Update according to the model you're actually using for summarization
 
     if user_input and response and feedback:
-        save_interaction(user_input, response, feedback, model_used)
+        save_interaction(user_input=user_input, bot_response=response, feedback=feedback, model_used=model_used, summary=summary)
         return redirect('/thank_you')
     else:
         return render_template('index.html', error="Missing required feedback data.")
+
 
 
 @app.route('/thank_you')
@@ -286,33 +312,6 @@ def extract_text():
     else:
         return render_template('index.html', error="Formato file non supportato.")
 
-
-@app.route('/analyze-wikipedia', methods=['GET', 'POST'])
-def analyze_wikipedia():
-    if request.method == 'POST':
-        keyword = request.form.get('keyword')
-        if not keyword:
-            return render_template('index.html', error="Nessuna parola chiave fornita.")
-
-        summary = fetch_wiki_summary(keyword)
-        if len(summary) > 500:
-            summary = summary[:500]  # Assicurati che la lunghezza non superi 90 parole
-
-        config = load_config('short')  # Puoi scegliere una configurazione appropriata
-        if not config:
-            return render_template('index.html', error="Configurazione non caricata correttamente.")
-
-        try:
-            response = generator(summary, truncation=config['truncation'], max_length=config['max_length'],
-                                 temperature=config['temperature'], top_p=0.9,
-                                 num_return_sequences=config['num_return_sequences'],
-                                 max_new_tokens=config.get('max_new_token', 50))[0]['generated_text']
-            return render_template('index.html', output=response, user_input=summary)
-        except Exception as e:
-            logging.error(f"Errore durante la generazione del testo: {e}")
-            return render_template('index.html', error="Errore nella generazione del testo.")
-
-    return render_template('analyze_wikipedia.html')  # Crea un template HTML per questa funzione
 
 @app.route('/database')
 def database_view():
@@ -363,8 +362,124 @@ def military_info():
     info = MilitaryInfo.query.all()
     return render_template('military_info.html', info=info)
 
+tokenizerBERT = BertTokenizer.from_pretrained('dbmdz/bert-base-italian-uncased')
+modelBERT = BertForSequenceClassification.from_pretrained('dbmdz/bert-base-italian-uncased')
 
 
+
+
+def fetch_wiki_summaries(keyword):
+    search_url = f"https://it.wikipedia.org/w/index.php?search={keyword}"
+    response = requests.get(search_url)
+    if response.status_code != 200:
+        return None
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+    summaries = []
+    for p in soup.find_all('p', limit=5):  # Aumenta il limite se necessario
+        text = p.get_text()
+        if text:
+            summaries.append(text)
+
+    full_text = ' '.join(summaries)
+    return full_text[:1024]  # Limita il testo a 1024 caratteri per MBART
+
+from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
+
+modelMBART = MBartForConditionalGeneration.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+tokenizerMBART = MBart50TokenizerFast.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+
+
+def summarize_text(text):
+    # Ensuring the text is within the manageable length for the model
+    if len(text) > 1024:
+        text = text[:1024]
+
+    # Tokenizing the text for MBART
+    inputs = tokenizerMBART(text, return_tensors="pt", truncation=True, padding="max_length", max_length=1024)
+
+    # Generating the summary with adjusted parameters
+    summary_ids = modelMBART.generate(
+        inputs['input_ids'],
+        forced_bos_token_id=tokenizerMBART.lang_code_to_id["it_IT"],
+        num_beams=8,
+        length_penalty=2.0,
+        max_length=350,
+        min_length=50,
+        no_repeat_ngram_size=3,
+        early_stopping=True
+    )
+
+    summary = tokenizerMBART.decode(summary_ids[0], skip_special_tokens=True)
+    return summary
+
+@app.route('/analyze-wikipedia', methods=['GET', 'POST'])
+def analyze_wikipedia():
+    if request.method == 'POST':
+        keyword = request.form.get('keyword')
+        if not keyword:
+            return render_template('index.html', error="Nessuna parola chiave fornita.")
+
+        print('KEYWORD',keyword)
+        time.sleep(2)
+
+        content = fetch_wiki_summaries(keyword)
+        print('CONTENT', content)
+        time.sleep(2)
+        if not content:
+            return render_template('index.html', error="Errore nel recupero del contenuto.")
+
+        summary = summarize_text(content)
+
+        print('SUMMARY', summary)
+        time.sleep(2)
+
+        # Save the interaction to the database
+        save_interaction(user_input=content, bot_response=summary, feedback='Pending', model_used='MBart')
+
+        # Make sure to pass the summary properly to the template
+        return render_template('index.html', output=summary, user_input=content, summary=summary)
+
+    # Display the form if no POST request has been made
+    return render_template('analyze_wikipedia.html')
+
+
+
+@app.route('/queue-analysis', methods=['GET', 'POST'])
+def queue_analysis():
+    if request.method == 'POST':
+        keywords = request.form.get('keywords').split(',')
+        summaries = []
+        print('KEYWORDS',keywords)
+        for keyword in keywords:
+            content = fetch_wiki_summaries(keyword.strip())
+            print('CONTENT WIKI', content)
+            if content:
+                summary = summarize_text(content)
+                summaries.append({'keyword': keyword, 'summary': summary})
+                print('KEYWORD',keyword,'SUMMARY',summary)
+        session['summaries'] = summaries
+        return redirect('/feedback-collect')
+    return render_template('queue_analysis.html')
+
+
+@app.route('/feedback-collect', methods=['GET', 'POST'])
+def feedback_collect():
+    if request.method == 'POST':
+        summaries = session.get('summaries', [])
+        for index, summary in enumerate(summaries, start=1):
+            # Raccogliere il feedback per ciascun riassunto
+            feedback_key = f'feedback_{index}'
+            feedback = request.form.get(feedback_key, 'No Feedback')
+
+            # Qui si potrebbe aggiungere il codice per salvare i feedback nel database
+            print(f'Feedback for {summary["keyword"]}: {feedback}')  # Solo per debug
+
+        # Messaggio di ringraziamento post invio dei feedback
+        return 'Grazie per il tuo feedback!'
+
+    # Visualizza il form di feedback se il metodo è GET
+    return render_template('feedback_collect.html', summaries=session.get('summaries', []))
 
 
 if __name__ == '__main__':

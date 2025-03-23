@@ -14,3 +14,17 @@ scheduled training cose da fare in serie
 
 DIFESA: genera un database per tenere in memoeria le informazioni militari di un determinato paese
 
+
+---
+
+
+non funziona il no feedback
+
+wikipedia non funziona, voglio vedere che scarica i dati e il testo poi testo in input a gpt
+
+inseire database militare, popola
+
+input deve aggiornare dati
+
+
+

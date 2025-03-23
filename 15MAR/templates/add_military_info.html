@@ -2,17 +2,105 @@
 <html lang="it">
 <head>
     <title>Add Military Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 300px;
+            margin: 0 auto;
+        }
+        input[type="number"], input[type="text"], input[type="submit"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        label {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <form method="post">
-        Country Name: <input type="text" name="country_name" required><br>
-        Population: <input type="number" name="population" required><br>
-        Military Personnel: <input type="number" name="military_personnel" required><br>
-        Under Age Population: <input type="number" name="under_age_population" required><br>
-        GDP: <input type="number" name="gdp" required><br>
-        Tanks: <input type="number" name="tanks" required><br>
-        Aircraft Carriers: <input type="number" name="aircraft_carriers" required><br>
-        Military Spending: <input type="number" name="military_spending" required><br>
+    <h1>Add Military Information</h1>
+    <form method="post" action="/add-military-info">
+        <label for="country_name">Country Name:</label>
+        <input type="text" name="country_name"><br>
+
+        <label for="population">Population:</label>
+        <input type="number" name="population"><br>
+
+        <label for="military_personnel">Military Personnel:</label>
+        <input type="number" name="military_personnel"><br>
+
+        <label for="under_age_population">Under Age Population:</label>
+        <input type="number" name="under_age_population"><br>
+
+        <label for="gdp">GDP:</label>
+        <input type="number" name="gdp"><br>
+
+        <label for="tanks">Tanks:</label>
+        <input type="number" name="tanks"><br>
+
+        <label for="aircraft_carriers">Aircraft Carriers:</label>
+        <input type="number" name="aircraft_carriers"><br>
+
+        <label for="military_spending">Military Spending:</label>
+        <input type="number" name="military_spending"><br>
+
+        <label for="submarines">Submarines:</label>
+        <input type="number" name="submarines"><br>
+
+        <label for="fighter_aircraft">Fighter Aircraft:</label>
+        <input type="number" name="fighter_aircraft"><br>
+
+        <label for="nuclear_weapons">Nuclear Weapons:</label>
+        <input type="number" name="nuclear_weapons"><br>
+
+        <label for="military_satellites">Military Satellites:</label>
+        <input type="number" name="military_satellites"><br>
+
+        <label for="cyber_defense_capability">Cyber Defense Capability:</label>
+        <input type="text" name="cyber_defense_capability"><br>
+
+        <label for="active_reservists">Active Reservists:</label>
+        <input type="number" name="active_reservists"><br>
+
+        <label for="paramilitary_units">Paramilitary Units:</label>
+        <input type="number" name="paramilitary_units"><br>
+
+        <label for="defense_budget_as_percentage_of_gdp">Defense Budget as % of GDP:</label>
+        <input type="number" step="0.01" name="defense_budget_as_percentage_of_gdp"><br>
+
+        <label for="annual_defense_budget_growth">Annual Defense Budget Growth:</label>
+        <input type="number" step="0.01" name="annual_defense_budget_growth"><br>
+
+        <label for="total_border_length">Total Border Length:</label>
+        <input type="number" name="total_border_length"><br>
+
+        <label for="coastline_length">Coastline Length:</label>
+        <input type="number" name="coastline_length"><br>
+
+        <label for="strategic_alliances">Strategic Alliances:</label>
+        <input type="text" name="strategic_alliances"><br>
+
         <input type="submit" value="Submit">
     </form>
 </body>

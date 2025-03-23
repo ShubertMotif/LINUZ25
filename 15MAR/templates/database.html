@@ -16,9 +16,18 @@
         th {
             background-color: #f2f2f2;
         }
+        .home-button {
+            margin: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
+    <a href="/" class="home-button">Home</a>
     <h1>Interazioni Database</h1>
     <table>
         <thead>
@@ -26,6 +35,7 @@
                 <th>ID</th>
                 <th>Input Utente</th>
                 <th>Risposta Bot</th>
+                <th>Modello Utilizzato</th>
                 <th>Feedback</th>
                 <th>Salvato</th>
             </tr>
@@ -36,6 +46,7 @@
                 <td>{{ interaction.id }}</td>
                 <td>{{ interaction.user_input }}</td>
                 <td>{{ interaction.bot_response }}</td>
+                <td>{{ interaction.model_used }}</td>
                 <td>{{ interaction.feedback }}</td>
                 <td>Sì</td>
             </tr>

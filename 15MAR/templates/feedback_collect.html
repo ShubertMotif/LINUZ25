@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feedback Collection</title>
+</head>
+<body>
+    <h1>Riassunti Generati</h1>
+    <form method="post">
+        {% for summary in summaries %}
+            <div>
+                <h2>{{ summary.keyword }}</h2>
+                <p>{{ summary.summary }}</p>
+                <label>Utile: Sì
+                    <input type="radio" name="feedback_{{ loop.index }}" value="Yes">
+                </label>
+                <label>No
+                    <input type="radio" name="feedback_{{ loop.index }}" value="No">
+                </label>
+            </div>
+        {% endfor %}
+        <button type="submit">Invia Feedback</button>
+    </form>
+</body>
+</html>

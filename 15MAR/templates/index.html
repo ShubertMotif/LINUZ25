@@ -3,59 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Intelligenza Artificiale v 1.0 Mar 2025</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            padding: 20px;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        form {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        input[type="text"], input[type="file"], select, input[type="submit"], button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        input[type="submit"], button {
-            background-color: #5c67f2;
-            color: white;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover, button:hover {
-            background-color: #4a54e1;
-        }
-        h1, h2 {
-            color: #5c67f2;
-        }
-        label {
-            font-weight: bold;
-        }
-        img.logo {
-            width: 150px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="static/styles.css">
 </head>
 <body>
     <header>
-        <img src="static/logo.png" alt="Logo" class="logo">
+        <a href="/">
+            <img src="static/logo.png" alt="Logo" class="logo">
+        </a>
         <h1>Intelligenza Artificiale v 1.0 Mar 2025</h1>
     </header>
 
@@ -72,68 +26,77 @@
         <input type="submit" value="Generate">
     </form>
 
-
-
-
-    <form method="post" action="/extract-text" enctype="multipart/form-data">
-        <h2>Analyze PDF</h2>
-        <label for="file">Carica un file PDF per l'analisi:</label>
-        <input type="file" id="file" name="file" accept="application/pdf" required>
-        <button type="submit">Analizza PDF</button>
-    </form>
-
-    <form method="post" action="/analyze-wikipedia">
-        <h2>Analyze Wikipedia</h2>
-        <label for="keyword">Inserisci la parola chiave per l'analisi su Wikipedia:</label>
-        <input type="text" id="keyword" name="keyword" required>
-        <button type="submit">Analizza</button>
-    </form>
-
-
-        {% if output %}
-        <div>
+    {% if output %}
+        <div class="feedback-section">
             <h2>Generated Text:</h2>
             <p>{{ output }}</p>
             <p>Response Time: {{ generation_time }} seconds</p>
+            <h3>Was this response helpful?</h3>
+            <button onclick="submitFeedback('yes')">Yes</button>
+            <button onclick="submitFeedback('no')">No</button>
         </div>
-        <<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <title>Feedback</title>
-    <style>
-        select, button {
-            padding: 8px 16px;
-            margin-top: 10px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-    <h1>Was this response helpful?</h1>
-    <form action="/feedback" method="post">
-        <input type="hidden" name="user_input" value="{{ user_input }}">
-        <input type="hidden" name="response" value="{{ output }}">
-        <select name="feedback">
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-        </select>
-        <button type="submit">Submit Feedback</button>
-    </form>
-</body>
-</html>
-
     {% endif %}
 
-    <a href="/database">Visualizza Interazioni Database</a>
+    <div class="actions">
+        <form method="post" action="/extract-text" enctype="multipart/form-data">
+            <h2>Analyze PDF</h2>
+            <label for="file">Carica un file PDF per l'analisi:</label>
+            <input type="file" id="file" name="file" accept="application/pdf" required>
+            <button type="submit">Analizza PDF</button>
+        </form>
 
+        <form method="post" action="/analyze-wikipedia">
+            <h2>Analyze Wikipedia</h2>
+            <label for="keyword">Inserisci la parola chiave per l'analisi su Wikipedia:</label>
+            <input type="text" id="keyword" name="keyword" required>
+            <button type="submit">Analizza</button>
+        </form>
+
+<div class="feedback-section">
+    <h2>Summary from Wikipedia:</h2>
+    <p>{{ summary }}</p>
+    <h3>Was this summary helpful?</h3>
+    <form action="/feedback" method="post">
+        <input type="hidden" name="user_input" value="{{ user_input }}">
+        <input type="hidden" name="response" value="{{ summary }}">
+        <input type="hidden" name="summary" value="{{ summary }}">
+        <input type="hidden" name="model_used" value="MBart">
+        <button type="submit" name="feedback" value="yes">Yes</button>
+        <button type="submit" name="feedback" value="no">No</button>
+    </form>
+</div>
+
+
+        <a href="/queue-analysis" class="button-link">CODA ANALISI WIKI</a>
+        <a href="/add-military-info" class="button-link">Add Military Info</a>
+        <a href="/military-info" class="button-link">View Military Info</a>
+        <a href="/database" class="button-link">Visualizza Interazioni Database</a>
+    </div>
+
+    <script>
+        function submitFeedback(feedback) {
+            var data = {
+                user_input: "{{ summary }}",  // assuming `summary` is the variable you want feedback on
+                feedback: feedback
+            };
+
+            fetch('/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Feedback submitted successfully!');
+                window.location.href = '/';  // Optionally redirect user after submitting feedback
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Failed to submit feedback.');
+            });
+        }
+    </script>
 </body>
 </html>

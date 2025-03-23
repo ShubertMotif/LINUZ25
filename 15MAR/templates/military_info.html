@@ -1,13 +1,39 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <title>Military Information</title>
+    <meta charset="UTF-8">
+    <title>Informazioni Militari</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Military Information</h1>
+    <h1>Informazioni Militari</h1>
     {% for item in info %}
-        <p>{{ item.country_name }}: {{ item.military_personnel }} personnel, {{ item.tanks }} tanks</p>
+    <p>
+        <strong>Nazione:</strong> {{ item.country_name }}<br>
+        <strong>Personale militare:</strong> {{ item.military_personnel }}<br>
+        <strong>Carri armati:</strong> {{ item.tanks }}<br>
+        <strong>Portaerei:</strong> {{ item.aircraft_carriers }}<br>
+        <strong>Spesa militare:</strong> {{ item.military_spending }} billion<br>
+    </p>
     {% endfor %}
 </body>
 </html>
+
 
