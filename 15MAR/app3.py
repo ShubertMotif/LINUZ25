@@ -155,47 +155,6 @@ def fetch_wiki_summaries(topic):
 
     return summaries
 
-
-
-# Uso della funzione:
-#summaries = fetch_wiki_summaries("Leonardo da Vinci")
-#for summary in summaries:
-#    print(summary)  # Stampa ciascun riassunto per valutazione
-
-######### MACHINE LEARNING
-
-#from transformers import BertTokenizer, BertForSequenceClassification
-#from torch.utils.data import DataLoader, RandomSampler, SequentialSampler, TensorDataset
-#import torch
-
-# Carica il tokenizer e il modello
-#tokenizerML = BertTokenizer.from_pretrained('bert-base-uncased')
-#modelML= BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=2)
-
-#train_dataset=0
-
-# Supponiamo che `train_dataset` sia il tuo dataset etichettato
-#train_sampler = RandomSampler(train_dataset)
-#train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=32)
-
-## Funzione di training
-#def train(epoch, model, dataloader):
-#    modelML.train()
-#
-#    for batch in dataloader:
-#        inputs = {'input_ids': batch[0], 'attention_mask': batch[1], 'labels': batch[2]}
-#        modelML.zero_grad()
-#        outputs = model(**inputs)
-#       loss = outputs[0]
-#        loss.backward()
-#        optimizer.step()
-#
-# Esempio di addestramento
-#optimizer = torch.optim.Adam(modelML.parameters(), lr=2e-5)
-#for epoch in range(1, 4):  # numero di epoche
-#    train(epoch, modelML, train_dataloader)
-
-
 ############## CODA DI ELABORAZIONE
 
 import queue
@@ -391,19 +350,28 @@ tokenizerMBART = MBart50TokenizerFast.from_pretrained("facebook/mbart-large-50-m
 
 
 def summarize_text(text):
-    # Ensuring the text is within the manageable length for the model
+    print("[MBART] Avvio riassunto...")
+
+    # Mostra il testo originale (troncato per non riempire il terminale)
+    print(f"[MBART] Testo ricevuto ({len(text)} caratteri): {text[:200]}{'...' if len(text) > 200 else ''}")
+
+    # Assicura la lunghezza gestibile per il modello
     if len(text) > 1024:
         text = text[:1024]
+        print("[MBART] Testo troncato a 1024 caratteri.")
 
-    # Tokenizing the text for MBART
-    inputs = tokenizerMBART(text, return_tensors="pt", truncation=True, padding="max_length", max_length=1024)
+    # Imposta lingua per tokenizer
+    tokenizerMBART.src_lang = "it_IT"
 
-    # Generating the summary with adjusted parameters
+    # Prepara input per il modello
+    inputs = tokenizerMBART(text, return_tensors="pt", padding=True, truncation=True, max_length=1024)
+
+    # Genera il riassunto
     summary_ids = modelMBART.generate(
         inputs['input_ids'],
         forced_bos_token_id=tokenizerMBART.lang_code_to_id["it_IT"],
-        num_beams=8,
-        length_penalty=2.0,
+        num_beams=5,
+        length_penalty=1.0,
         max_length=350,
         min_length=50,
         no_repeat_ngram_size=3,
@@ -411,7 +379,9 @@ def summarize_text(text):
     )
 
     summary = tokenizerMBART.decode(summary_ids[0], skip_special_tokens=True)
+    print(f"[MBART] Riassunto generato ({len(summary)} caratteri): {summary[:200]}{'...' if len(summary) > 200 else ''}")
     return summary
+
 
 @app.route('/analyze-wikipedia', methods=['GET', 'POST'])
 def analyze_wikipedia():
@@ -448,39 +418,193 @@ def analyze_wikipedia():
 @app.route('/queue-analysis', methods=['GET', 'POST'])
 def queue_analysis():
     if request.method == 'POST':
-        keywords = request.form.get('keywords').split(',')
+        keywords = request.form.get('keywords', '').split(',')
         summaries = []
-        print('KEYWORDS',keywords)
         for keyword in keywords:
-            content = fetch_wiki_summaries(keyword.strip())
-            print('CONTENT WIKI', content)
+            keyword = keyword.strip()
+            content = fetch_wiki_summaries(keyword)
             if content:
                 summary = summarize_text(content)
-                summaries.append({'keyword': keyword, 'summary': summary})
-                print('KEYWORD',keyword,'SUMMARY',summary)
+                summaries.append({'keyword': keyword, 'content': content, 'summary': summary})
         session['summaries'] = summaries
-        return redirect('/feedback-collect')
+        return redirect(url_for('feedback_collect'))
     return render_template('queue_analysis.html')
 
+
+from flask import redirect, url_for
 
 @app.route('/feedback-collect', methods=['GET', 'POST'])
 def feedback_collect():
     if request.method == 'POST':
+        summaries = session.pop('summaries', [])  # Use pop to clear them after processing
+        for index, summary in enumerate(summaries):
+            feedback = request.form.get(f'feedback_{index+1}', 'No Feedback')
+            save_interaction(
+                user_input=summary['content'],
+                bot_response=summary['summary'],
+                feedback=feedback,
+                model_used='MBart',
+                summary=summary['summary']
+            )
+        return redirect(url_for('index'))
+    else:
         summaries = session.get('summaries', [])
-        for index, summary in enumerate(summaries, start=1):
-            # Raccogliere il feedback per ciascun riassunto
-            feedback_key = f'feedback_{index}'
-            feedback = request.form.get(feedback_key, 'No Feedback')
-
-            # Qui si potrebbe aggiungere il codice per salvare i feedback nel database
-            print(f'Feedback for {summary["keyword"]}: {feedback}')  # Solo per debug
-
-        # Messaggio di ringraziamento post invio dei feedback
-        return 'Grazie per il tuo feedback!'
-
-    # Visualizza il form di feedback se il metodo è GET
-    return render_template('feedback_collect.html', summaries=session.get('summaries', []))
+        return render_template('feedback_collect.html', summaries=summaries)
 
 
+
+
+
+###########################TELEGRAM BOT
+
+import sys
+import telepot
+from telepot.loop import MessageLoop
+
+# === FLASK SETUP (già presente nel tuo file)
+def run_flask():
+    print("[FLASK] Avvio del server web Flask...")
+    app.run(debug=True, port=5000, use_reloader=False)
+
+
+# === TELEGRAM BOT (telepot)
+# Estensione della classe TelegramBot con GPT e Wikipedia
+# Estensione della classe TelegramBot con GPT e Wikipedia + LOG + Salvataggio su DB + feedback console
+import logging
+from datetime import datetime
+
+class TelegramBot:
+    def __init__(self):
+        self.bot = None
+        self.registered_users = {}
+        self.user_modes = {}  # user_id: "gpt" o "wikipedia"
+
+        # Configura logging su file
+        logging.basicConfig(
+            filename='telegram_bot.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+
+    def save_interaction(self, user_input, bot_response, feedback, model_used, summary='', config_details='', generation_time=0.0):
+        interaction = Interaction(
+            user_input=user_input,
+            bot_response=bot_response,
+            feedback=feedback,
+            model_used=model_used,
+            additional_info=summary,
+            config_details=config_details,
+            generation_time=generation_time,
+            created_at=datetime.utcnow()
+        )
+        db.session.add(interaction)
+        db.session.commit()
+
+        count = Interaction.query.count()
+        print(f"[DB] Interazione salvata. Totale: {count}")
+        logging.info(f"[DB] Interazione salvata per modello {model_used} - totale record: {count}")
+
+    def handle_message(self, msg):
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        user_id = msg["from"]["id"]
+        username = msg["from"].get("username", "Sconosciuto")
+
+        logging.info(f"Messaggio da {username} ({user_id}) | Tipo: {content_type}")
+        print(f"[MSG] da {username} ({user_id}) | Tipo: {content_type}")
+
+        if content_type == 'text':
+            text = msg['text'].strip()
+            logging.info(f"Testo ricevuto: {text}")
+            print(f"[TESTO] Ricevuto: {text}")
+
+            # Comandi
+            if text.lower() == '/start':
+                self.registered_users[user_id] = username
+                self.bot.sendMessage(chat_id, "🦁 Benvenuto nella Savana!")
+                self.bot.sendMessage(chat_id, "Scrivi /gpt o /wikipedia per scegliere la modalità.")
+                print("[COMANDO] Utente registrato e /start gestito.")
+
+            elif text.lower() == '/gpt':
+                self.user_modes[user_id] = "gpt"
+                self.bot.sendMessage(chat_id, "Modalità GPT attiva. Scrivi qualcosa da generare!")
+                print("[COMANDO] Modalità GPT attiva.")
+
+            elif text.lower() == '/wikipedia':
+                self.user_modes[user_id] = "wikipedia"
+                self.bot.sendMessage(chat_id, "Modalità Wikipedia attiva. Scrivi un argomento!")
+                print("[COMANDO] Modalità Wikipedia attiva.")
+
+            else:
+                mode = self.user_modes.get(user_id)
+                if mode == "gpt":
+                    print("[GPT] Avvio generazione...")
+                    config = load_config("medium")
+                    start_time = time.time()
+                    response = generator(text, truncation=config['truncation'], max_length=config['max_length'],
+                                         temperature=config['temperature'], top_p=0.9,
+                                         num_return_sequences=config['num_return_sequences'],
+                                         max_new_tokens=config.get('max_new_token', 50))[0]['generated_text']
+                    generation_time = time.time() - start_time
+                    print(f"[GPT] Testo generato: {response}")
+                    self.bot.sendMessage(chat_id, response)
+                    self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram", model_used="GPT", generation_time=generation_time)
+                    logging.info(f"[GPT] Risposta inviata e salvata per {user_id}")
+
+                elif mode == "wikipedia":
+                    print("[Wikipedia] Avvio ricerca...")
+                    content = fetch_wiki_summaries(text)
+                    print(f"[Wikipedia] Contenuto estratto: {content}")
+                    if not content:
+                        self.bot.sendMessage(chat_id, "Nessun contenuto trovato su Wikipedia.")
+                        logging.warning(f"[Wikipedia] Nessun contenuto per {text}")
+                    else:
+                        # Invia prima il contenuto intero
+                        self.bot.sendMessage(chat_id, f"📄 Contenuto Wikipedia:\n\n{content}")
+
+                        summary = summarize_text(content)
+                        print(f"[Wikipedia] Riassunto: {summary}")
+                        self.bot.sendMessage(chat_id, summary)
+                        self.save_interaction(user_input=content, bot_response=summary, feedback="from_telegram", model_used="MBart", summary=summary)
+                        logging.info(f"[Wikipedia] Risposta inviata e salvata per {user_id}")
+                else:
+                    self.bot.sendMessage(chat_id, "❗ Prima scegli una modalità con /gpt o /wikipedia")
+                    logging.warning(f"[MODE] Nessuna modalità attiva per {user_id}")
+                    print(f"[ERRORE] Nessuna modalità attiva per utente {user_id}")
+
+        elif content_type == 'photo':
+            self.bot.sendMessage(chat_id, "📷 Hai inviato una foto!")
+            logging.info(f"[PHOTO] Ricevuta foto da {user_id}")
+            print(f"[PHOTO] Ricevuta da {user_id}")
+
+    def run(self, token):
+        self.bot = telepot.Bot(token)
+        MessageLoop(self.bot, self.handle_message).run_as_thread()
+        print("🤖 Bot in ascolto...")
+        logging.info("Bot Telegram avviato e in ascolto...")
+        while True:
+            pass
+
+
+
+
+
+# === AVVIO PRINCIPALE
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    if len(sys.argv) < 2:
+        print("❌ Specifica 'flask' o 'telegram' come argomento.")
+        sys.exit(1)
+
+    mode = sys.argv[1].lower()
+
+    if mode == "flask":
+        run_flask()
+
+    elif mode == "telegram":
+        bot_token = "7638639600:AAHl65R20LxFXDaRmeuPBKO_0aSowrNzRyo"
+        telegram_bot = TelegramBot()
+        telegram_bot.run(bot_token)
+
+    else:
+        print("❌ Argomento non valido. Usa 'flask' o 'telegram'.")
+
+
