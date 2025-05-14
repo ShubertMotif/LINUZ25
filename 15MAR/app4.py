@@ -73,6 +73,17 @@ model = AutoModelForCausalLM.from_pretrained("GroNLP/gpt2-medium-italian-embeddi
 model.to("cpu")
 generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
 
+
+tokenizerBERT = BertTokenizer.from_pretrained('dbmdz/bert-base-italian-uncased')
+modelBERT = BertForSequenceClassification.from_pretrained('dbmdz/bert-base-italian-uncased')
+
+
+from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
+
+modelMBART = MBartForConditionalGeneration.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+tokenizerMBART = MBart50TokenizerFast.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+modelMBART.to("cpu")
+
 ################ FUNZIONI
 
 
@@ -321,8 +332,7 @@ def military_info():
     info = MilitaryInfo.query.all()
     return render_template('military_info.html', info=info)
 
-tokenizerBERT = BertTokenizer.from_pretrained('dbmdz/bert-base-italian-uncased')
-modelBERT = BertForSequenceClassification.from_pretrained('dbmdz/bert-base-italian-uncased')
+
 
 
 
@@ -343,10 +353,7 @@ def fetch_wiki_summaries(keyword):
     full_text = ' '.join(summaries)
     return full_text[:1024]  # Limita il testo a 1024 caratteri per MBART
 
-from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
 
-modelMBART = MBartForConditionalGeneration.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
-tokenizerMBART = MBart50TokenizerFast.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
 
 
 def summarize_text(text):
@@ -401,7 +408,7 @@ def analyze_wikipedia():
 
         summary = summarize_text(content)
 
-        print('SUMMARY', summary)
+        print('SUMMARY MBART', summary)
         time.sleep(2)
 
         # Save the interaction to the database
@@ -521,18 +528,39 @@ class TelegramBot:
             if text.lower() == '/start':
                 self.registered_users[user_id] = username
                 self.bot.sendMessage(chat_id, "🦁 Benvenuto nella Savana!")
-                self.bot.sendMessage(chat_id, "Scrivi /gpt o /wikipedia per scegliere la modalità.")
-                print("[COMANDO] Utente registrato e /start gestito.")
+                self.bot.sendMessage(chat_id,
+                                     " 🦑 Scegli Modalità:\n"
+                                     "/gpt - Attiva generatore di testo\n"
+                                     "/wikipedia - Attiva modalità Wikipedia\n"
+                                     "/testo_libero - Attiva Testo Libero \n"
+                                     "/help - Mostra questo messaggio"
+                                     )
+                print("[COMANDO] Start gestito, utente registrato.")
 
             elif text.lower() == '/gpt':
                 self.user_modes[user_id] = "gpt"
-                self.bot.sendMessage(chat_id, "Modalità GPT attiva. Scrivi qualcosa da generare!")
+                self.bot.sendMessage(chat_id, "🧠 Modalità GPT attiva.\nScrivimi qualcosa da generare.")
                 print("[COMANDO] Modalità GPT attiva.")
 
             elif text.lower() == '/wikipedia':
                 self.user_modes[user_id] = "wikipedia"
-                self.bot.sendMessage(chat_id, "Modalità Wikipedia attiva. Scrivi un argomento!")
+                self.bot.sendMessage(chat_id, "📚 Modalità Wikipedia attiva.\nScrivimi un argomento da cercare.")
                 print("[COMANDO] Modalità Wikipedia attiva.")
+
+            elif text.lower() == '/testo_libero':
+                self.user_modes[user_id] = "testo_libero"
+                self.bot.sendMessage(chat_id, "✂🦑 Modalità Testo Libero attiva.\nScrivimi un testo.")
+                print("[COMANDO] Modalità testo_libero attiva.")
+
+            elif text == '/help':
+                self.bot.sendMessage(chat_id,
+                                     "🆘 Comandi disponibili:\n"
+                                     "/start - Riavvia il bot\n"
+                                     "/gpt - Attiva generatore di testo\n"
+                                     "/wikipedia - Attiva modalità Wikipedia\n"
+                                     "/testo_libero - Attiva Testo Libero \n"
+                                     "/help - Mostra questo messaggio"
+                                     )
 
             else:
                 mode = self.user_modes.get(user_id)
@@ -548,59 +576,82 @@ class TelegramBot:
                     print(f"[GPT] Testo generato: {response}")
                     self.bot.sendMessage(chat_id, response)
                     self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram", model_used="GPT", generation_time=generation_time)
+                    self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Riassunto] {response}")
                     logging.info(f"[GPT] Risposta inviata e salvata per {user_id}")
 
                 elif mode == "wikipedia":
                     print("[Wikipedia] Avvio ricerca...")
                     content = fetch_wiki_summaries(text)
                     print(f"[Wikipedia] Contenuto estratto: {content}")
-
                     if not content:
                         self.bot.sendMessage(chat_id, "Nessun contenuto trovato su Wikipedia.")
                         logging.warning(f"[Wikipedia] Nessun contenuto per {text}")
                     else:
-                        # Invia prima il contenuto intero all'utente
+                        # Invia prima il contenuto intero
                         self.bot.sendMessage(chat_id, f"📄 Contenuto Wikipedia:\n\n{content}")
+                        self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Wikipedia] Contenuto Wikipedia: {content}")
 
-
-                        # Riassunto
                         summary = summarize_text(content)
-                        print(f"[Wikipedia] Riassunto: {summary}")
-
-                        self.bot.sendMessage(chat_id, f"🧠 Riassunto:\n\n{summary}")
-                        try:
-                            self.bot.sendMessage(canale, f"🧠 Riassunto:\n\n{summary}")
-                        except Exception as e:
-                            print(f"[ERRORE] Invio riassunto al canale fallito: {e}")
-
-                        # Salvataggio
-                        self.save_interaction(
-                            user_input=content,
-                            bot_response=summary,
-                            feedback="from_telegram",
-                            model_used="MBart",
-                            summary=summary
-                        )
+                        print(f"[Wikipedia] Contenuto AI: {summary}")
+                        self.bot.sendMessage(chat_id, f"[Wikipedia] Contenuto AI: {summary}")
+                        self.save_interaction(user_input=content, bot_response=summary, feedback="from_telegram", model_used="MBart", summary=summary)
+                        self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Wikipedia] Contenuto AI: {summary}")
                         logging.info(f"[Wikipedia] Risposta inviata e salvata per {user_id}")
+
+                elif mode == "testo_libero":
+                    print("[MBART] Modalità Testo libero attiva...scrivi o incolla qel che vuoi.(max 1024 caratteri), 35 meglio XD")
+                    content = text
+                    summary = summarize_text(content)
+                    print(f"[MBART] Riassunto: {summary}")
+                    self.bot.sendMessage(chat_id, f"🧾 Riassunto:\n\n{summary}")
+                    self.save_interaction(user_input=content, bot_response=summary, feedback="from_telegram",
+                                          model_used="MBart", summary=summary)
+                    self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Riassunto] {summary}")
+
+                else:
+                    self.bot.sendMessage(chat_id, "❗ Prima scegli una modalità con /gpt o /wikipedia")
+                    logging.warning(f"[MODE] Nessuna modalità attiva per {user_id}")
+                    print(f"[ERRORE] Nessuna modalità attiva per utente {user_id}")
+
         elif content_type == 'photo':
             self.bot.sendMessage(chat_id, "📷 Hai inviato una foto!")
             logging.info(f"[PHOTO] Ricevuta foto da {user_id}")
             print(f"[PHOTO] Ricevuta da {user_id}")
 
+    def run_loop(self):
+        def loop():
+            print("[LOOP] Avvio polling diretto blindato...")
+            offset = None
+            while True:
+                try:
+                    updates = self.bot.getUpdates(offset=offset, timeout=30)
+                    for update in updates:
+                        offset = update['update_id'] + 1
+
+                        if 'message' in update or 'channel_post' in update:
+                            msg = update.get('message') or update.get('channel_post')
+                            self.handle_message(msg)
+
+                        elif 'my_chat_member' in update:
+                            print("[INFO] Ignorato my_chat_member (cambio ruolo bot)")
+
+                        else:
+                            print(f"[INFO] Update ignorato: {list(update.keys())}")
+
+                    time.sleep(1)
+                except Exception as e:
+                    print(f"[ERRORE] nel loop polling: {e}")
+                    time.sleep(2)
+
+        threading.Thread(target=loop, daemon=True).start()
+
     def run(self, token):
         self.bot = telepot.Bot(token)
-        MessageLoop(self.bot, {
-            'chat': self.handle_message,
-            'channel_post': self.handle_message
-        }).run_as_thread()
-
-        print("🤖 Bot in ascolto...")
+        self.run_loop()
+        print("🤖 Bot in ascolto (modalità polling manuale)...")
         logging.info("Bot Telegram avviato e in ascolto...")
         while True:
-            pass
-
-
-
+            time.sleep(5)
 
 
 # === AVVIO PRINCIPALE
@@ -621,5 +672,3 @@ if __name__ == '__main__':
 
     else:
         print("❌ Argomento non valido. Usa 'flask' o 'telegram'.")
-
-
