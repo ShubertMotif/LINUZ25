@@ -5,4 +5,4 @@ cd /home/mattia/PycharmProjects/LINUZ25/15MAR
 source GPTvenv/bin/activate
 
 # Avvia il programma IA + Telegram
-python3 app4.py telegram
+python3 app5.py telegram
