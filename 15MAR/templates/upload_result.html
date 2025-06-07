@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisi PDF completata</title>
+</head>
+<body>
+    <h2>✅ Analisi completata</h2>
+
+    <p><strong>Nome file:</strong> {{ filename }}</p>
+
+    <h3>📄 Testo estratto (inizio):</h3>
+    <pre style="background:#f0f0f0;padding:10px;">{{ full_text }}</pre>
+
+    <h3>🧠 Riassunto generato:</h3>
+    <pre style="background:#e0ffe0;padding:10px;">{{ summary }}</pre>
+
+    <hr>
+    <a href="/">⬅ Torna alla Home</a> |
+    <a href="/documenti">📚 Visualizza tutti i documenti salvati</a>
+</body>
+</html>

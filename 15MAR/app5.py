@@ -1,3 +1,5 @@
+from xml.dom.minidom import Document
+
 from flask import Flask, request, render_template, jsonify,json,redirect,session
 from flask_sqlalchemy import SQLAlchemy
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
@@ -8,6 +10,9 @@ import logging
 import time
 import os
 from pypdf import PdfReader
+
+import json
+import time
 
 from transformers import BertTokenizer, BertForSequenceClassification
 from torch.utils.data import DataLoader, SequentialSampler, TensorDataset
@@ -62,6 +67,28 @@ class MilitaryInfo(db.Model):
 
     def __repr__(self):
         return f'<MilitaryInfo {self.country_name}>'
+
+
+
+
+class Document(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(200), nullable=False)
+    full_text = db.Column(db.Text, nullable=False)  # Tutto il testo estratto
+    summary = db.Column(db.Text)  # Riassunto complessivo
+    block_texts = db.Column(db.Text)  # Testo dei blocchi separati (come stringa unica, con separatori)
+    block_summaries = db.Column(db.Text)  # Riassunti blocchi (es. Blocco 1:\nRiassunto...)
+    keywords = db.Column(db.String(500))  # Parole chiave (tutte insieme)
+    num_blocks = db.Column(db.Integer)  # Numero di blocchi elaborati
+    processing_time = db.Column(db.Float)  # Secondi impiegati
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Document {self.filename} - {self.num_blocks} blocchi>"
+
+
+
+
 #############PYTORCH
 
 import torch
@@ -131,14 +158,24 @@ def save_interaction(user_input, bot_response, feedback, model_used, summary='',
     print(f"Ultima interazione salvata: Input: {interaction.user_input}, Output: {interaction.bot_response}, Feedback: {interaction.feedback}, Model Used: {interaction.model_used}, Config Details: {interaction.config_details}")
 
 
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf_blocchi(pdf_path, pages_per_block=20):
     reader = PdfReader(pdf_path)
-    text = ''
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:  # Assicurati che il testo non sia None
-            text += page_text + ' '
-    return text
+    total_pages = len(reader.pages)
+    blocchi = []
+
+    for start in range(0, total_pages, pages_per_block):
+        end = min(start + pages_per_block, total_pages)
+        testo_blocco = ''
+        for page in reader.pages[start:end]:
+            testo = page.extract_text()
+            if testo:
+                testo_blocco += testo + ' '
+        if testo_blocco.strip():
+            blocchi.append(testo_blocco.strip())
+
+    return blocchi
+
+
 
 
 def fetch_wiki_summaries(topic):
@@ -353,33 +390,28 @@ def fetch_wiki_summaries(keyword):
     return full_text[:1024]  # Limita il testo a 1024 caratteri per MBART
 
 
-
-
-def summarize_text(text):
+def summarize_text(text, max_tokens=1024, max_summary_tokens=512):
     print("[MBART] Avvio riassunto...")
 
-    # Mostra il testo originale (troncato per non riempire il terminale)
-    print(f"[MBART] Testo ricevuto ({len(text)} caratteri): {text[:200]}{'...' if len(text) > 200 else ''}")
-
-    # Assicura la lunghezza gestibile per il modello
-    if len(text) > 1024:
-        text = text[:1024]
-        print("[MBART] Testo troncato a 1024 caratteri.")
-
-    # Imposta lingua per tokenizer
     tokenizerMBART.src_lang = "it_IT"
 
-    # Prepara input per il modello
-    inputs = tokenizerMBART(text, return_tensors="pt", padding=True, truncation=True, max_length=1024).to(device)
+    # Tokenizza input interamente e tronca in token, non caratteri
+    inputs = tokenizerMBART(
+        text,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=max_tokens
+    ).to(device)
 
-    # Genera il riassunto
+    # Genera il riassunto con MBART
     summary_ids = modelMBART.generate(
         inputs['input_ids'],
         forced_bos_token_id=tokenizerMBART.lang_code_to_id["it_IT"],
         num_beams=5,
         length_penalty=1.0,
-        max_length=350,
-        min_length=50,
+        max_length=max_summary_tokens,
+        min_length=100,
         no_repeat_ngram_size=3,
         early_stopping=True
     )
@@ -459,6 +491,56 @@ def feedback_collect():
 
 
 
+#Analisi PDF 2.0 Cuda
+
+@app.route('/upload-pdf', methods=['GET', 'POST'])
+def upload_pdf():
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if not file or not file.filename.endswith('.pdf'):
+            return render_template('index.html', error="File PDF non valido.")
+
+        save_path = os.path.join('training_data', 'PDF', file.filename)
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        file.save(save_path)
+
+        try:
+            # Estrai testo
+            full_text = extract_text_from_pdf(save_path)
+            if not full_text.strip():
+                return render_template('index.html', error="Il PDF non contiene testo estraibile.")
+
+            # Riassunto
+            summary = summarize_text(full_text)
+
+            # Salva nel DB
+            new_doc = Document(
+                filename=file.filename,
+                full_text=full_text,
+                summary=summary
+            )
+            db.session.add(new_doc)
+            db.session.commit()
+
+            return render_template('index.html', output=summary, user_input=full_text[:400] + '...', summary=summary)
+
+        except Exception as e:
+            return render_template('index.html', error=f"Errore durante l'elaborazione: {str(e)}")
+
+    return render_template('upload_pdf.html',
+                           filename=file.filename,
+                           full_text=full_text,
+                           summary=summary
+                           )
+
+
+@app.route('/documenti')
+def documenti():
+    docs = Document.query.order_by(Document.created_at.desc()).all()
+    return render_template('documenti.html', docs=docs)
+
+
+
 
 
 ###########################TELEGRAM BOT
@@ -466,6 +548,10 @@ def feedback_collect():
 import sys
 import telepot
 from telepot.loop import MessageLoop
+import os
+from pypdf import PdfReader
+from datetime import datetime
+
 
 # === FLASK SETUP (già presente nel tuo file)
 def run_flask():
@@ -477,11 +563,15 @@ def run_flask():
 # Estensione della classe TelegramBot con GPT e Wikipedia
 # Estensione della classe TelegramBot con GPT e Wikipedia + LOG + Salvataggio su DB + feedback console
 import logging
+
+
+
 from datetime import datetime
 
 class TelegramBot:
     def __init__(self):
         self.bot = None
+        self.token = None
         self.registered_users = {}
         self.user_modes = {}  # user_id: "gpt" o "wikipedia"
 
@@ -532,6 +622,7 @@ class TelegramBot:
                                      "/gpt - Attiva generatore di testo\n"
                                      "/wikipedia - Attiva modalità Wikipedia\n"
                                      "/testo_libero - Attiva Testo Libero \n"
+                                     "/analisi_pdf_enciclopedia - Analisi PDF Input e Risposte Intelligenti(in progress)\n "
                                      "/help - Mostra questo messaggio"
                                      )
                 print("[COMANDO] Start gestito, utente registrato.")
@@ -551,10 +642,18 @@ class TelegramBot:
                 self.bot.sendMessage(chat_id, "✂🦑 Modalità Testo Libero attiva.\nScrivimi un testo.")
                 print("[COMANDO] Modalità testo_libero attiva.")
 
+
+
+            elif text.lower() == '/analisi_pdf_enciclopedia':
+                self.user_modes[user_id] = "analisi_pdf_enciclopedia"
+                self.bot.sendMessage(chat_id,"📚 Modalità *Enciclopedia PDF* attivata.\n📄 Inviami ora un file PDF da analizzare.")
+
+
             elif text == '/help':
                 self.bot.sendMessage(chat_id,
                                      "🆘 Comandi disponibili:\n"
                                      "/start - Riavvia il bot\n"
+                                     "/analisi_pdf_enciclopedia - Analisi PDF Training Enciclopedia \n"
                                      "/gpt - Attiva generatore di testo\n"
                                      "/wikipedia - Attiva modalità Wikipedia\n"
                                      "/testo_libero - Attiva Testo Libero \n"
@@ -576,6 +675,7 @@ class TelegramBot:
                     self.bot.sendMessage(chat_id, response)
                     self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram", model_used="GPT", generation_time=generation_time)
                     self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Riassunto] {response}")
+                    self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
                     logging.info(f"[GPT] Risposta inviata e salvata per {user_id}")
 
                 elif mode == "wikipedia":
@@ -595,6 +695,7 @@ class TelegramBot:
                         self.bot.sendMessage(chat_id, f"[Wikipedia] Contenuto AI: {summary}")
                         self.save_interaction(user_input=content, bot_response=summary, feedback="from_telegram", model_used="MBart", summary=summary)
                         self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Wikipedia] Contenuto AI: {summary}")
+                        self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
                         logging.info(f"[Wikipedia] Risposta inviata e salvata per {user_id}")
 
                 elif mode == "testo_libero":
@@ -606,9 +707,9 @@ class TelegramBot:
                     self.save_interaction(user_input=content, bot_response=summary, feedback="from_telegram",
                                           model_used="MBart", summary=summary)
                     self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Riassunto] {summary}")
+                    self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
 
                 else:
-                    self.bot.sendMessage(chat_id, "❗ Prima scegli una modalità con /gpt o /wikipedia")
                     logging.warning(f"[MODE] Nessuna modalità attiva per {user_id}")
                     print(f"[ERRORE] Nessuna modalità attiva per utente {user_id}")
 
@@ -616,6 +717,108 @@ class TelegramBot:
             self.bot.sendMessage(chat_id, "📷 Hai inviato una foto!")
             logging.info(f"[PHOTO] Ricevuta foto da {user_id}")
             print(f"[PHOTO] Ricevuta da {user_id}")
+
+        elif content_type == 'document':
+            mode = self.user_modes.get(user_id)
+            if mode != "analisi_pdf_enciclopedia":
+                self.bot.sendMessage(chat_id, "⚠️ Prima invia /analisi_pdf_enciclopedia")
+                return
+
+            file_id = msg['document']['file_id']
+            original_name = msg['document'].get('file_name', 'documento.pdf')
+            timestamp = int(time.time())
+            file_name = f"{timestamp}_{original_name}"
+            file_info = self.bot.getFile(file_id)
+            file_url = f"https://api.telegram.org/file/bot{self.token}/{file_info['file_path']}"
+            local_path = os.path.join('training_data', 'Telegram', file_name)
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+            try:
+                with open(local_path, 'wb') as f:
+                    f.write(requests.get(file_url).content)
+                print(f"[PDF] File salvato in {local_path}")
+
+                start_time = time.time()
+
+                blocchi = extract_text_from_pdf_blocchi(local_path)
+                if not blocchi:
+                    self.bot.sendMessage(chat_id, "⚠️ Il PDF non contiene testo estraibile.")
+                    return
+
+                self.bot.sendMessage(chat_id, f"📚 Trovati {len(blocchi)} blocchi da 20 pagine. Inizio analisi...")
+
+                riassunti_blocchi = []
+                for i, blocco in enumerate(blocchi):
+                    self.bot.sendMessage(chat_id, f"🧠 Analisi blocco {i + 1}/{len(blocchi)}...")
+                    riassunto = summarize_text(blocco)
+                    riassunti_blocchi.append(f"[Blocco {i + 1}]\n{riassunto}")
+
+                final_summary = "\n\n".join(riassunti_blocchi)
+                full_text = ' '.join(blocchi)
+                keywords = ', '.join(sorted(set(w for w in full_text.lower().split() if len(w) > 5))[:10])
+
+                # Blocchi salvati come testo unico
+                block_texts = "\n\n".join([f"[Blocco {i + 1}]\n{blocchi[i]}" for i in range(len(blocchi))])
+                block_summaries = "\n\n".join(riassunti_blocchi)
+
+                elapsed = round(time.time() - start_time, 2)
+
+                # ✅ Salvataggio nel DB
+                new_doc = Document(
+                    filename=file_name,
+                    full_text=full_text,
+                    summary=final_summary,
+                    block_texts=block_texts,
+                    block_summaries=block_summaries,
+                    keywords=keywords,
+                    num_blocks=len(blocchi),
+                    processing_time=elapsed
+                )
+
+
+
+                # Genera nome file univoco
+                unique_id = int(time.time())
+                unique_file_name = f"{unique_id}_{file_name}"
+
+                # ✅ Salvataggio locale su JSON
+                json_path = os.path.join("training_data", "Telegram", f"{unique_file_name}.json")
+                os.makedirs(os.path.dirname(json_path), exist_ok=True)
+
+                json_data = {
+                    "filename": unique_file_name,
+                    "processing_time": elapsed,
+                    "keywords": keywords,
+                    "num_blocks": len(blocchi),
+                    "block_texts": block_texts,
+                    "block_summaries": block_summaries,
+                    "full_text": full_text,
+                    "final_summary": final_summary
+                }
+
+                with open(json_path, "w", encoding="utf-8") as f:
+                    json.dump(json_data, f, ensure_ascii=False, indent=2)
+
+                # 🔁 Invia conferma su Telegram
+                self.bot.sendMessage(chat_id, f"💾 Documento salvato come file JSON:")
+                self.bot.sendMessage(chat_id, f"📁 {json_path}")
+
+                # 📤 Risposte su Telegram
+                self.bot.sendMessage(chat_id, f"✅ PDF completato: {file_name}")
+                self.bot.sendMessage(chat_id, f"📄 Prime 300 parole:\n\n{' '.join(full_text.split()[:300])}")
+                self.bot.sendMessage(chat_id, f"🧠 Riassunto finale (lunghezza: {len(final_summary)} caratteri):")
+
+                for i in range(0, len(final_summary), 1000):
+                    self.bot.sendMessage(chat_id, final_summary[i:i+1000])
+
+                self.bot.sendMessage(chat_id, f"🏷️ Tag stimati: {keywords}")
+                self.bot.sendMessage(chat_id, f"📦 Documento salvato su DB (ID: {new_doc.id}, blocchi: {len(blocchi)})")
+                self.bot.sendMessage(chat_id, f"⏱️ Tempo totale: {elapsed} secondi")
+                self.bot.sendMessage(chat_id,"/start - Riavvia il bot\n")
+
+            except Exception as e:
+                self.bot.sendMessage(chat_id, f"❌ Errore durante l'elaborazione:\n{str(e)}")
+
 
     def run_loop(self):
         def loop():
@@ -645,6 +848,7 @@ class TelegramBot:
         threading.Thread(target=loop, daemon=True).start()
 
     def run(self, token):
+        self.token = token
         self.bot = telepot.Bot(token)
         self.run_loop()
         print("🤖 Bot in ascolto (modalità polling manuale)...")

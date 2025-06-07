@@ -1,0 +1,12 @@
+<h2>📚 Documenti Analizzati</h2>
+<ul>
+{% for doc in docs %}
+  <li><strong>{{ doc.filename }}</strong><br>
+      <em>Creato il: {{ doc.created_at }}</em><br>
+      <details>
+        <summary>📝 Riassunto</summary>
+        <p>{{ doc.summary[:1000] }}...</p>
+      </details>
+  </li>
+{% endfor %}
+</ul>

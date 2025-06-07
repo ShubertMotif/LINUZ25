@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Carica PDF - Enciclopedia</title>
+</head>
+<body>
+    <h1>📚 Sistema Enciclopedia</h1>
+
+    <h2>Carica un PDF da analizzare</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept="application/pdf" required>
+        <button type="submit">Analizza PDF</button>
+    </form>
+
+    {% if filename %}
+        <hr>
+        <h3>✅ PDF analizzato: {{ filename }}</h3>
+
+        <h4>📄 Testo estratto (inizio):</h4>
+        <div style="background:#f8f8f8;padding:10px;white-space:pre-wrap;">
+            {{ full_text[:1000] }}{% if full_text|length > 1000 %}...{% endif %}
+        </div>
+
+        <h4>🧠 Riassunto generato:</h4>
+        <div style="background:#e0ffe0;padding:10px;white-space:pre-wrap;">
+            {{ summary }}
+        </div>
+        <hr>
+        <a href="/documenti">📂 Visualizza tutti i documenti salvati</a>
+    {% endif %}
+
+    {% if error %}
+        <p style="color:red;"><strong>Errore:</strong> {{ error }}</p>
+    {% endif %}
+</body>
+</html>
