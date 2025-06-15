@@ -556,15 +556,6 @@ def documenti():
 import sys
 import telepot
 from telepot.loop import MessageLoop
-import os
-from pypdf import PdfReader
-from datetime import datetime
-
-
-# === FLASK SETUP (già presente nel tuo file)
-def run_flask():
-    print("[FLASK] Avvio del server web Flask...")
-    app.run(debug=True, port=5000, use_reloader=False)
 
 
 # === TELEGRAM BOT (telepot)
@@ -572,8 +563,53 @@ def run_flask():
 # Estensione della classe TelegramBot con GPT e Wikipedia + LOG + Salvataggio su DB + feedback console
 import logging
 
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+def cerca_blocchi_rilevanti(prompt, top_k=3):
+    with app.app_context():
+        blocchi = Block.query.all()
+        if not blocchi:
+            return []
+
+        testi_blocchi = [b.block_summary for b in blocchi]
+        vectorizer = TfidfVectorizer()
+        tfidf = vectorizer.fit_transform([prompt] + testi_blocchi)
+
+        sim = cosine_similarity(tfidf[0:1], tfidf[1:])[0]
+        migliori = sim.argsort()[-top_k:][::-1]
+
+        return [blocchi[i] for i in migliori]
 
 
+
+def genera_con_blocchi(prompt, top_k=3, max_words_context=500):
+    with app.app_context():
+        torch.cuda.empty_cache()
+
+        blocchi = cerca_blocchi_rilevanti(prompt, top_k=top_k)
+        if not blocchi:
+            raise ValueError("❌ Nessun blocco trovato.")
+
+        contesto = "\n\n".join(f"[Blocco {b.block_index}] {b.block_summary}" for b in blocchi)
+        parole = contesto.split()
+        contesto = " ".join(parole[:max_words_context])
+
+        input_gpt = f"Contesto:\n{contesto}\n\nDomanda: {prompt}\nRisposta:"
+        config = load_config("medium")
+
+        output = generator(
+            input_gpt,
+            truncation=config.get('truncation', True),
+            max_length=config.get('max_length', 512),
+            temperature=config.get('temperature', 0.7),
+            top_p=config.get('top_p', 0.9),
+            num_return_sequences=1,
+            max_new_tokens=config.get('max_new_token', 50)
+        )[0]['generated_text']
+
+        torch.cuda.empty_cache()
+        return output.strip(), contesto
 
 
 
@@ -594,58 +630,24 @@ class TelegramBot:
         )
 
     def save_interaction(self, user_input, bot_response, feedback, model_used, summary='', config_details='', generation_time=0.0):
-        interaction = Interaction(
-            user_input=user_input,
-            bot_response=bot_response,
-            feedback=feedback,
-            model_used=model_used,
-            additional_info=summary,
-            config_details=config_details,
-            generation_time=generation_time,
-            created_at=datetime.utcnow()
-        )
-        db.session.add(interaction)
-        db.session.commit()
+        with app.app_context():
+            interaction = Interaction(
+                user_input=user_input,
+                bot_response=bot_response,
+                feedback=feedback,
+                model_used=model_used,
+                additional_info=summary,
+                config_details=config_details,
+                generation_time=generation_time,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(interaction)
+            db.session.commit()
 
-        count = Interaction.query.count()
-        print(f"[DB] Interazione salvata. Totale: {count}")
-        logging.info(f"[DB] Interazione salvata per modello {model_used} - totale record: {count}")
+            count = Interaction.query.count()
+            print(f"[DB] Interazione salvata. Totale: {count}")
+            logging.info(f"[DB] Interazione salvata per modello {model_used} - totale record: {count}")
 
-    def cerca_blocchi_rilevanti(prompt, top_k=3):
-        from sklearn.feature_extraction.text import TfidfVectorizer
-        from sklearn.metrics.pairwise import cosine_similarity
-        from app5 import Block  # o dove hai definito Block
-        from sqlalchemy.orm import scoped_session
-
-        # Carica blocchi dal DB
-        blocchi = Block.query.all()
-        testi_blocchi = [b.block_summary for b in blocchi]
-        if not testi_blocchi:
-            return []
-
-        # TF-IDF su blocchi + prompt
-        vectorizer = TfidfVectorizer(stop_words='italian').fit([prompt] + testi_blocchi)
-        tfidf_prompt = vectorizer.transform([prompt])
-        tfidf_blocchi = vectorizer.transform(testi_blocchi)
-
-        similarità = cosine_similarity(tfidf_prompt, tfidf_blocchi)[0]
-        top_idx = similarità.argsort()[-top_k:][::-1]
-
-        blocchi_rilevanti = [blocchi[i] for i in top_idx]
-        return blocchi_rilevanti
-
-    def genera_con_blocchi(prompt):
-        blocchi = cerca_blocchi_rilevanti(prompt, top_k=3)
-        contesto = "\n\n".join([b.block_summary for b in blocchi])
-
-        input_gpt = f"Contesto:\n{contesto}\n\nDomanda: {prompt}\nRisposta:"
-        config = load_config("medium")
-
-        response = generator(input_gpt, truncation=config['truncation'], max_length=config['max_length'],
-                             temperature=config['temperature'], top_p=0.9,
-                             num_return_sequences=config['num_return_sequences'],
-                             max_new_tokens=config.get('max_new_token', 50))[0]['generated_text']
-        return response, contesto
 
     def handle_message(self, msg):
         content_type, chat_type, chat_id = telepot.glance(msg)
@@ -691,22 +693,9 @@ class TelegramBot:
                 print("[COMANDO] Modalità testo_libero attiva.")
 
 
-
             elif text.lower() == '/analisi_pdf_enciclopedia':
                 self.user_modes[user_id] = "analisi_pdf_enciclopedia"
                 self.bot.sendMessage(chat_id,"📚 Modalità *Enciclopedia PDF* attivata.\n📄 Inviami ora un file PDF da analizzare.")
-
-
-            elif text == '/help':
-                self.bot.sendMessage(chat_id,
-                                     "🆘 Comandi disponibili:\n"
-                                     "/start - Riavvia il bot\n"
-                                     "/analisi_pdf_enciclopedia - Analisi PDF Training Enciclopedia \n"
-                                     "/gpt - Attiva generatore di testo\n"
-                                     "/wikipedia - Attiva modalità Wikipedia\n"
-                                     "/testo_libero - Attiva Testo Libero \n"
-                                     "/help - Mostra questo messaggio"
-                                     )
 
             else:
                 mode = self.user_modes.get(user_id)
@@ -729,22 +718,38 @@ class TelegramBot:
 
                 elif mode == "gpt_db":
                     print("[GPT_DB] Avvio generazione con contesto da DB...")
+
+                    # 🧹 Pulisce memoria CUDA prima di iniziare
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+
                     start_time = time.time()
                     try:
                         response, contesto = genera_con_blocchi(text)
                         generation_time = time.time() - start_time
+
+
+                        risposta_breve = response[20:570] + ('...' if len(response) > 570 else '')
+                        self.bot.sendMessage(chat_id, f" Risposta:\n{risposta_breve}")
+
                         self.bot.sendMessage(chat_id,
                                              f"📚 Ho trovato questo nei miei appunti:\n\n{contesto[:1000]}{'...' if len(contesto) > 1000 else ''}")
-                        self.bot.sendMessage(chat_id, f"🧠 Risposta:\n{response}")
+
                         self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram",
                                               model_used="GPT_DB", generation_time=generation_time, summary=contesto)
-                        self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[GPT_DB] {response}")
+                        self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[GPT_DB] {risposta_breve}")
                         self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
                         logging.info(f"[GPT_DB] Risposta inviata e salvata per {user_id}")
+
                     except Exception as e:
                         logging.error(f"[GPT_DB] Errore: {str(e)}")
                         self.bot.sendMessage(chat_id, f"❌ Errore durante l'elaborazione:\n{str(e)}")
+                        self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
 
+                    finally:
+                        # 🧹 Pulisce la cache CUDA anche alla fine
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
 
 
                 elif mode == "wikipedia":
@@ -868,9 +873,6 @@ class TelegramBot:
                 with open(json_path, "w", encoding="utf-8") as f:
                     json.dump(json_data, f, ensure_ascii=False, indent=2)
 
-                # 🔁 Invia conferma su Telegram
-                self.bot.sendMessage(chat_id, f"💾 Documento salvato come file JSON:")
-                self.bot.sendMessage(chat_id, f"📁 {json_path}")
 
                 # 📤 Risposte su Telegram
                 self.bot.sendMessage(chat_id, f"✅ PDF completato: {file_name}")
@@ -887,6 +889,7 @@ class TelegramBot:
 
             except Exception as e:
                 self.bot.sendMessage(chat_id, f"❌ Errore durante l'elaborazione:\n{str(e)}")
+                self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
 
 
     def run_loop(self):
