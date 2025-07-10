@@ -86,17 +86,25 @@ class Document(db.Model):
     def __repr__(self):
         return f"<Document {self.filename} - {self.num_blocks} blocchi>"
 
+class Block(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(200), nullable=False)  # Nome file JSON
+    block_index = db.Column(db.Integer, nullable=False)   # Blocco 1, 2, ...
+    block_text = db.Column(db.Text, nullable=False)       # Testo del blocco
+    block_summary = db.Column(db.Text, nullable=False)    # Riassunto del blocco
+    keywords = db.Column(db.String(500))                  # Parole chiave stimate
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Block {self.filename} - Blocco {self.block_index}>"
 
 
 
 #############PYTORCH
-
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-#MODEL TRASFORMER
-
+# MODEL TRASFORMER
 tokenizer = AutoTokenizer.from_pretrained("GroNLP/gpt2-medium-italian-embeddings")
 model = AutoModelForCausalLM.from_pretrained("GroNLP/gpt2-medium-italian-embeddings").to(device)
 generator = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0 if device.type == "cuda" else -1)
@@ -105,9 +113,9 @@ tokenizerBERT = BertTokenizer.from_pretrained('dbmdz/bert-base-italian-uncased')
 modelBERT = BertForSequenceClassification.from_pretrained('dbmdz/bert-base-italian-uncased').to(device)
 
 from transformers import MBartForConditionalGeneration, MBart50TokenizerFast
-
 modelMBART = MBartForConditionalGeneration.from_pretrained("facebook/mbart-large-50-many-to-many-mmt").to(device)
 tokenizerMBART = MBart50TokenizerFast.from_pretrained("facebook/mbart-large-50-many-to-many-mmt")
+
 
 
 ################ FUNZIONI
@@ -548,21 +556,60 @@ def documenti():
 import sys
 import telepot
 from telepot.loop import MessageLoop
-import os
-from pypdf import PdfReader
-from datetime import datetime
-
-
-# === FLASK SETUP (già presente nel tuo file)
-def run_flask():
-    print("[FLASK] Avvio del server web Flask...")
-    app.run(debug=True, port=5000, use_reloader=False)
 
 
 # === TELEGRAM BOT (telepot)
 # Estensione della classe TelegramBot con GPT e Wikipedia
 # Estensione della classe TelegramBot con GPT e Wikipedia + LOG + Salvataggio su DB + feedback console
 import logging
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+def cerca_blocchi_rilevanti(prompt, top_k=3):
+    with app.app_context():
+        blocchi = Block.query.all()
+        if not blocchi:
+            return []
+
+        testi_blocchi = [b.block_summary for b in blocchi]
+        vectorizer = TfidfVectorizer()
+        tfidf = vectorizer.fit_transform([prompt] + testi_blocchi)
+
+        sim = cosine_similarity(tfidf[0:1], tfidf[1:])[0]
+        migliori = sim.argsort()[-top_k:][::-1]
+
+        return [blocchi[i] for i in migliori]
+
+
+
+def genera_con_blocchi(prompt, top_k=3, max_words_context=500):
+    with app.app_context():
+        torch.cuda.empty_cache()
+
+        blocchi = cerca_blocchi_rilevanti(prompt, top_k=top_k)
+        if not blocchi:
+            raise ValueError("❌ Nessun blocco trovato.")
+
+        contesto = "\n\n".join(f"[Blocco {b.block_index}] {b.block_summary}" for b in blocchi)
+        parole = contesto.split()
+        contesto = " ".join(parole[:max_words_context])
+
+        input_gpt = f"Contesto:\n{contesto}\n\nDomanda: {prompt}\nRisposta:"
+        config = load_config("medium")
+
+        output = generator(
+            input_gpt,
+            truncation=config.get('truncation', True),
+            max_length=config.get('max_length', 512),
+            temperature=config.get('temperature', 0.7),
+            top_p=config.get('top_p', 0.9),
+            num_return_sequences=1,
+            max_new_tokens=config.get('max_new_token', 50)
+        )[0]['generated_text']
+
+        torch.cuda.empty_cache()
+        return output.strip(), contesto
 
 
 
@@ -583,22 +630,24 @@ class TelegramBot:
         )
 
     def save_interaction(self, user_input, bot_response, feedback, model_used, summary='', config_details='', generation_time=0.0):
-        interaction = Interaction(
-            user_input=user_input,
-            bot_response=bot_response,
-            feedback=feedback,
-            model_used=model_used,
-            additional_info=summary,
-            config_details=config_details,
-            generation_time=generation_time,
-            created_at=datetime.utcnow()
-        )
-        db.session.add(interaction)
-        db.session.commit()
+        with app.app_context():
+            interaction = Interaction(
+                user_input=user_input,
+                bot_response=bot_response,
+                feedback=feedback,
+                model_used=model_used,
+                additional_info=summary,
+                config_details=config_details,
+                generation_time=generation_time,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(interaction)
+            db.session.commit()
 
-        count = Interaction.query.count()
-        print(f"[DB] Interazione salvata. Totale: {count}")
-        logging.info(f"[DB] Interazione salvata per modello {model_used} - totale record: {count}")
+            count = Interaction.query.count()
+            print(f"[DB] Interazione salvata. Totale: {count}")
+            logging.info(f"[DB] Interazione salvata per modello {model_used} - totale record: {count}")
+
 
     def handle_message(self, msg):
         content_type, chat_type, chat_id = telepot.glance(msg)
@@ -619,7 +668,7 @@ class TelegramBot:
                 self.bot.sendMessage(chat_id, "🦁 Benvenuto nella Savana!")
                 self.bot.sendMessage(chat_id,
                                      " 🦑 Scegli Modalità:\n"
-                                     "/gpt - Attiva generatore di testo\n"
+                                     "/gpt_db - Attiva GPT Databse\n"
                                      "/wikipedia - Attiva modalità Wikipedia\n"
                                      "/testo_libero - Attiva Testo Libero \n"
                                      "/analisi_pdf_enciclopedia - Analisi PDF Input e Risposte Intelligenti(in progress)\n "
@@ -627,10 +676,11 @@ class TelegramBot:
                                      )
                 print("[COMANDO] Start gestito, utente registrato.")
 
-            elif text.lower() == '/gpt':
-                self.user_modes[user_id] = "gpt"
-                self.bot.sendMessage(chat_id, "🧠 Modalità GPT attiva.\nScrivimi qualcosa da generare.")
-                print("[COMANDO] Modalità GPT attiva.")
+            elif text.lower() == '/gpt_db':
+                self.user_modes[user_id] = "gpt_db"
+                self.bot.sendMessage(chat_id,
+                                     "📚 Modalità GPT con accesso al database attiva.\nScrivimi una domanda o un argomento.")
+
 
             elif text.lower() == '/wikipedia':
                 self.user_modes[user_id] = "wikipedia"
@@ -643,27 +693,14 @@ class TelegramBot:
                 print("[COMANDO] Modalità testo_libero attiva.")
 
 
-
             elif text.lower() == '/analisi_pdf_enciclopedia':
                 self.user_modes[user_id] = "analisi_pdf_enciclopedia"
                 self.bot.sendMessage(chat_id,"📚 Modalità *Enciclopedia PDF* attivata.\n📄 Inviami ora un file PDF da analizzare.")
 
-
-            elif text == '/help':
-                self.bot.sendMessage(chat_id,
-                                     "🆘 Comandi disponibili:\n"
-                                     "/start - Riavvia il bot\n"
-                                     "/analisi_pdf_enciclopedia - Analisi PDF Training Enciclopedia \n"
-                                     "/gpt - Attiva generatore di testo\n"
-                                     "/wikipedia - Attiva modalità Wikipedia\n"
-                                     "/testo_libero - Attiva Testo Libero \n"
-                                     "/help - Mostra questo messaggio"
-                                     )
-
             else:
                 mode = self.user_modes.get(user_id)
                 if mode == "gpt":
-                    print("[GPT] Avvio generazione...")
+                    print("[GPT] Avvio generazione classica...")
                     config = load_config("medium")
                     start_time = time.time()
                     response = generator(text, truncation=config['truncation'], max_length=config['max_length'],
@@ -673,10 +710,47 @@ class TelegramBot:
                     generation_time = time.time() - start_time
                     print(f"[GPT] Testo generato: {response}")
                     self.bot.sendMessage(chat_id, response)
-                    self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram", model_used="GPT", generation_time=generation_time)
-                    self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[Riassunto] {response}")
+                    self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram",
+                                          model_used="GPT", generation_time=generation_time)
+                    self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[GPT] {response}")
                     self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
                     logging.info(f"[GPT] Risposta inviata e salvata per {user_id}")
+
+                elif mode == "gpt_db":
+                    print("[GPT_DB] Avvio generazione con contesto da DB...")
+
+                    # 🧹 Pulisce memoria CUDA prima di iniziare
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+
+                    start_time = time.time()
+                    try:
+                        response, contesto = genera_con_blocchi(text)
+                        generation_time = time.time() - start_time
+
+
+                        risposta_breve = response[20:570] + ('...' if len(response) > 570 else '')
+                        self.bot.sendMessage(chat_id, f" Risposta:\n{risposta_breve}")
+
+                        self.bot.sendMessage(chat_id,
+                                             f"📚 Ho trovato questo nei miei appunti:\n\n{contesto[:1000]}{'...' if len(contesto) > 1000 else ''}")
+
+                        self.save_interaction(user_input=text, bot_response=response, feedback="from_telegram",
+                                              model_used="GPT_DB", generation_time=generation_time, summary=contesto)
+                        self.bot.sendMessage("@IntelligenzaArtificialeITA", f"[GPT_DB] {risposta_breve}")
+                        self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
+                        logging.info(f"[GPT_DB] Risposta inviata e salvata per {user_id}")
+
+                    except Exception as e:
+                        logging.error(f"[GPT_DB] Errore: {str(e)}")
+                        self.bot.sendMessage(chat_id, f"❌ Errore durante l'elaborazione:\n{str(e)}")
+                        self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
+
+                    finally:
+                        # 🧹 Pulisce la cache CUDA anche alla fine
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+
 
                 elif mode == "wikipedia":
                     print("[Wikipedia] Avvio ricerca...")
@@ -799,9 +873,6 @@ class TelegramBot:
                 with open(json_path, "w", encoding="utf-8") as f:
                     json.dump(json_data, f, ensure_ascii=False, indent=2)
 
-                # 🔁 Invia conferma su Telegram
-                self.bot.sendMessage(chat_id, f"💾 Documento salvato come file JSON:")
-                self.bot.sendMessage(chat_id, f"📁 {json_path}")
 
                 # 📤 Risposte su Telegram
                 self.bot.sendMessage(chat_id, f"✅ PDF completato: {file_name}")
@@ -818,6 +889,7 @@ class TelegramBot:
 
             except Exception as e:
                 self.bot.sendMessage(chat_id, f"❌ Errore durante l'elaborazione:\n{str(e)}")
+                self.bot.sendMessage(chat_id, "/start - Riavvia il bot\n")
 
 
     def run_loop(self):
@@ -857,6 +929,91 @@ class TelegramBot:
             time.sleep(5)
 
 
+###DB MAGAGE db_manage()
+import os
+import json
+import shutil
+from datetime import datetime
+
+
+def db_manage_import_json():
+    base_path = os.path.join("training_data", "Telegram")
+    ok_path = os.path.join(base_path, "OK")
+    os.makedirs(ok_path, exist_ok=True)
+
+    json_files = [f for f in os.listdir(base_path) if f.endswith(".json")]
+
+    print(f"\n📄 Trovati {len(json_files)} file .json da importare:")
+    for file in json_files:
+        file_path = os.path.join(base_path, file)
+        size_kb = round(os.path.getsize(file_path) / 1024, 2)
+        print(f"  - {file} ({size_kb} KB)")
+
+    if not json_files:
+        print("✅ Nessun file da importare.")
+        return
+
+    proceed = input("\nVuoi procedere con l'importazione nel DB? (s/N): ").strip().lower()
+    if proceed != 's':
+        print("❌ Operazione annullata.")
+        return
+
+    with app.app_context():
+        for file in json_files:
+            json_path = os.path.join(base_path, file)
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+
+                doc = Document(
+                    filename=data.get("filename", file),
+                    full_text=data.get("full_text", ""),
+                    summary=data.get("final_summary", ""),
+                    block_texts=data.get("block_texts", ""),
+                    block_summaries=data.get("block_summaries", ""),
+                    keywords=data.get("keywords", ""),
+                    num_blocks=data.get("num_blocks", 0),
+                    processing_time=data.get("processing_time", 0.0),
+                    created_at=datetime.utcnow()
+                )
+                db.session.add(doc)
+                db.session.commit()
+
+                blocchi_testo = data.get("block_texts", "")
+                blocchi_riassunto = data.get("block_summaries", "")
+                filename = data.get("filename", file)
+                keywords = data.get("keywords", "")
+
+                # parsing blocchi da stringa
+                blocchi_testo_split = blocchi_testo.split("[Blocco ")[1:]
+                blocchi_riassunto_split = blocchi_riassunto.split("[Blocco ")[1:]
+
+                for i in range(len(blocchi_testo_split)):
+                    testo_raw = blocchi_testo_split[i].split("\n", 1)[-1].strip()
+                    summary_raw = blocchi_riassunto_split[i].split("\n", 1)[-1].strip() if i < len(blocchi_riassunto_split) else ""
+
+                    blocco = Block(
+                        filename=filename,
+                        block_index=i + 1,
+                        block_text=testo_raw,
+                        block_summary=summary_raw,
+                        keywords=keywords,
+                        created_at=datetime.utcnow()
+                    )
+                    db.session.add(blocco)
+
+                db.session.commit()
+
+                # Sposta nella cartella OK
+                shutil.move(json_path, os.path.join(ok_path, os.path.basename(json_path)))
+                print(f"✅ Importato e spostato: {file}")
+
+            except Exception as e:
+                print(f"❌ Errore nel file {file}: {str(e)}")
+
+
+
+
 # === AVVIO PRINCIPALE
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -869,9 +1026,16 @@ if __name__ == '__main__':
         run_flask()
 
     elif mode == "telegram":
-        bot_token = "7638639600:AAHl65R20LxFXDaRmeuPBKO_0aSowrNzRyo"
-        telegram_bot = TelegramBot()
-        telegram_bot.run(bot_token)
+        bot_token = "7638639600:AAFsGv2goypYcW73MYq_XlkQDm9wbvLqWjk"
+        with app.app_context():  # 👈 Qui avvii il context di Flask per accedere al DB
+            telegram_bot = TelegramBot()
+            telegram_bot.run(bot_token)
+
+    elif mode == "db_manage":
+        with app.app_context():
+            db.create_all()  # <-- crea tabelle se non esistono
+            db_manage_import_json()
+
 
     else:
         print("❌ Argomento non valido. Usa 'flask' o 'telegram'.")
