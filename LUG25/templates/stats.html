@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelchi Group - Statistiche</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 2rem;
+            color: #005B94;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #005B94;
+            text-shadow: 0 0 20px rgba(231, 212, 84, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 3px solid #005B94;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.2);
+            border-color: #E7D454;
+        }
+
+        .stat-card h3 {
+            color: #005B94;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #E7D454;
+            margin-bottom: 0.5rem;
+        }
+
+        .visitors-table {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 3px solid #005B94;
+            margin-bottom: 2rem;
+        }
+
+        .visitors-table h3 {
+            color: #005B94;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .visitor-item {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #005B94;
+        }
+
+        .visitor-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .visitor-time {
+            font-size: 0.9rem;
+            color: #E7D454;
+            margin-bottom: 0.5rem;
+        }
+
+        .visitor-details {
+            font-size: 0.8rem;
+            color: #005B94;
+            opacity: 0.7;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: white;
+            color: #005B94;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 25px;
+            border: 2px solid #005B94;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .back-btn:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+        }
+
+        .refresh-btn {
+            background: rgba(231, 212, 84, 0.2);
+            color: #E7D454;
+            border: 2px solid #E7D454;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            float: right;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(231, 212, 84, 0.3);
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Statistiche del Sito</h1>
+            <a href="/stats" class="refresh-btn">🔄 Aggiorna</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Visite Totali</h3>
+                <div class="stat-number">{{ visit_count }}</div>
+                <p>Dall'inizio del monitoraggio</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Visite Recenti</h3>
+                <div class="stat-number">{{ recent_visitors|length }}</div>
+                <p>Ultime 10 visite registrate</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Status</h3>
+                <div class="stat-number">🟢</div>
+                <p>Sistema operativo</p>
+            </div>
+        </div>
+
+        <div class="visitors-table">
+            <h3>Ultime Visite</h3>
+            {% if recent_visitors %}
+                {% for visitor in recent_visitors|reverse %}
+                <div class="visitor-item">
+                    <div class="visitor-time">
+                        📅 {{ visitor.timestamp[:19].replace('T', ' ') }}
+                    </div>
+                    <div class="visitor-details">
+                        🌐 IP: {{ visitor.ip[:20] }}...
+                        {% if visitor.user_agent %}
+                        <br>
+                        💻 Browser: {{ visitor.user_agent[:60] }}...
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Nessuna visita registrata</p>
+            {% endif %}
+        </div>
+
+        <a href="/" class="back-btn">← Torna alla Home</a>
+    </div>
+
+    <script>
+        // Auto-refresh ogni 30 secondi
+        setTimeout(() => {
+            window.location.reload();
+        }, 30000);
+
+        // Effetto di apparizione dei card
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.stat-card, .visitor-item');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+</html>

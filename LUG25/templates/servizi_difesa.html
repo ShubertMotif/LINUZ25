@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelchi Group - Servizi Difesa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            color: #005B94;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #005B94 0%, #003366 50%, #E7D454 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="20,20 25,10 30,20 25,30" fill="rgba(255,255,255,0.03)"/><polygon points="70,30 75,20 80,30 75,40" fill="rgba(255,255,255,0.03)"/><polygon points="45,70 50,60 55,70 50,80" fill="rgba(255,255,255,0.03)"/></svg>');
+            animation: militaryPattern 12s linear infinite;
+        }
+
+        @keyframes militaryPattern {
+            0% { transform: translateX(0px); }
+            100% { transform: translateX(-100px); }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: shield 2s ease-in-out infinite;
+        }
+
+        @keyframes shield {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.05) rotate(2deg); }
+        }
+
+        .service-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .service-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #E7D454;
+            border-radius: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 3px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.3);
+            border-color: #E7D454;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #E7D454;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            color: #005B94;
+            opacity: 0.8;
+        }
+
+        .security-section {
+            background: rgba(0, 91, 148, 0.05);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 2px solid #005B94;
+            margin: 3rem 0;
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .security-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .security-item::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #005B94, #E7D454, #005B94);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .security-item:hover::after {
+            opacity: 1;
+        }
+
+        .security-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 91, 148, 0.2);
+        }
+
+        .security-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #E7D454;
+        }
+
+        .security-title {
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 0.5rem;
+        }
+
+        .security-desc {
+            font-size: 0.9rem;
+            color: #005B94;
+            opacity: 0.7;
+        }
+
+        .clearance-banner {
+            background: linear-gradient(135deg, #003366, #005B94);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 3rem 0;
+            border: 3px solid #E7D454;
+        }
+
+        .clearance-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .clearance-text {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .cta-section {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #E7D454;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .cta-text {
+            font-size: 1.1rem;
+            color: #005B94;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #005B94;
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .cta-button:hover {
+            background: #E7D454;
+            color: #005B94;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 212, 84, 0.4);
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #E7D454;
+        }
+
+        .nav-links a {
+            color: #005B94;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #005B94;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .service-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .security-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-button {
+                display: block;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="service-icon">🛡️</div>
+            <h1 class="service-title">Servizi Difesa</h1>
+            <p class="service-subtitle">
+                Consulenza specializzata per il settore difesa e sicurezza.
+                Soluzioni strategiche per la protezione nazionale e internazionale
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">Aree di Competenza</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">Sistemi di Difesa</h3>
+                    <p class="feature-description">
+                        Progettazione e sviluppo di sistemi di difesa avanzati,
+                        radar, sistemi di controllo e comando, tecnologie per
+                        la sorveglianza e la protezione del territorio.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">Cybersecurity Militare</h3>
+                    <p class="feature-description">
+                        Protezione delle infrastrutture critiche attraverso
+                        soluzioni di cybersecurity militari, crittografia avanzata
+                        e sistemi di difesa contro minacce informatiche.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🛰️</div>
+                    <h3 class="feature-title">Comunicazioni Sicure</h3>
+                    <p class="feature-description">
+                        Sistemi di comunicazione sicuri e affidabili per operazioni
+                        militari, reti di comunicazione criptate e soluzioni
+                        per il comando e controllo in tempo reale.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">Intelligence & Sorveglianza</h3>
+                    <p class="feature-description">
+                        Tecnologie per l'intelligence, sistemi di sorveglianza
+                        avanzati, analisi di dati e soluzioni per la raccolta
+                        e l'elaborazione di informazioni strategiche.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Sistemi Elettronici</h3>
+                    <p class="feature-description">
+                        Guerra elettronica, contromisure elettroniche e sistemi
+                        di jamming. Sviluppiamo soluzioni per la protezione
+                        e il controllo dello spettro elettromagnetico.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎖️</div>
+                    <h3 class="feature-title">Consulenza Strategica</h3>
+                    <p class="feature-description">
+                        Analisi geopolitiche, pianificazione strategica e
+                        consulenza per la sicurezza nazionale. Supportiamo
+                        le decisioni con expertise e intelligence qualificata.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="clearance-banner">
+                <h3 class="clearance-title">🔒 Clearance di Sicurezza</h3>
+                <p class="clearance-text">
+                    Il nostro team possiede le necessarie autorizzazioni di sicurezza
+                    per lavorare su progetti classificati e sensibili per enti governativi
+                    e organizzazioni internazionali.
+                </p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="security-section">
+                <h2 class="section-title">Tecnologie & Soluzioni</h2>
+                <div class="security-grid">
+                    <div class="security-item">
+                        <div class="security-icon">📡</div>
+                        <div class="security-title">Radar & Sensori</div>
+                        <div class="security-desc">Sistemi radar avanzati e sensori multi-spettrali</div>
+                    </div>
+                    <div class="security-item">
+                        <div class="security-icon">🚁</div>
+                        <div class="security-title">Droni & UAV</div>
+                        <div class="security-desc">Veicoli aerei non pilotati per sorveglianza</div>
+                    </div>
+                    <div class="security-item">
+                        <div class="security-icon">🔬</div>
+                        <div class="security-title">R&D Militare</div>
+                        <div class="security-desc">Ricerca e sviluppo di tecnologie innovative</div>
+                    </div>
+                    <div class="security-item">
+                        <div class="security-icon">🌐</div>
+                        <div class="security-title">Cyber Warfare</div>
+                        <div class="security-desc">Difesa e attacco informatico avanzato</div>
+                    </div>
+                    <div class="security-item">
+                        <div class="security-icon">🔧</div>
+                        <div class="security-title">Manutenzione</div>
+                        <div class="security-desc">Supporto tecnico e manutenzione specializzata</div>
+                    </div>
+                    <div class="security-item">
+                        <div class="security-icon">📋</div>
+                        <div class="security-title">Compliance</div>
+                        <div class="security-desc">Conformità a standard NATO e internazionali</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="cta-section">
+                <h2 class="cta-title">Sicurezza Nazionale è la Nostra Priorità</h2>
+                <p class="cta-text">
+                    Contattaci per discutere le tue esigenze di sicurezza e difesa.
+                    Offriamo soluzioni personalizzate con i più alti standard di
+                    riservatezza e professionalità.
+                </p>
+                <a href="/contatti" class="cta-button">Contatto Riservato</a>
+                <a href="/" class="cta-button">Torna alla Home</a>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/life-science">Life Science</a>
+            <a href="/servizi-informatici">Servizi Informatici</a>
+            <a href="/finanza">Servizi Finanziari</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animazione delle feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index + 1) * 150);
+            });
+
+            // Animazione security items
+            const securityItems = document.querySelectorAll('.security-item');
+            securityItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    item.style.transition = 'all 0.4s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1)';
+                }, 1200 + (index * 100));
+            });
+
+            // Parallax effect per l'header
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.header');
+                header.style.transform = `translateY(${scrolled * 0.3}px)`;
+            });
+
+            // Animazione clearance banner
+            const clearanceBanner = document.querySelector('.clearance-banner');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'pulse 2s ease-in-out infinite';
+                    }
+                });
+            });
+            observer.observe(clearanceBanner);
+        });
+    </script>
+</body>
+</html>

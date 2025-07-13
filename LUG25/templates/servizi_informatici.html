@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelchi Group - Servizi Informatici</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            color: #005B94;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #005B94, #E7D454);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="10" y="10" width="20" height="20" fill="rgba(255,255,255,0.05)"/><rect x="60" y="30" width="15" height="15" fill="rgba(255,255,255,0.05)"/><rect x="30" y="70" width="25" height="25" fill="rgba(255,255,255,0.05)"/></svg>');
+            animation: digitFloat 15s ease-in-out infinite;
+        }
+
+        @keyframes digitFloat {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(-30px); }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: rotate 3s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .service-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .service-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #E7D454;
+            border-radius: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 3px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.2);
+            border-color: #E7D454;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #E7D454;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            color: #005B94;
+            opacity: 0.8;
+        }
+
+        .tech-stack {
+            background: rgba(231, 212, 84, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #E7D454;
+            margin: 3rem 0;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #005B94;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            transform: scale(1.05);
+            border-color: #E7D454;
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.2);
+        }
+
+        .tech-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #E7D454;
+        }
+
+        .tech-name {
+            font-weight: bold;
+            color: #005B94;
+            font-size: 0.9rem;
+        }
+
+        .cta-section {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #E7D454;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .cta-text {
+            font-size: 1.1rem;
+            color: #005B94;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #005B94;
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .cta-button:hover {
+            background: #E7D454;
+            color: #005B94;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 212, 84, 0.4);
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #E7D454;
+        }
+
+        .nav-links a {
+            color: #005B94;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #005B94;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .service-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .cta-button {
+                display: block;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="service-icon">💻</div>
+            <h1 class="service-title">Servizi Informatici</h1>
+            <p class="service-subtitle">
+                Sviluppo software, infrastrutture IT, cybersecurity e
+                digitalizzazione aziendale per il futuro digitale
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">Le Nostre Soluzioni</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Sviluppo Software</h3>
+                    <p class="feature-description">
+                        Realizziamo applicazioni web, mobile e desktop personalizzate
+                        utilizzando le tecnologie più moderne. Dal concept alla
+                        produzione, garantiamo qualità e performance eccellenti.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h3 class="feature-title">Cloud & Infrastructure</h3>
+                    <p class="feature-description">
+                        Migrazione e gestione di infrastrutture cloud scalabili
+                        su AWS, Azure e Google Cloud. Ottimizziamo performance
+                        e riduciamo i costi operativi con soluzioni innovative.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 class="feature-title">Cybersecurity</h3>
+                    <p class="feature-description">
+                        Protezione completa dei sistemi aziendali attraverso
+                        audit di sicurezza, implementazione di sistemi di difesa
+                        avanzati e formazione del personale per prevenire minacce.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">AI & Machine Learning</h3>
+                    <p class="feature-description">
+                        Integrazione di intelligenza artificiale e machine learning
+                        nei processi aziendali per automatizzare operazioni,
+                        analizzare dati e migliorare l'efficienza operativa.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 class="feature-title">Digital Transformation</h3>
+                    <p class="feature-description">
+                        Accompagniamo le aziende nel processo di digitalizzazione
+                        completa, dalla modernizzazione dei sistemi legacy
+                        all'implementazione di nuovi workflow digitali.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3 class="feature-title">DevOps & Automation</h3>
+                    <p class="feature-description">
+                        Implementazione di pipeline CI/CD, automazione dei
+                        deployment e monitoraggio continuo per garantire
+                        rilasci rapidi e affidabili delle applicazioni.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="tech-stack">
+                <h2 class="section-title">Tecnologie & Stack</h2>
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <div class="tech-icon">⚛️</div>
+                        <div class="tech-name">React/Vue.js</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🐍</div>
+                        <div class="tech-name">Python/Django</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🟢</div>
+                        <div class="tech-name">Node.js</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">☕</div>
+                        <div class="tech-name">Java/Spring</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🐳</div>
+                        <div class="tech-name">Docker</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">☸️</div>
+                        <div class="tech-name">Kubernetes</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🗄️</div>
+                        <div class="tech-name">PostgreSQL</div>
+                    </div>
+                    <div class="tech-item">
+                        <div class="tech-icon">🔥</div>
+                        <div class="tech-name">MongoDB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="cta-section">
+                <h2 class="cta-title">Trasforma la Tua Azienda</h2>
+                <p class="cta-text">
+                    Contattaci per una consulenza gratuita e scopri come le nostre
+                    soluzioni tecnologiche possono portare la tua azienda nel futuro
+                    digitale con sicurezza ed efficienza.
+                </p>
+                <a href="/contatti" class="cta-button">Richiedi Consulenza</a>
+                <a href="/" class="cta-button">Torna alla Home</a>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/life-science">Life Science</a>
+            <a href="/difesa">Servizi Difesa</a>
+            <a href="/finanza">Servizi Finanziari</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animazione delle feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index + 1) * 150);
+            });
+
+            // Animazione tech items
+            const techItems = document.querySelectorAll('.tech-item');
+            techItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    item.style.transition = 'all 0.4s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1)';
+                }, 1000 + (index * 100));
+            });
+
+            // Parallax effect per l'header
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.header');
+                header.style.transform = `translateY(${scrolled * 0.5}px)`;
+            });
+        });
+    </script>
+</body>
+</html>

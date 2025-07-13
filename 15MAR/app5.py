@@ -1026,7 +1026,7 @@ if __name__ == '__main__':
         run_flask()
 
     elif mode == "telegram":
-        bot_token = "7638639600:AAFsGv2goypYcW73MYq_XlkQDm9wbvLqWjk"
+        bot_token = "7638639600:AAEn2pTYvJXEZXt1cBy66LGx5NYusHOprD8"
         with app.app_context():  # 👈 Qui avvii il context di Flask per accedere al DB
             telegram_bot = TelegramBot()
             telegram_bot.run(bot_token)

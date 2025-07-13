@@ -1,0 +1,27 @@
+
+
+16 Giugno 2025
+
+Sistema stabile con inserimento di dati da analisi PDF e salvo come document e blocchi
+
+inserimento dei record di analisi in manuale
+
+modalità testo libero che salva in interazioni e da riassunto
+
+modalità GPT che prova a cercare nei tag( attenzione, ricerca fatta con SKlearn non con GPT)
+
+
+sistema 1.0, meccanismo di apprendimento guidato disponibile
+
+
+cosa fare:
+
+-inserire controlelr per modulare risposta, numero max di caratteri; impostazione setup del bot...fissa che si può cambiare
+
+-serve inserire dati da testo libero, raccolta informazioni
+-serve migliorare sistema dei tag, quindi le parole chiave che vengono salvate per ogni analisi del testo e il meccanismo di ricerca - perchè i tag estratti sono un po a cazzo
+
+serve pulire un po le risposte dai blocchi di wiki----lui deve propio partire da zero con il testo, non copiare incollare...elaborare un po...(questo manca)
+
+sistema di lettura immagini
+

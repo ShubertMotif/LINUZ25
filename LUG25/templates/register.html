@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelchi Group - Registrazione</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #E7D454, #005B94);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #005B94;
+        }
+
+        .register-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(231, 212, 84, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateY(-50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-mini {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: rgba(0, 91, 148, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #005B94;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .register-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(0, 91, 148, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #005B94;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #E7D454;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #005B94;
+            box-shadow: 0 0 10px rgba(0, 91, 148, 0.3);
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #E7D454;
+            color: #005B94;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+
+        .register-btn:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.4);
+        }
+
+        .login-link {
+            color: #005B94;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .login-link:hover {
+            color: #E7D454;
+        }
+
+        .home-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #005B94;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 2px solid #005B94;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .home-link:hover {
+            background: #005B94;
+            color: white;
+        }
+
+        .alert {
+            background: rgba(0, 91, 148, 0.1);
+            color: #005B94;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #005B94;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: particleFloat 10s ease-in-out infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
+            50% { transform: translateY(-150px) rotate(360deg); opacity: 1; }
+        }
+
+        .particle:nth-child(1) { left: 15%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 25%; animation-delay: 1.5s; }
+        .particle:nth-child(3) { left: 35%; animation-delay: 3s; }
+        .particle:nth-child(4) { left: 45%; animation-delay: 4.5s; }
+        .particle:nth-child(5) { left: 55%; animation-delay: 6s; }
+        .particle:nth-child(6) { left: 65%; animation-delay: 7.5s; }
+        .particle:nth-child(7) { left: 75%; animation-delay: 9s; }
+        .particle:nth-child(8) { left: 85%; animation-delay: 10.5s; }
+
+        @media (max-width: 768px) {
+            .register-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+
+            .register-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="register-container">
+        <div class="logo-mini">✨</div>
+        <h1 class="register-title">Registrati</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="register-btn">Registrati</button>
+        </form>
+
+        <p>
+            Hai già un account?
+            <a href="/login" class="login-link">Accedi qui</a>
+        </p>
+
+        <a href="/" class="home-link">← Torna alla Home</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const particles = document.querySelectorAll('.particle');
+
+            particles.forEach(particle => {
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+            });
+
+            // Focus automatico sul primo campo
+            document.getElementById('username').focus();
+        });
+    </script>
+</body>
+</html>

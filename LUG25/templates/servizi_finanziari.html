@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelchi Group - Servizi Finanziari</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            color: #005B94;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #E7D454 0%, #FFD700 30%, #005B94 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M20 30 L30 20 L40 30 L30 40 Z" fill="rgba(255,255,255,0.05)"/><path d="M60 50 L70 40 L80 50 L70 60 Z" fill="rgba(255,255,255,0.05)"/><circle cx="25" cy="70" r="8" fill="rgba(255,255,255,0.03)"/></svg>');
+            animation: financePattern 8s ease-in-out infinite;
+        }
+
+        @keyframes financePattern {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: money 3s ease-in-out infinite;
+        }
+
+        @keyframes money {
+            0%, 100% { transform: scale(1) rotateY(0deg); }
+            25% { transform: scale(1.1) rotateY(90deg); }
+            50% { transform: scale(1) rotateY(180deg); }
+            75% { transform: scale(1.1) rotateY(270deg); }
+        }
+
+        .service-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .service-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #E7D454;
+            border-radius: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 3px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(231, 212, 84, 0.3);
+            border-color: #E7D454;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #E7D454;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            color: #005B94;
+            opacity: 0.8;
+        }
+
+        .markets-section {
+            background: rgba(231, 212, 84, 0.05);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 2px solid #E7D454;
+            margin: 3rem 0;
+        }
+
+        .markets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .market-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .market-item::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #E7D454, #FFD700, #E7D454);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .market-item:hover::after {
+            opacity: 1;
+        }
+
+        .market-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(231, 212, 84, 0.3);
+        }
+
+        .market-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #E7D454;
+        }
+
+        .market-name {
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 0.5rem;
+        }
+
+        .market-desc {
+            font-size: 0.9rem;
+            color: #005B94;
+            opacity: 0.7;
+        }
+
+        .stats-banner {
+            background: linear-gradient(135deg, #005B94, #E7D454);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 3rem 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            animation: countUp 2s ease-out;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        @keyframes countUp {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .cta-section {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #E7D454;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .cta-text {
+            font-size: 1.1rem;
+            color: #005B94;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #005B94;
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .cta-button:hover {
+            background: #E7D454;
+            color: #005B94;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 212, 84, 0.4);
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #E7D454;
+        }
+
+        .nav-links a {
+            color: #005B94;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #005B94;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .service-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .markets-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .stats-banner {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cta-button {
+                display: block;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="service-icon">💰</div>
+            <h1 class="service-title">Servizi Finanziari</h1>
+            <p class="service-subtitle">
+                Consulenza finanziaria, analisi di mercato e soluzioni fintech
+                innovative per navigare nei mercati globali
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section">
+            <h2 class="section-title">I Nostri Servizi</h2>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3 class="feature-title">Consulenza Finanziaria</h3>
+                    <p class="feature-description">
+                        Pianificazione finanziaria strategica, gestione del
+                        portafoglio e consulenza per investimenti personalizzati.
+                        Ottimizziamo le performance con strategie su misura.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏦</div>
+                    <h3 class="feature-title">Corporate Finance</h3>
+                    <p class="feature-description">
+                        M&A, ristrutturazioni finanziarie, IPO e raccolta di
+                        capitali. Supportiamo le aziende nelle decisioni
+                        finanziarie strategiche più complesse.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3 class="feature-title">Fintech Solutions</h3>
+                    <p class="feature-description">
+                        Sviluppo di soluzioni fintech innovative, sistemi di
+                        pagamento digitali, blockchain e cryptocurrencies per
+                        il futuro del settore finanziario.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 class="feature-title">Analisi di Mercato</h3>
+                    <p class="feature-description">
+                        Ricerca quantitativa e qualitativa, modelling finanziario
+                        avanzato e analisi di scenario per decisioni informate
+                        basate su dati concreti.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚖️</div>
+                    <h3 class="feature-title">Risk Management</h3>
+                    <p class="feature-description">
+                        Identificazione, valutazione e mitigazione dei rischi
+                        finanziari. Implementiamo strategie per proteggere
+                        e ottimizzare gli investimenti.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🏛️</div>
+                    <h3 class="feature-title">Regulatory Compliance</h3>
+                    <p class="feature-description">
+                        Conformità normativa MiFID II, GDPR, Basel III e altre
+                        regolamentazioni internazionali. Garantiamo compliance
+                        totale in tutti i mercati.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="stats-banner">
+                <div class="stat-item">
+                    <div class="stat-number">€2.5B+</div>
+                    <div class="stat-label">Asset Under Management</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Clienti Serviti</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">25+</div>
+                    <div class="stat-label">Anni di Esperienza</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-label">Client Satisfaction</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="markets-section">
+                <h2 class="section-title">Mercati & Strumenti</h2>
+                <div class="markets-grid">
+                    <div class="market-item">
+                        <div class="market-icon">📊</div>
+                        <div class="market-name">Equity Markets</div>
+                        <div class="market-desc">Azioni globali e mercati emergenti</div>
+                    </div>
+                    <div class="market-item">
+                        <div class="market-icon">💎</div>
+                        <div class="market-name">Fixed Income</div>
+                        <div class="market-desc">Bonds governativi e corporate</div>
+                    </div>
+                    <div class="market-item">
+                        <div class="market-icon">🌍</div>
+                        <div class="market-name">Forex</div>
+                        <div class="market-desc">Valute e mercati internazionali</div>
+                    </div>
+                    <div class="market-item">
+                        <div class="market-icon">⚡</div>
+                        <div class="market-name">Derivatives</div>
+                        <div class="market-desc">Options, futures e structured products</div>
+                    </div>
+                    <div class="market-item">
+                        <div class="market-icon">🏗️</div>
+                        <div class="market-name">Real Estate</div>
+                        <div class="market-desc">Investimenti immobiliari e REIT</div>
+                    </div>
+                    <div class="market-item">
+                        <div class="market-icon">🔗</div>
+                        <div class="market-name">Alternative</div>
+                        <div class="market-desc">Private equity, hedge funds, crypto</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="cta-section">
+                <h2 class="cta-title">Il Tuo Successo Finanziario</h2>
+                <p class="cta-text">
+                    Contattaci per una consulenza personalizzata e scopri come
+                    possiamo aiutarti a raggiungere i tuoi obiettivi finanziari
+                    con strategie innovative e comprovate.
+                </p>
+                <a href="/contatti" class="cta-button">Consulenza Gratuita</a>
+                <a href="/" class="cta-button">Torna alla Home</a>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/life-science">Life Science</a>
+            <a href="/servizi-informatici">Servizi Informatici</a>
+            <a href="/difesa">Servizi Difesa</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animazione delle feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index + 1) * 150);
+            });
+
+            // Animazione market items
+            const marketItems = document.querySelectorAll('.market-item');
+            marketItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    item.style.transition = 'all 0.4s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'scale(1)';
+                }, 1000 + (index * 100));
+            });
+
+            // Parallax effect per l'header
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.header');
+                header.style.transform = `translateY(${scrolled * 0.5}px)`;
+            });
+
+            // Animazione contatori statistiche
+            const statNumbers = document.querySelectorAll('.stat-number');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'countUp 2s ease-out';
+                    }
+                });
+            });
+            statNumbers.forEach(stat => observer.observe(stat));
+        });
+    </script>
+</body>
+</html>
