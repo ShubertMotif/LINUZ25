@@ -169,6 +169,7 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+            text-decoration: none;
         }
 
         .nav-btn.login {
@@ -180,6 +181,25 @@
         .nav-btn.login:hover {
             background: #005B94;
             color: white;
+        }
+
+        /* Nuovo stile per area riservata */
+        .nav-btn.area-riservata {
+            background: linear-gradient(135deg, #005B94, #E7D454);
+            color: white;
+            border: none;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .nav-btn.area-riservata::before {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        }
+
+        .nav-btn.area-riservata:hover {
+            background: linear-gradient(135deg, #E7D454, #005B94);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(231, 212, 84, 0.4);
         }
 
         .services-section {
@@ -303,6 +323,28 @@
             border-radius: 20px;
             border: 1px solid #E7D454;
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info a {
+            color: #005B94;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .user-info a:hover {
+            color: #E7D454;
+        }
+
+        .role-badge {
+            background: #005B94;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
@@ -331,6 +373,14 @@
 
             .services-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .user-info {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 1rem;
+                justify-content: center;
             }
         }
     </style>
@@ -378,10 +428,8 @@
 
             <!-- Pulsanti di navigazione -->
             <div class="nav-buttons">
-                <a href="/chi-siamo" class="nav-btn">Chi Siamo</a>
-                <a href="/stats" class="nav-btn">Statistiche</a>
-                <a href="/contatti" class="nav-btn">Contatti</a>
                 {% if current_user.is_authenticated %}
+                    <a href="/dashboard" class="nav-btn area-riservata">🏢 Area Riservata</a>
                     <a href="/logout" class="nav-btn">Logout</a>
                 {% else %}
                     <a href="/login" class="nav-btn login">Login</a>
