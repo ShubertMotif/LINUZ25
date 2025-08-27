@@ -665,7 +665,7 @@ class TelegramBot:
             # Comandi
             if text.lower() == '/start':
                 self.registered_users[user_id] = username
-                self.bot.sendMessage(chat_id, "🦁 Benvenuto nella Savana!")
+                self.bot.sendMessage(chat_id, "🛰 Benvenuto, sono l'Intelligenza Artificiale")
                 self.bot.sendMessage(chat_id,
                                      " 🦑 Scegli Modalità:\n"
                                      "/gpt_db - Attiva GPT Databse\n"
@@ -1026,7 +1026,7 @@ if __name__ == '__main__':
         run_flask()
 
     elif mode == "telegram":
-        bot_token = "7638639600:AAEn2pTYvJXEZXt1cBy66LGx5NYusHOprD8"
+        bot_token = "7638639600:AAHqd4iS4PsHz1kmkzptlC6gkIZX8iwHC7w"
         with app.app_context():  # 👈 Qui avvii il context di Flask per accedere al DB
             telegram_bot = TelegramBot()
             telegram_bot.run(bot_token)
