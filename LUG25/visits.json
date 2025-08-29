@@ -1,0 +1,85 @@
+{
+  "count": 14,
+  "visitors": [
+    {
+      "timestamp": "2025-07-13T12:40:17.675115",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+    },
+    {
+      "timestamp": "2025-07-13T13:38:59.388160",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+    },
+    {
+      "timestamp": "2025-07-13T13:44:39.381210",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+    },
+    {
+      "timestamp": "2025-07-13T13:51:52.328384",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+    },
+    {
+      "timestamp": "2025-07-13T14:04:34.527933",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T14:05:03.018824",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T14:22:56.224659",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T14:23:28.458570",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T14:29:26.020393",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-26T16:23:04.085581",
+      "ip": "192.168.1.43",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-26T16:23:42.631038",
+      "ip": "192.168.1.193",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-08-08T15:04:40.604613",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-08-08T15:05:02.000766",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+      "user": "linuz"
+    },
+    {
+      "timestamp": "2025-08-10T23:49:46.035214",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
+      "user": "Anonimo"
+    }
+  ]
+}
