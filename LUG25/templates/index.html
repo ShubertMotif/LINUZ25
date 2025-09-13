@@ -5,15 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adelchi Group - Innovazione Tecnologica</title>
     <style>
-        :root {
-            --primary-blue: #005B94;
-            --accent-gold: #E7D454;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 16px 64px rgba(0, 0, 0, 0.2);
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -21,113 +12,31 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #005B94 0%, #2980B9 50%, #E7D454 100%);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
-            line-height: 1.6;
         }
 
-        /* Animated Background */
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -2;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
-            animation: gradientShift 10s ease infinite;
-        }
-
-        @keyframes gradientShift {
-            0%, 100% {
-                background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
-            }
-            33% {
-                background: linear-gradient(225deg, #2980B9 0%, var(--accent-gold) 30%, var(--primary-blue) 100%);
-            }
-            66% {
-                background: linear-gradient(45deg, var(--accent-gold) 0%, var(--primary-blue) 70%, #2980B9 100%);
-            }
-        }
-
-        /* Floating Particles */
-        .particles-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 50%;
-            animation: particleFloat 15s linear infinite;
-        }
-
-        @keyframes particleFloat {
-            0% {
-                transform: translateY(100vh) translateX(0) scale(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-                transform: translateY(90vh) translateX(10px) scale(1);
-            }
-            90% {
-                opacity: 1;
-                transform: translateY(10vh) translateX(-10px) scale(1);
-            }
-            100% {
-                transform: translateY(-10vh) translateX(0) scale(0);
-                opacity: 0;
-            }
-        }
-
-        /* Main Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            position: relative;
-            z-index: 1;
         }
 
-        /* Header Section */
-        .header-section {
-            text-align: center;
-            padding: 3rem 0;
-            margin-bottom: 4rem;
-            position: relative;
-        }
-
-        /* User Info & Wallet */
+        /* User Info */
         .user-info {
             position: fixed;
             top: 2rem;
             right: 2rem;
-            background: var(--glass-bg);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 1rem 1.5rem;
             border-radius: 25px;
             z-index: 1000;
             font-size: 0.9rem;
-            transition: all 0.3s ease;
-            min-width: 280px;
-        }
-
-        .user-info:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: scale(1.05);
         }
 
         .user-row {
@@ -137,36 +46,13 @@
             margin-bottom: 0.5rem;
         }
 
-        .user-row:last-child {
-            margin-bottom: 0;
-        }
-
         .wallet-balance {
-            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
-            color: var(--primary-blue);
+            background: linear-gradient(45deg, #E7D454, #F4E869);
+            color: #005B94;
             padding: 0.3rem 0.8rem;
             border-radius: 15px;
             font-weight: 700;
             font-size: 0.85rem;
-            animation: balancePulse 3s ease-in-out infinite;
-        }
-
-        @keyframes balancePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .user-info a {
-            color: var(--accent-gold);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-            font-size: 0.85rem;
-        }
-
-        .user-info a:hover {
-            color: white;
-            text-shadow: 0 0 10px var(--accent-gold);
         }
 
         .nav-links {
@@ -174,52 +60,33 @@
             gap: 1rem;
             margin-top: 0.5rem;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
-        /* Logo Container */
-        .logo-container {
-            position: relative;
-            margin-bottom: 2rem;
-            display: inline-block;
+        .nav-links a {
+            color: #E7D454;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            font-size: 0.85rem;
         }
 
-        .logo-outer-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 220px;
-            height: 220px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            animation: logoOuterRotate 20s linear infinite;
+        .nav-links a:hover {
+            color: white;
         }
 
-        .logo-inner-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 200px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            animation: logoInnerRotate 15s linear infinite reverse;
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 4rem;
         }
 
         .logo {
             width: 180px;
             height: 180px;
-            position: relative;
-            z-index: 5;
+            margin: 0 auto 2rem;
             animation: logoBounce 3s ease-in-out infinite;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .logo:hover {
-            transform: scale(1.1) rotate(10deg);
-            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
         }
 
         .logo img {
@@ -228,119 +95,60 @@
             object-fit: contain;
             border-radius: 50%;
             border: 3px solid rgba(255, 255, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        @keyframes logoOuterRotate {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
-        @keyframes logoInnerRotate {
-            0% { transform: translate(-50%, -50%) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(-360deg); }
         }
 
         @keyframes logoBounce {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            25% {
-                transform: translateY(-10px) rotate(2deg);
-            }
-            50% {
-                transform: translateY(-15px) rotate(0deg);
-            }
-            75% {
-                transform: translateY(-10px) rotate(-2deg);
-            }
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
         }
 
-        /* Logo Text */
         .logo-text {
             font-size: 2.5rem;
             font-weight: 900;
-            margin-top: 1.5rem;
-            background: linear-gradient(45deg, white, var(--accent-gold), white);
-            background-size: 200% 200%;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, white, #E7D454);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: textShimmer 3s ease-in-out infinite;
-            text-shadow: none;
             letter-spacing: 2px;
         }
 
-        @keyframes textShimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        /* Welcome Text */
         .welcome-text {
             font-size: 1.4rem;
             margin-bottom: 2rem;
             color: rgba(255, 255, 255, 0.95);
             font-weight: 300;
-            letter-spacing: 1px;
-            animation: fadeInUp 1s ease-out 0.5s both;
         }
 
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Visit Counter */
         .visit-counter {
-            background: var(--glass-bg);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             padding: 2rem;
             border-radius: 25px;
             margin-bottom: 3rem;
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-soft);
-            animation: fadeInUp 1s ease-out 1s both;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
         }
 
         .visit-counter:hover {
             transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
             background: rgba(255, 255, 255, 0.15);
         }
 
         .visit-counter h3 {
             margin-bottom: 1rem;
-            color: white;
             font-size: 1.2rem;
-            font-weight: 400;
         }
 
         .visit-number {
             font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(45deg, var(--accent-gold), white);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: counterPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes counterPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        /* Login Section */
-        .login-section {
-            margin-bottom: 4rem;
-            animation: fadeInUp 1s ease-out 1.2s both;
+            color: #E7D454;
         }
 
         .login-btn {
-            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
-            color: var(--primary-blue);
+            background: linear-gradient(45deg, #E7D454, #F4E869);
+            color: #005B94;
             padding: 1.2rem 2.5rem;
             text-decoration: none;
             border-radius: 50px;
@@ -348,132 +156,46 @@
             font-size: 1.1rem;
             transition: all 0.3s ease;
             display: inline-block;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .login-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .login-btn:hover::before {
-            left: 100%;
         }
 
         .login-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
             background: linear-gradient(45deg, #F4E869, white);
+            text-decoration: none;
+            color: #005B94;
         }
 
-        /* ADG Token Notification */
-        .adg-notification {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
-            color: var(--primary-blue);
-            padding: 1.5rem 2rem;
-            border-radius: 25px;
-            font-weight: 700;
-            font-size: 1.2rem;
-            z-index: 10000;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            opacity: 0;
-        }
-
-        .adg-notification.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        /* Services Container - stesso stile */
+        /* Services */
         .services-container {
             display: flex;
             flex-direction: column;
             gap: 3rem;
-            margin-top: 2rem;
         }
 
-        /* Service Blocks - stesso stile del tuo index.html */
         .service-block {
-            background: var(--glass-bg);
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-radius: 30px;
             padding: 3rem;
-            border: 1px solid var(--glass-border);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-soft);
-            animation: slideInUp 0.8s ease-out both;
-        }
-
-        .service-block:nth-child(1) { animation-delay: 0.2s; }
-        .service-block:nth-child(2) { animation-delay: 0.4s; }
-        .service-block:nth-child(3) { animation-delay: 0.6s; }
-        .service-block:nth-child(4) { animation-delay: 0.8s; }
-
-        @keyframes slideInUp {
-            0% { opacity: 0; transform: translateY(60px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .service-block::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.8s ease;
-        }
-
-        .service-block:hover::before {
-            left: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
         }
 
         .service-block:hover {
-            transform: translateY(-15px);
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-10px);
             background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.4);
         }
 
-        /* Service Content */
         .service-content {
             display: flex;
             align-items: center;
             gap: 3rem;
-            width: 100%;
         }
 
         .service-icon {
-            font-size: 5rem;
-            min-width: 100px;
+            font-size: 4rem;
+            min-width: 80px;
             text-align: center;
-            animation: iconFloat 3s ease-in-out infinite;
-            transition: all 0.3s ease;
-        }
-
-        .service-block:hover .service-icon {
-            transform: scale(1.2) rotate(10deg);
-        }
-
-        @keyframes iconFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
         }
 
         .service-info {
@@ -483,64 +205,35 @@
         .service-title {
             font-size: 2rem;
             font-weight: 700;
-            color: white;
             margin-bottom: 1.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .service-description {
             color: rgba(255, 255, 255, 0.9);
-            line-height: 1.7;
-            font-size: 1.15rem;
+            line-height: 1.6;
+            font-size: 1.1rem;
             margin-bottom: 2rem;
-            font-weight: 300;
-        }
-
-        .service-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .feature-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem 1.5rem;
-            border-radius: 15px;
-            border-left: 4px solid var(--accent-gold);
-            font-size: 1rem;
-            color: rgba(255, 255, 255, 0.95);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .feature-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-            border-left-color: white;
         }
 
         .service-btn {
-            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
-            color: var(--primary-blue);
+            background: linear-gradient(45deg, #E7D454, #F4E869);
+            color: #005B94;
             padding: 1rem 2rem;
             text-decoration: none;
             border-radius: 25px;
             font-weight: 700;
             transition: all 0.3s ease;
             display: inline-block;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-soft);
         }
 
         .service-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: var(--shadow-hover);
+            transform: translateY(-3px);
             background: linear-gradient(45deg, #F4E869, white);
+            text-decoration: none;
+            color: #005B94;
         }
 
-        /* Responsive Design */
+        /* Mobile */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -550,31 +243,11 @@
                 position: static;
                 margin-bottom: 2rem;
                 text-align: center;
-                min-width: auto;
             }
 
             .nav-links {
                 flex-direction: column;
                 gap: 0.5rem;
-            }
-
-            .logo {
-                width: 140px;
-                height: 140px;
-            }
-
-            .logo-outer-ring {
-                width: 180px;
-                height: 180px;
-            }
-
-            .logo-inner-ring {
-                width: 160px;
-                height: 160px;
-            }
-
-            .logo-text {
-                font-size: 2rem;
             }
 
             .service-content {
@@ -584,95 +257,48 @@
             }
 
             .service-icon {
-                font-size: 4rem;
+                font-size: 3rem;
             }
 
-            .service-features {
-                grid-template-columns: 1fr;
+            .logo {
+                width: 120px;
+                height: 120px;
             }
 
-            .visit-counter {
-                padding: 1.5rem;
-            }
-
-            .visit-number {
-                font-size: 2.5rem;
-            }
-
-            .services-container {
-                gap: 2rem;
-            }
-
-            .service-block {
-                padding: 2rem;
-            }
-        }
-
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
+            .logo-text {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="bg-animation"></div>
-
-    <!-- User Info con Wallet ADG -->
+    <!-- User Info -->
     {% if current_user.is_authenticated %}
     <div class="user-info">
         <div class="user-row">
             <span>👋 {{ current_user.username }}</span>
-            <span class="wallet-balance">💰 0.0 ADG</span>
+            <span class="wallet-balance">💰 {{ "%.1f"|format(current_user.balance) }} ADG</span>
         </div>
         <div class="nav-links">
             <a href="/stats">📊 Dashboard</a>
             <a href="/wallet">💳 Wallet</a>
+            <a href="/files">📁 Files</a>
+            <a href="/notes">📝 Note</a>
             <a href="/mining">⛏️ Mining</a>
             <a href="/logout">🚪 Logout</a>
         </div>
     </div>
     {% endif %}
 
-    <!-- ADG Notification -->
-    <div class="adg-notification" id="adgNotification">
-        🎉 +1 ADG ricevuto!
-    </div>
-
-    <!-- Floating Particles -->
-    <div class="particles-container">
-        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
-        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
-        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
-        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
-        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
-        <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
-        <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
-        <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
-        <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
-    </div>
-
     <div class="container">
-        <!-- Header Section -->
-        <header class="header-section">
-            <div class="logo-container">
-                <div class="logo-outer-ring"></div>
-                <div class="logo-inner-ring"></div>
-                <div class="logo">
-                    <img src="{{ url_for('static', filename='logo.gif') }}" alt="Adelchi Group Logo">
-                </div>
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='logo.gif') }}" alt="Adelchi Group Logo">
             </div>
 
-            <h1 class="logo-text">
-                ADELCHI<br>GROUP
-            </h1>
-
-            <p class="welcome-text">
-                Innovazione e Eccellenza Tecnologica
-            </p>
+            <h1 class="logo-text">ADELCHI GROUP</h1>
+            <p class="welcome-text">Innovazione e Eccellenza Tecnologica</p>
 
             <div class="visit-counter">
                 <h3>Visitatori Totali</h3>
@@ -680,13 +306,13 @@
             </div>
 
             {% if not current_user.is_authenticated %}
-            <div class="login-section">
+            <div style="margin-top: 2rem;">
                 <a href="/login" class="login-btn">🔐 Accedi al Portale</a>
             </div>
             {% endif %}
         </header>
 
-        <!-- Services Container -->
+        <!-- Services -->
         <main class="services-container">
             <!-- Life Science -->
             <section class="service-block">
@@ -696,215 +322,58 @@
                         <h2 class="service-title">Life Science & Biotecnologie</h2>
                         <p class="service-description">
                             Soluzioni avanzate per ricerca biomedica, sviluppo farmaceutico e biotecnologie.
-                            Acceleriamo l'innovazione nella scoperta di nuovi trattamenti attraverso l'intelligenza artificiale.
+                            Acceleriamo l'innovazione nella scoperta di nuovi trattamenti.
                         </p>
-                        <div class="service-features">
-                            <div class="feature-item">🔬 Analisi Genomiche Avanzate</div>
-                            <div class="feature-item">🤖 Bioinformatica & AI</div>
-                            <div class="feature-item">📋 Sistemi LIMS Integrati</div>
-                            <div class="feature-item">✅ Compliance Regulatory</div>
-                        </div>
                         <a href="/life-science" class="service-btn">Esplora Life Science</a>
                     </div>
                 </div>
             </section>
 
-            <!-- Servizi Informatici -->
+            <!-- IT Services -->
             <section class="service-block">
                 <div class="service-content">
                     <div class="service-icon">💻</div>
                     <div class="service-info">
                         <h2 class="service-title">Servizi Informatici</h2>
                         <p class="service-description">
-                            Trasformazione digitale completa con soluzioni cloud native, cybersecurity avanzata e
-                            sviluppo software su misura per ottimizzare i processi aziendali del futuro.
+                            Trasformazione digitale completa con soluzioni cloud, cybersecurity avanzata e
+                            sviluppo software su misura per il futuro digitale.
                         </p>
-                        <div class="service-features">
-                            <div class="feature-item">☁️ Cloud Computing & DevOps</div>
-                            <div class="feature-item">🛡️ Cybersecurity Avanzata</div>
-                            <div class="feature-item">⚙️ Automation & AI</div>
-                            <div class="feature-item">📱 Sviluppo Software Custom</div>
-                        </div>
                         <a href="/servizi-informatici" class="service-btn">Scopri IT Services</a>
                     </div>
                 </div>
             </section>
 
-            <!-- Difesa -->
+            <!-- Defense -->
             <section class="service-block">
                 <div class="service-content">
                     <div class="service-icon">🛡️</div>
                     <div class="service-info">
                         <h2 class="service-title">Servizi Difesa</h2>
                         <p class="service-description">
-                            Tecnologie strategiche per difesa nazionale, sistemi di sorveglianza di ultima generazione e
-                            soluzioni di sicurezza critiche per proteggere asset nazionali e infrastrutture sensibili.
+                            Tecnologie strategiche per difesa nazionale, sistemi di sorveglianza avanzati e
+                            soluzioni di sicurezza per infrastrutture critiche.
                         </p>
-                        <div class="service-features">
-                            <div class="feature-item">📡 Sistemi C4ISR Avanzati</div>
-                            <div class="feature-item">🔍 Cyber Intelligence</div>
-                            <div class="feature-item">📊 Analisi Predittiva</div>
-                            <div class="feature-item">🚁 Sistemi Radar & Drone</div>
-                        </div>
                         <a href="/difesa" class="service-btn">Entra in Difesa</a>
                     </div>
                 </div>
             </section>
 
-            <!-- Criptovalute & Blockchain -->
+            <!-- Crypto & Blockchain -->
             <section class="service-block">
                 <div class="service-content">
                     <div class="service-icon">₿</div>
                     <div class="service-info">
-                        <h2 class="service-title">Criptovalute & Blockchain</h2>
+                        <h2 class="service-title">Fintech & Blockchain</h2>
                         <p class="service-description">
-                            Soluzioni innovative per trading automatico, protocolli DeFi, NFT e tecnologie blockchain.
-                            Il futuro della finanza digitale decentralizzata inizia qui, con la potenza dell'AI.
+                            Soluzioni innovative per trading, DeFi, NFT e tecnologie blockchain.
+                            Il futuro della finanza digitale decentralizzata.
                         </p>
-                        <div class="service-features">
-                            <div class="feature-item">🤖 Trading Bot Intelligenti</div>
-                            <div class="feature-item">🏦 Protocolli DeFi Custom</div>
-                            <div class="feature-item">🎨 NFT & Metaverso</div>
-                            <div class="feature-item">🔒 Wallet Security Pro</div>
-                        </div>
-                        <a href="/finanza" class="service-btn">Esplora Crypto</a>
+                        <a href="/finanza" class="service-btn">Esplora Fintech</a>
                     </div>
                 </div>
             </section>
         </main>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Show ADG notification per utenti loggati
-            {% if current_user.is_authenticated %}
-            setTimeout(function() {
-                const notification = document.getElementById('adgNotification');
-                notification.classList.add('show');
-
-                setTimeout(function() {
-                    notification.classList.remove('show');
-                }, 3000);
-            }, 1000);
-            {% endif %}
-
-            // Enhanced Logo Interactions
-            const logo = document.querySelector('.logo');
-            const logoText = document.querySelector('.logo-text');
-
-            if (logo) {
-                logo.addEventListener('mouseenter', function() {
-                    this.style.animationPlayState = 'paused';
-                    this.style.transform = 'scale(1.15) rotate(15deg)';
-                    if (logoText) logoText.style.transform = 'scale(1.05)';
-                });
-
-                logo.addEventListener('mouseleave', function() {
-                    this.style.animationPlayState = 'running';
-                    this.style.transform = '';
-                    if (logoText) logoText.style.transform = '';
-                });
-            }
-
-            // Enhanced Particle System
-            const particlesContainer = document.querySelector('.particles-container');
-
-            function createParticle() {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                particle.style.animationDelay = Math.random() * 5 + 's';
-                particle.style.width = (Math.random() * 4 + 2) + 'px';
-                particle.style.height = particle.style.width;
-                particlesContainer.appendChild(particle);
-
-                // Remove particle after animation
-                setTimeout(() => {
-                    if (particle.parentNode) {
-                        particle.parentNode.removeChild(particle);
-                    }
-                }, 15000);
-            }
-
-            // Create particles continuously
-            setInterval(createParticle, 2000);
-
-            // Service blocks hover effects
-            const serviceBlocks = document.querySelectorAll('.service-block');
-
-            serviceBlocks.forEach(block => {
-                block.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-20px) scale(1.02)';
-                });
-
-                block.addEventListener('mouseleave', function() {
-                    this.style.transform = '';
-                });
-            });
-
-            // Visit counter animation enhancement
-            const counter = document.querySelector('.visit-number');
-            if (counter) {
-                setInterval(() => {
-                    counter.style.transform = 'scale(1.1) rotate(5deg)';
-                    counter.style.textShadow = '0 0 20px rgba(231, 212, 84, 0.8)';
-                    setTimeout(() => {
-                        counter.style.transform = '';
-                        counter.style.textShadow = '';
-                    }, 300);
-                }, 8000);
-            }
-
-            // Smooth scroll effect for service blocks
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                        entry.target.style.filter = 'blur(0)';
-                    }
-                });
-            }, {
-                threshold: 0.1,
-                rootMargin: '50px'
-            });
-
-            serviceBlocks.forEach(block => {
-                block.style.opacity = '0';
-                block.style.transform = 'translateY(50px)';
-                block.style.filter = 'blur(2px)';
-                block.style.transition = 'all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                observer.observe(block);
-            });
-
-            // Background gradient interaction
-            const container = document.querySelector('.container');
-
-            container.addEventListener('mousemove', function(e) {
-                const x = (e.clientX / window.innerWidth) * 100;
-                const y = (e.clientY / window.innerHeight) * 100;
-
-                document.querySelector('.bg-animation').style.background =
-                    `radial-gradient(circle at ${x}% ${y}%, var(--primary-blue) 0%, #2980B9 40%, var(--accent-gold) 100%)`;
-            });
-
-            // Reset background on mouse leave
-            container.addEventListener('mouseleave', function() {
-                document.querySelector('.bg-animation').style.background = '';
-            });
-
-            // Wallet balance animation
-            const walletBalance = document.querySelector('.wallet-balance');
-            if (walletBalance) {
-                setInterval(() => {
-                    walletBalance.style.transform = 'scale(1.1)';
-                    setTimeout(() => {
-                        walletBalance.style.transform = 'scale(1)';
-                    }, 200);
-                }, 5000);
-            }
-        });
-    </script>
 </body>
 </html>

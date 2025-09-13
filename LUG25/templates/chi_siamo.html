@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Siamo - Adelchi Group</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            color: #005B94;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #005B94, #E7D454);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="30" cy="30" r="20" fill="rgba(255,255,255,0.05)"/><circle cx="70" cy="70" r="15" fill="rgba(255,255,255,0.05)"/></svg>');
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #E7D454;
+            border-radius: 2px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .content-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            border: 3px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .content-card:hover::before {
+            left: 100%;
+        }
+
+        .content-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.2);
+            border-color: #E7D454;
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            color: #E7D454;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .card-description {
+            color: #005B94;
+            opacity: 0.8;
+            line-height: 1.7;
+        }
+
+        .story-section {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #E7D454;
+            margin: 4rem 0;
+        }
+
+        .story-text {
+            font-size: 1.1rem;
+            color: #005B94;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 3rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #E7D454;
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #005B94;
+            width: 45%;
+            position: relative;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            order: -1;
+        }
+
+        .timeline-date {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #E7D454;
+            color: #005B94;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .team-member {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #005B94;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            border-color: #E7D454;
+            box-shadow: 0 10px 30px rgba(0, 91, 148, 0.2);
+        }
+
+        .member-avatar {
+            width: 80px;
+            height: 80px;
+            background: rgba(231, 212, 84, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+        }
+
+        .member-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-role {
+            color: #E7D454;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .member-description {
+            font-size: 0.9rem;
+            color: #005B94;
+            opacity: 0.8;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #E7D454;
+        }
+
+        .nav-links a {
+            color: #005B94;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #005B94;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .timeline-content {
+                width: 100%;
+                margin-left: 40px;
+            }
+
+            .timeline-date {
+                position: static;
+                transform: none;
+                margin-bottom: 1rem;
+                display: inline-block;
+            }
+
+            .timeline-item:nth-child(even) .timeline-content {
+                order: 0;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="page-icon">🏢</div>
+            <h1 class="page-title">Chi Siamo</h1>
+            <p class="page-subtitle">
+                La storia, la missione e le persone dietro Adelchi Group
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- La Nostra Storia -->
+        <div class="story-section">
+            <h2 class="section-title">La Nostra Storia</h2>
+            <div class="story-text">
+                Adelchi Group nasce dalla visione di creare un ponte tra innovazione tecnologica e eccellenza operativa.
+                Fondata con l'obiettivo di fornire soluzioni all'avanguardia nei settori più strategici dell'economia moderna,
+                l'azienda si è rapidamente affermata come partner di riferimento per organizzazioni che cercano di trasformare
+                le sfide in opportunità attraverso la tecnologia e l'expertise specializzato.
+            </div>
+        </div>
+
+        <!-- Timeline Aziendale -->
+        <div class="section">
+            <h2 class="section-title">La Nostra Evoluzione</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="card-title">Fondazione</h3>
+                        <p class="card-description">
+                            Nasce Adelchi Group con focus su consulenza tecnologica e sviluppo software.
+                            Primi progetti nel settore dell'innovazione digitale.
+                        </p>
+                    </div>
+                    <div class="timeline-date">2020</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="card-title">Espansione Settori</h3>
+                        <p class="card-description">
+                            Ingresso nei settori Life Science e Difesa. Sviluppo di soluzioni specializzate
+                            per ricerca biomedica e sistemi di sicurezza avanzati.
+                        </p>
+                    </div>
+                    <div class="timeline-date">2021</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="card-title">Innovazione Blockchain</h3>
+                        <p class="card-description">
+                            Lancio del token ADG e sistema blockchain proprietario.
+                            Integrazione di mining pool RTX3060 per ecosistema tokenizzato.
+                        </p>
+                    </div>
+                    <div class="timeline-date">2023</div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <h3 class="card-title">Leadership Tecnologica</h3>
+                        <p class="card-description">
+                            Consolidamento come leader nell'integrazione di AI, cybersecurity e soluzioni fintech.
+                            Portfolio completo di servizi multisettoriali.
+                        </p>
+                    </div>
+                    <div class="timeline-date">2024</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Valori Aziendali -->
+        <div class="section">
+            <h2 class="section-title">I Nostri Valori</h2>
+            <div class="content-grid">
+                <div class="content-card">
+                    <div class="card-icon">🚀</div>
+                    <h3 class="card-title">Innovazione</h3>
+                    <p class="card-description">
+                        Ricerchiamo costantemente soluzioni all'avanguardia, utilizzando le tecnologie più moderne
+                        per anticipare le esigenze del mercato e superare le aspettative dei clienti.
+                    </p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-icon">🎯</div>
+                    <h3 class="card-title">Eccellenza</h3>
+                    <p class="card-description">
+                        Ogni progetto è un'opportunità per dimostrare i nostri standard qualitativi elevati.
+                        La perfezione nei dettagli e l'attenzione al risultato guidano ogni nostra azione.
+                    </p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-icon">🤝</div>
+                    <h3 class="card-title">Partnership</h3>
+                    <p class="card-description">
+                        Costruiamo relazioni di lungo termine basate su fiducia, trasparenza e risultati concreti.
+                        Il successo dei nostri clienti è il nostro obiettivo primario.
+                    </p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-icon">🛡️</div>
+                    <h3 class="card-title">Sicurezza</h3>
+                    <p class="card-description">
+                        La protezione dei dati e la sicurezza delle soluzioni sono al centro di ogni nostro sviluppo.
+                        Implementiamo i più alti standard di cybersecurity e compliance.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team -->
+        <div class="section">
+            <h2 class="section-title">Il Nostro Team</h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-avatar">👨‍💼</div>
+                    <div class="member-name">Leadership Team</div>
+                    <div class="member-role">Direction & Strategy</div>
+                    <div class="member-description">
+                        Esperti in strategia aziendale e visione tecnologica con track record internazionale
+                        in settori ad alta innovazione.
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">👩‍💻</div>
+                    <div class="member-name">Tech Team</div>
+                    <div class="member-role">Development & Engineering</div>
+                    <div class="member-description">
+                        Sviluppatori full-stack, architetti software e ingegneri specializzati in AI,
+                        blockchain e cybersecurity di ultima generazione.
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">👨‍🔬</div>
+                    <div class="member-name">Research Team</div>
+                    <div class="member-role">R&D & Innovation</div>
+                    <div class="member-description">
+                        Ricercatori e scienziati con expertise in biotecnologie, life science,
+                        crittografia e sistemi di difesa avanzati.
+                    </div>
+                </div>
+
+                <div class="team-member">
+                    <div class="member-avatar">👩‍💼</div>
+                    <div class="member-name">Business Team</div>
+                    <div class="member-role">Sales & Operations</div>
+                    <div class="member-description">
+                        Consulenti business, project manager e specialisti settoriali che garantiscono
+                        l'eccellenza operativa in ogni progetto.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settori di Competenza -->
+        <div class="section">
+            <h2 class="section-title">Le Nostre Competenze</h2>
+            <div class="content-grid">
+                <div class="content-card">
+                    <div class="card-icon">🧬</div>
+                    <h3 class="card-title">Life Science</h3>
+                    <p class="card-description">
+                        Soluzioni per ricerca biomedica, biotecnologie e farmaceutica con integrazione
+                        di AI per accelerare scoperte e sviluppo di nuovi trattamenti.
+                    </p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-icon">💻</div>
+                    <h3 class="card-title">Information Technology</h3>
+                    <p class="card-description">
+                        Sviluppo software, infrastrutture cloud, cybersecurity e trasformazione digitale
+                        per aziende di ogni dimensione e settore.
+                    </p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-icon">🛡️</div>
+                    <h3 class="card-title">Difesa & Sicurezza</h3>
+                    <p class="card-description">
+                        Sistemi di sicurezza avanzati, intelligence, comunicazioni sicure e tecnologie
+                        per la protezione di infrastrutture critiche.
+                    </p>
+                </div>
+
+                <div class="content-card">
+                    <div class="card-icon">₿</div>
+                    <h3 class="card-title">Fintech & Blockchain</h3>
+                    <p class="card-description">
+                        Soluzioni fintech innovative, trading algoritmico, DeFi, token ADG e sistemi
+                        di pagamento digitali di nuova generazione.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Torna alla Home</a>
+            <a href="/contatti">Contattaci</a>
+            <a href="/life-science">I Nostri Servizi</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animazione delle cards
+            const cards = document.querySelectorAll('.content-card, .team-member');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index + 1) * 100);
+            });
+
+            // Animazione timeline
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateX(0)';
+                    }
+                });
+            });
+
+            timelineItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = index % 2 === 0 ? 'translateX(-50px)' : 'translateX(50px)';
+                item.style.transition = 'all 0.6s ease';
+                observer.observe(item);
+            });
+        });
+    </script>
+</body>
+</html>
