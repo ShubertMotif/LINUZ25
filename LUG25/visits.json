@@ -1,0 +1,77 @@
+{
+  "count": 12,
+  "visitors": [
+    {
+      "timestamp": "2025-07-13T19:21:24.264895",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T19:24:16.910663",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T19:24:18.856319",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T19:24:40.875154",
+      "ip": "10.113.188.28",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T19:25:00.583303",
+      "ip": "10.113.188.225",
+      "user_agent": "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.45 Mobile Safari/537.36",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T19:26:15.604729",
+      "ip": "10.113.188.225",
+      "user_agent": "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.45 Mobile Safari/537.36",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-13T19:27:07.238737",
+      "ip": "10.113.188.225",
+      "user_agent": "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.45 Mobile Safari/537.36",
+      "user": "0000"
+    },
+    {
+      "timestamp": "2025-07-13T19:27:23.043286",
+      "ip": "10.113.188.225",
+      "user_agent": "Mozilla/5.0 (Linux; Android 14; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.45 Mobile Safari/537.36",
+      "user": "0000"
+    },
+    {
+      "timestamp": "2025-07-17T22:48:48.358444",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-17T22:48:48.395965",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-17T22:50:55.765138",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-07-17T22:51:05.959312",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36 OPR/119.0.0.0",
+      "user": "0000"
+    }
+  ]
+}
