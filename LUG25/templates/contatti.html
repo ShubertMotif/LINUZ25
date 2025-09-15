@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contatti - Adelchi Group</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            min-height: 100vh;
+            color: #005B94;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #005B94, #E7D454);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M30 30 L70 30 L50 70 Z" fill="rgba(255,255,255,0.05)"/><path d="M20 50 L80 50 L50 10 Z" fill="rgba(255,255,255,0.03)"/></svg>');
+            animation: networkFloat 15s ease-in-out infinite;
+        }
+
+        @keyframes networkFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .page-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+        }
+
+        .contact-info {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            border: 3px solid #005B94;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .contact-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .contact-info:hover::before {
+            left: 100%;
+        }
+
+        .contact-info:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.2);
+            border-color: #E7D454;
+        }
+
+        .contact-form {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 2px solid #E7D454;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(231, 212, 84, 0.05);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            background: rgba(231, 212, 84, 0.15);
+            transform: translateX(5px);
+        }
+
+        .contact-icon {
+            font-size: 2rem;
+            color: #E7D454;
+            margin-right: 1rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .contact-details h4 {
+            color: #005B94;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .contact-details p {
+            color: #005B94;
+            opacity: 0.8;
+        }
+
+        .contact-details a {
+            color: #005B94;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .contact-details a:hover {
+            color: #E7D454;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #005B94;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #005B94;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #E7D454;
+            box-shadow: 0 0 10px rgba(231, 212, 84, 0.3);
+        }
+
+        .form-control.textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .submit-btn {
+            background: #005B94;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background: #E7D454;
+            color: #005B94;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 212, 84, 0.4);
+        }
+
+        .departments-section {
+            margin-top: 4rem;
+        }
+
+        .departments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .department-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 2px solid #005B94;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .department-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .department-card:hover::before {
+            left: 100%;
+        }
+
+        .department-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.2);
+            border-color: #E7D454;
+        }
+
+        .department-icon {
+            font-size: 2.5rem;
+            color: #E7D454;
+            margin-bottom: 1rem;
+        }
+
+        .department-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #005B94;
+            margin-bottom: 1rem;
+        }
+
+        .department-description {
+            color: #005B94;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        .department-contact {
+            font-size: 0.9rem;
+            color: #005B94;
+            font-weight: 600;
+        }
+
+        .office-section {
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        .office-info {
+            background: rgba(231, 212, 84, 0.1);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 2px solid #E7D454;
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+
+        .map-placeholder {
+            background: #f8f9fa;
+            border: 2px solid #005B94;
+            border-radius: 15px;
+            padding: 3rem;
+            margin: 2rem 0;
+            color: #005B94;
+            font-size: 1.1rem;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #E7D454;
+        }
+
+        .nav-links a {
+            color: #005B94;
+            text-decoration: none;
+            margin: 0 1rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #005B94;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: #005B94;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
+        }
+
+        .alert {
+            background: rgba(40, 167, 69, 0.1);
+            color: #005B94;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            border: 1px solid #28a745;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .contacts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-info,
+            .contact-form {
+                padding: 2rem;
+            }
+
+            .departments-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="page-icon">📞</div>
+            <h1 class="page-title">Contatti</h1>
+            <p class="page-subtitle">
+                Mettiti in contatto con il nostro team di esperti per discutere
+                le tue esigenze tecnologiche e di business
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Informazioni di Contatto e Form -->
+        <div class="contacts-grid">
+            <!-- Informazioni di Contatto -->
+            <div class="contact-info">
+                <h2 class="section-title">Informazioni di Contatto</h2>
+
+                <div class="contact-item">
+                    <div class="contact-icon">🏢</div>
+                    <div class="contact-details">
+                        <h4>Sede Principale</h4>
+                        <p>Via Innovazione Tecnologica, 123<br>
+                        20100 Milano, Italia</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">📧</div>
+                    <div class="contact-details">
+                        <h4>Email Generale</h4>
+                        <p><a href="mailto:info@adelchigroup.com">info@adelchigroup.com</a></p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">📱</div>
+                    <div class="contact-details">
+                        <h4>Telefono</h4>
+                        <p><a href="tel:+390212345678">+39 02 1234 5678</a></p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">⏰</div>
+                    <div class="contact-details">
+                        <h4>Orari di Apertura</h4>
+                        <p>Lunedì - Venerdì: 9:00 - 18:00<br>
+                        Sabato: 9:00 - 13:00<br>
+                        Domenica: Chiuso</p>
+                    </div>
+                </div>
+
+                <div class="contact-item">
+                    <div class="contact-icon">🌐</div>
+                    <div class="contact-details">
+                        <h4>Supporto 24/7</h4>
+                        <p>Per emergenze e supporto critico<br>
+                        <a href="tel:+390212345679">+39 02 1234 5679</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form di Contatto -->
+            <div class="contact-form">
+                <h2 class="section-title">Invia un Messaggio</h2>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Nome Completo *</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="company">Azienda</label>
+                        <input type="text" id="company" name="company" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Telefono</label>
+                        <input type="tel" id="phone" name="phone" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service">Settore di Interesse</label>
+                        <select id="service" name="service" class="form-control form-select">
+                            <option value="">Seleziona un settore</option>
+                            <option value="life-science">Life Science & Biotecnologie</option>
+                            <option value="it-services">Servizi Informatici</option>
+                            <option value="defense">Difesa & Sicurezza</option>
+                            <option value="fintech">Fintech & Blockchain</option>
+                            <option value="consulting">Consulenza Generale</option>
+                            <option value="other">Altro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Oggetto *</label>
+                        <input type="text" id="subject" name="subject" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Messaggio *</label>
+                        <textarea id="message" name="message" class="form-control textarea" required
+                                placeholder="Descrivi il tuo progetto o le tue esigenze..."></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Invia Messaggio</button>
+
+                    <div class="alert" id="successAlert">
+                        ✅ Messaggio inviato con successo! Ti contatteremo presto.
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dipartimenti Specializzati -->
+        <div class="departments-section">
+            <h2 class="section-title">Contatti Dipartimenti</h2>
+            <div class="departments-grid">
+                <div class="department-card">
+                    <div class="department-icon">🧬</div>
+                    <h3 class="department-title">Life Science</h3>
+                    <p class="department-description">
+                        Ricerca biomedica, biotecnologie e soluzioni farmaceutiche
+                    </p>
+                    <div class="department-contact">
+                        📧 lifescience@adelchigroup.com<br>
+                        📱 +39 02 1234 5680
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">💻</div>
+                    <h3 class="department-title">IT Services</h3>
+                    <p class="department-description">
+                        Sviluppo software, cybersecurity e trasformazione digitale
+                    </p>
+                    <div class="department-contact">
+                        📧 it@adelchigroup.com<br>
+                        📱 +39 02 1234 5681
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">🛡️</div>
+                    <h3 class="department-title">Difesa & Sicurezza</h3>
+                    <p class="department-description">
+                        Sistemi di difesa, intelligence e comunicazioni sicure
+                    </p>
+                    <div class="department-contact">
+                        📧 defense@adelchigroup.com<br>
+                        📱 +39 02 1234 5682
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">₿</div>
+                    <h3 class="department-title">Fintech & Blockchain</h3>
+                    <p class="department-description">
+                        Token ADG, DeFi, trading algoritmico e soluzioni fintech
+                    </p>
+                    <div class="department-contact">
+                        📧 fintech@adelchigroup.com<br>
+                        📱 +39 02 1234 5683
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">🤝</div>
+                    <h3 class="department-title">Partnership & Vendite</h3>
+                    <p class="department-description">
+                        Opportunità di business e collaborazioni strategiche
+                    </p>
+                    <div class="department-contact">
+                        📧 sales@adelchigroup.com<br>
+                        📱 +39 02 1234 5684
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">🎓</div>
+                    <h3 class="department-title">Risorse Umane</h3>
+                    <p class="department-description">
+                        Carriere, stage e opportunità professionali
+                    </p>
+                    <div class="department-contact">
+                        📧 careers@adelchigroup.com<br>
+                        📱 +39 02 1234 5685
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sede Operativa -->
+        <div class="office-section">
+            <h2 class="section-title">La Nostra Sede</h2>
+            <div class="office-info">
+                <h3>Adelchi Group Headquarters</h3>
+                <p>
+                    La nostra sede principale si trova nel cuore del distretto tecnologico di Milano,
+                    facilmente raggiungibile con mezzi pubblici e dotata di moderne infrastrutture
+                    per incontri e presentazioni.
+                </p>
+            </div>
+
+            <div class="map-placeholder">
+                📍 Mappa Interattiva<br>
+                Via Innovazione Tecnologica, 123<br>
+                20100 Milano, Italia<br><br>
+                <small>🚇 Metro: Linea M2 - Stazione Porta Garibaldi (5 min a piedi)<br>
+                🚌 Bus: Linee 43, 94 - Fermata "Corso Como"<br>
+                🚗 Parcheggio disponibile in struttura</small>
+            </div>
+        </div>
+
+        <div class="nav-links">
+            <a href="/">Torna alla Home</a>
+            <a href="/chi-siamo">Chi Siamo</a>
+            <a href="/life-science">I Nostri Servizi</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animazione delle cards
+            const cards = document.querySelectorAll('.department-card, .contact-item');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index + 1) * 100);
+            });
+
+            // Gestione form
+            const form = document.getElementById('contactForm');
+            const alert = document.getElementById('successAlert');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Simulazione invio (in produzione collegare a backend)
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+
+                // Validazione base
+                if (!data.name || !data.email || !data.subject || !data.message) {
+                    alert('Per favore compila tutti i campi obbligatori.');
+                    return;
+                }
+
+                // Simula invio
+                setTimeout(() => {
+                    alert.style.display = 'block';
+                    form.reset();
+
+                    // Nascondi alert dopo 5 secondi
+                    setTimeout(() => {
+                        alert.style.display = 'none';
+                    }, 5000);
+                }, 1000);
+            });
+
+            // Effetto hover sui dipartimenti
+            const departmentCards = document.querySelectorAll('.department-card');
+            departmentCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-15px) scale(1.02)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

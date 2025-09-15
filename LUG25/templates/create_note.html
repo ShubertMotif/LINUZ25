@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crea Nota - Adelchi Group</title>
+    <style>
+        :root {
+            --primary-blue: #005B94;
+            --accent-gold: #E7D454;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --success-green: #10B981;
+            --warning-orange: #F59E0B;
+            --error-red: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, white, var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-breadcrumb {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .nav-breadcrumb a {
+            color: var(--accent-gold);
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-breadcrumb a:hover {
+            color: white;
+        }
+
+        .form-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 2.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(231, 212, 84, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 16 16'%3e%3cpath d='M8 12L3 7h10l-5 5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            padding-right: 2.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
+            color: var(--primary-blue);
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #F4E869, white);
+        }
+
+        .alert {
+            background: var(--success-green);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.error {
+            background: var(--error-red);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Crea Nuova Nota</h1>
+            <p>Organizza le tue idee e promemoria</p>
+        </div>
+
+        <div class="nav-breadcrumb">
+            <a href="/">🏠 Home</a> →
+            <a href="/stats">📊 Dashboard</a> →
+            <a href="/notes">📝 Note</a> →
+            <span>Crea Nota</span>
+        </div>
+
+        <div class="form-container">
+            <div class="alert" id="alert"></div>
+
+            <form id="noteForm">
+                <div class="form-group">
+                    <label for="title">Titolo *</label>
+                    <input type="text" id="title" name="title" class="form-input" placeholder="Inserisci il titolo della nota..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Contenuto *</label>
+                    <textarea id="content" name="content" class="form-input form-textarea" placeholder="Scrivi il contenuto della nota..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="note_type">Tipo Nota</label>
+                        <select id="note_type" name="note_type" class="form-input form-select">
+                            <option value="text">📝 Testo</option>
+                            <option value="task">✅ Task</option>
+                            <option value="idea">💡 Idea</option>
+                            <option value="link">🔗 Link</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priorità</label>
+                        <select id="priority" name="priority" class="form-input form-select">
+                            <option value="low">Bassa</option>
+                            <option value="normal" selected>Normale</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">Tag (separati da virgola)</label>
+                    <input type="text" id="tags" name="tags" class="form-input" placeholder="lavoro, importante, progetto...">
+                </div>
+
+                <div class="form-group" id="urlGroup" style="display: none;">
+                    <label for="external_url">URL Esterno</label>
+                    <input type="url" id="external_url" name="external_url" class="form-input" placeholder="https://...">
+                </div>
+
+                <div class="form-group" id="dueDateGroup" style="display: none;">
+                    <label for="due_date">Scadenza</label>
+                    <input type="date" id="due_date" name="due_date" class="form-input">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">💾 Salva Nota</button>
+                    <a href="/notes" class="btn btn-secondary">❌ Annulla</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const noteForm = document.getElementById('noteForm');
+            const noteTypeSelect = document.getElementById('note_type');
+            const urlGroup = document.getElementById('urlGroup');
+            const dueDateGroup = document.getElementById('dueDateGroup');
+            const alert = document.getElementById('alert');
+
+            // Mostra/nascondi campi in base al tipo di nota
+            noteTypeSelect.addEventListener('change', function() {
+                const type = this.value;
+
+                // Reset visibility
+                urlGroup.style.display = 'none';
+                dueDateGroup.style.display = 'none';
+
+                // Show relevant fields
+                if (type === 'link') {
+                    urlGroup.style.display = 'block';
+                } else if (type === 'task') {
+                    dueDateGroup.style.display = 'block';
+                }
+            });
+
+            // Handle form submission
+            noteForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(noteForm);
+                const data = Object.fromEntries(formData);
+
+                // Validate required fields
+                if (!data.title.trim() || !data.content.trim()) {
+                    showAlert('Compila tutti i campi obbligatori', 'error');
+                    return;
+                }
+
+                // Submit to API
+                fetch('/create_note', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Nota creata con successo!', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/notes';
+                        }, 1500);
+                    } else {
+                        showAlert(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showAlert('Errore durante il salvataggio', 'error');
+                });
+            });
+
+            function showAlert(message, type) {
+                alert.textContent = message;
+                alert.className = `alert ${type}`;
+                alert.style.display = 'block';
+
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

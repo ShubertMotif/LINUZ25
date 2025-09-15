@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adelchi Group - Benvenuto</title>
+    <title>Adelchi Group - Innovazione Tecnologica</title>
     <style>
         * {
             margin: 0;
@@ -12,12 +12,11 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
-            background: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #005B94 0%, #2980B9 50%, #E7D454 100%);
             min-height: 100vh;
-            color: #005B94;
-            margin: 0;
-            padding: 0;
+            color: white;
+            overflow-x: hidden;
         }
 
         .container {
@@ -26,514 +25,355 @@
             padding: 2rem;
         }
 
-        .header {
-            text-align: center;
-            padding: 2rem 0;
-            border-bottom: 2px solid #E7D454;
-            margin-bottom: 3rem;
+        /* User Info */
+        .user-info {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 1.5rem;
+            border-radius: 25px;
+            z-index: 1000;
+            font-size: 0.9rem;
         }
 
-        .logo-container {
-            position: relative;
-            margin-bottom: 2rem;
-            display: inline-block;
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .wallet-balance {
+            background: linear-gradient(45deg, #E7D454, #F4E869);
+            color: #005B94;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #E7D454;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .nav-links a:hover {
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 3rem 0;
+            margin-bottom: 4rem;
         }
 
         .logo {
-            width: 200px;
-            height: 200px;
-            position: relative;
-            animation: logoFloat 3s ease-in-out infinite;
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 2rem;
+            animation: logoBounce 3s ease-in-out infinite;
         }
 
         .logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .logo-bg {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 160px;
-            height: 160px;
-            background: rgba(231, 212, 84, 0.1);
             border-radius: 50%;
-            animation: logoBgPulse 2s ease-in-out infinite;
+            border: 3px solid rgba(255, 255, 255, 0.4);
         }
 
-        @keyframes logoBgPulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
-            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.6; }
+        @keyframes logoBounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
         }
 
         .logo-text {
             font-size: 2.5rem;
-            font-weight: bold;
-            margin-top: 1rem;
-            color: #005B94;
-            text-shadow: 0 0 20px rgba(231, 212, 84, 0.3);
-            animation: textGlow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes textGlow {
-            0% { text-shadow: 0 0 20px rgba(231, 212, 84, 0.3); }
-            100% { text-shadow: 0 0 30px rgba(231, 212, 84, 0.6), 0 0 40px rgba(231, 212, 84, 0.2); }
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, white, #E7D454);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
         }
 
         .welcome-text {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             margin-bottom: 2rem;
-            color: #005B94;
-            animation: fadeInUp 1s ease-out 0.5s both;
-        }
-
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 300;
         }
 
         .visit-counter {
-            background: rgba(231, 212, 84, 0.1);
-            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
             border-radius: 25px;
-            margin-bottom: 2rem;
-            border: 2px solid #E7D454;
-            animation: fadeInUp 1s ease-out 1s both;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .visit-counter:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .visit-counter h3 {
-            margin-bottom: 0.5rem;
-            color: #005B94;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
 
         .visit-number {
-            font-size: 2rem;
-            font-weight: bold;
+            font-size: 3rem;
+            font-weight: 800;
             color: #E7D454;
-            animation: counterPulse 2s ease-in-out infinite;
         }
 
-        @keyframes counterPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        /* Stili per i pulsanti di navigazione */
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-            flex-wrap: wrap;
-            animation: fadeInUp 1s ease-out 1.2s both;
-        }
-
-        .nav-btn {
-            background: white;
+        .login-btn {
+            background: linear-gradient(45deg, #E7D454, #F4E869);
             color: #005B94;
-            padding: 0.8rem 1.5rem;
+            padding: 1.2rem 2.5rem;
             text-decoration: none;
-            border-radius: 25px;
-            border: 2px solid #005B94;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
             transition: all 0.3s ease;
-            font-weight: bold;
-            position: relative;
-            overflow: hidden;
+            display: inline-block;
         }
 
-        .nav-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.3), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .nav-btn:hover::before {
-            left: 100%;
-        }
-
-        .nav-btn:hover {
-            background: #005B94;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 91, 148, 0.3);
-            text-decoration: none;
-        }
-
-        .nav-btn.login {
-            background: #E7D454;
-            color: #005B94;
-            border-color: #E7D454;
-        }
-
-        .nav-btn.login:hover {
-            background: #005B94;
-            color: white;
-        }
-
-        /* Nuovo stile per area riservata */
-        .nav-btn.area-riservata {
-            background: linear-gradient(135deg, #005B94, #E7D454);
-            color: white;
-            border: none;
-            font-weight: bold;
-            position: relative;
-        }
-
-        .nav-btn.area-riservata::before {
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        }
-
-        .nav-btn.area-riservata:hover {
-            background: linear-gradient(135deg, #E7D454, #005B94);
+        .login-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(231, 212, 84, 0.4);
-        }
-
-        .services-section {
-            margin-top: 3rem;
-            animation: fadeInUp 1s ease-out 1.5s both;
-        }
-
-        .services-title {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: bold;
+            background: linear-gradient(45deg, #F4E869, white);
+            text-decoration: none;
             color: #005B94;
-            margin-bottom: 2rem;
-            border-bottom: 3px solid #E7D454;
-            padding-bottom: 1rem;
         }
 
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+        /* Services */
+        .services-container {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
         }
 
-        .service-card {
-            background: white;
-            border: 3px solid #005B94;
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
+        .service-block {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
         }
 
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(231, 212, 84, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .service-card:hover::before {
-            left: 100%;
-        }
-
-        .service-card:hover {
+        .service-block:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 91, 148, 0.2);
-            border-color: #E7D454;
-            text-decoration: none;
-            color: inherit;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .service-content {
+            display: flex;
+            align-items: center;
+            gap: 3rem;
         }
 
         .service-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: #E7D454;
+            font-size: 4rem;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .service-info {
+            flex: 1;
         }
 
         .service-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #005B94;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
         }
 
         .service-description {
-            color: #005B94;
+            color: rgba(255, 255, 255, 0.9);
             line-height: 1.6;
-            opacity: 0.8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
         }
 
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(231, 212, 84, 0.3);
-            border-radius: 50%;
-            animation: particleFloat 6s ease-in-out infinite;
-        }
-
-        @keyframes particleFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
-            50% { transform: translateY(-100px) rotate(180deg); opacity: 1; }
-        }
-
-        .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
-        .particle:nth-child(2) { left: 20%; animation-delay: 0.5s; }
-        .particle:nth-child(3) { left: 30%; animation-delay: 1s; }
-        .particle:nth-child(4) { left: 40%; animation-delay: 1.5s; }
-        .particle:nth-child(5) { left: 50%; animation-delay: 2s; }
-        .particle:nth-child(6) { left: 60%; animation-delay: 2.5s; }
-        .particle:nth-child(7) { left: 70%; animation-delay: 3s; }
-        .particle:nth-child(8) { left: 80%; animation-delay: 3.5s; }
-        .particle:nth-child(9) { left: 90%; animation-delay: 4s; }
-
-        .user-info {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(231, 212, 84, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid #E7D454;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-info a {
+        .service-btn {
+            background: linear-gradient(45deg, #E7D454, #F4E869);
             color: #005B94;
+            padding: 1rem 2rem;
             text-decoration: none;
-            font-weight: bold;
+            border-radius: 25px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
 
-        .user-info a:hover {
-            color: #E7D454;
+        .service-btn:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(45deg, #F4E869, white);
+            text-decoration: none;
+            color: #005B94;
         }
 
-        .role-badge {
-            background: #005B94;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
+        /* Mobile */
         @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .user-info {
+                position: static;
+                margin-bottom: 2rem;
+                text-align: center;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .service-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .service-icon {
+                font-size: 3rem;
+            }
+
             .logo {
-                width: 150px;
-                height: 150px;
+                width: 120px;
+                height: 120px;
             }
 
             .logo-text {
                 font-size: 2rem;
             }
-
-            .welcome-text {
-                font-size: 1rem;
-            }
-
-            .nav-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .nav-btn {
-                width: 200px;
-                text-align: center;
-            }
-
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .user-info {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin-bottom: 1rem;
-                justify-content: center;
-            }
         }
     </style>
 </head>
 <body>
+    <!-- User Info -->
     {% if current_user.is_authenticated %}
     <div class="user-info">
-        👋 Benvenuto, {{ current_user.username }}!
-        <a href="/logout" style="color: #005B94; text-decoration: none; margin-left: 1rem;">Logout</a>
+        <div class="user-row">
+            <span>👋 {{ current_user.username }}</span>
+            <span class="wallet-balance">💰 {{ "%.1f"|format(current_user.balance) }} ADG</span>
+        </div>
+        <div class="nav-links">
+            <a href="/stats">📊 Dashboard</a>
+            <a href="/wallet">💳 Wallet</a>
+            <a href="/files">📁 Files</a>
+            <a href="/notes">📝 Note</a>
+            <a href="/mining">⛏️ Mining</a>
+            <a href="/logout">🚪 Logout</a>
+        </div>
     </div>
     {% endif %}
 
-    <div class="particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
     <div class="container">
-        <div class="header">
-            <div class="logo-container">
-                <div class="logo-bg"></div>
-                <div class="logo">
-                    <img src="{{ url_for('static', filename='logo.gif') }}" alt="Adelchi Group Logo">
-                </div>
-                <div class="logo-text">
-                    ADELCHI<br>GROUP
-                </div>
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='logo.gif') }}" alt="Adelchi Group Logo">
             </div>
 
-            <p class="welcome-text">
-                Benvenuto nel sito ufficiale di Adelchi Group
-            </p>
+            <h1 class="logo-text">ADELCHI GROUP</h1>
+            <p class="welcome-text">Innovazione e Eccellenza Tecnologica</p>
 
             <div class="visit-counter">
-                <h3>Visite Totali</h3>
+                <h3>Visitatori Totali</h3>
                 <div class="visit-number">{{ visit_count }}</div>
             </div>
 
-            <!-- Pulsanti di navigazione -->
-            <div class="nav-buttons">
-                {% if current_user.is_authenticated %}
-                    <a href="/dashboard" class="nav-btn area-riservata">🏢 Area Riservata</a>
-                    <a href="/logout" class="nav-btn">Logout</a>
-                {% else %}
-                    <a href="/login" class="nav-btn login">Login</a>
-                {% endif %}
+            {% if not current_user.is_authenticated %}
+            <div style="margin-top: 2rem;">
+                <a href="/login" class="login-btn">🔐 Accedi al Portale</a>
             </div>
-        </div>
+            {% endif %}
+        </header>
 
-        <div class="services-section">
-            <h2 class="services-title">I Nostri Servizi</h2>
-
-            <div class="services-grid">
-                <a href="/life-science" class="service-card">
+        <!-- Services -->
+        <main class="services-container">
+            <!-- Life Science -->
+            <section class="service-block">
+                <div class="service-content">
                     <div class="service-icon">🧬</div>
-                    <h3 class="service-title">Life Science</h3>
-                    <p class="service-description">
-                        Soluzioni innovative per il settore delle scienze della vita,
-                        ricerca farmaceutica e biotecnologie. Offriamo consulenza
-                        specializzata e tecnologie all'avanguardia per accelerare
-                        la scoperta e lo sviluppo di nuovi trattamenti.
-                    </p>
-                </a>
+                    <div class="service-info">
+                        <h2 class="service-title">Life Science & Biotecnologie</h2>
+                        <p class="service-description">
+                            Soluzioni avanzate per ricerca biomedica, sviluppo farmaceutico e biotecnologie.
+                            Acceleriamo l'innovazione nella scoperta di nuovi trattamenti.
+                        </p>
+                        <a href="/life-science" class="service-btn">Esplora Life Science</a>
+                    </div>
+                </div>
+            </section>
 
-                <a href="/servizi-informatici" class="service-card">
+            <!-- IT Services -->
+            <section class="service-block">
+                <div class="service-content">
                     <div class="service-icon">💻</div>
-                    <h3 class="service-title">Servizi Informatici</h3>
-                    <p class="service-description">
-                        Sviluppo software, infrastrutture IT, cybersecurity e
-                        digitalizzazione aziendale. Trasformiamo le tue idee
-                        in soluzioni tecnologiche efficaci e sicure per
-                        ottimizzare i processi aziendali.
-                    </p>
-                </a>
+                    <div class="service-info">
+                        <h2 class="service-title">Servizi Informatici</h2>
+                        <p class="service-description">
+                            Trasformazione digitale completa con soluzioni cloud, cybersecurity avanzata e
+                            sviluppo software su misura per il futuro digitale.
+                        </p>
+                        <a href="/servizi-informatici" class="service-btn">Scopri IT Services</a>
+                    </div>
+                </div>
+            </section>
 
-                <a href="/difesa" class="service-card">
+            <!-- Defense -->
+            <section class="service-block">
+                <div class="service-content">
                     <div class="service-icon">🛡️</div>
-                    <h3 class="service-title">Servizi Difesa</h3>
-                    <p class="service-description">
-                        Consulenza specializzata per il settore difesa e sicurezza.
-                        Sviluppiamo sistemi avanzati, tecnologie di protezione
-                        e soluzioni strategiche per garantire la massima
-                        sicurezza nazionale e internazionale.
-                    </p>
-                </a>
+                    <div class="service-info">
+                        <h2 class="service-title">Servizi Difesa</h2>
+                        <p class="service-description">
+                            Tecnologie strategiche per difesa nazionale, sistemi di sorveglianza avanzati e
+                            soluzioni di sicurezza per infrastrutture critiche.
+                        </p>
+                        <a href="/difesa" class="service-btn">Entra in Difesa</a>
+                    </div>
+                </div>
+            </section>
 
-                <a href="/finanza" class="service-card">
-                    <div class="service-icon">💰</div>
-                    <h3 class="service-title">Servizi Finanziari</h3>
-                    <p class="service-description">
-                        Consulenza finanziaria, analisi di mercato e soluzioni
-                        fintech innovative. Aiutiamo le aziende a ottimizzare
-                        le strategie finanziarie e a navigare nei mercati
-                        globali con competenza e sicurezza.
-                    </p>
-                </a>
-            </div>
-        </div>
+            <!-- Crypto & Blockchain -->
+            <section class="service-block">
+                <div class="service-content">
+                    <div class="service-icon">₿</div>
+                    <div class="service-info">
+                        <h2 class="service-title">Fintech & Blockchain</h2>
+                        <p class="service-description">
+                            Soluzioni innovative per trading, DeFi, NFT e tecnologie blockchain.
+                            Il futuro della finanza digitale decentralizzata.
+                        </p>
+                        <a href="/finanza" class="service-btn">Esplora Fintech</a>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-
-    <script>
-        // Aggiungi un po' di interattività
-        document.addEventListener('DOMContentLoaded', function() {
-            const logo = document.querySelector('.logo');
-            const particles = document.querySelectorAll('.particle');
-
-            // Effetto hover sul logo
-            logo.addEventListener('mouseenter', function() {
-                this.style.animationPlayState = 'paused';
-                this.style.transform = 'scale(1.1)';
-                this.style.transition = 'transform 0.3s ease';
-            });
-
-            logo.addEventListener('mouseleave', function() {
-                this.style.animationPlayState = 'running';
-                this.style.transform = 'scale(1)';
-            });
-
-            // Posiziona le particelle casualmente
-            particles.forEach(particle => {
-                particle.style.top = Math.random() * 100 + '%';
-                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
-            });
-
-            // Aggiorna il contatore ogni secondo (simulazione)
-            setInterval(() => {
-                const counter = document.querySelector('.visit-number');
-                counter.style.color = '#E7D454';
-                setTimeout(() => {
-                    counter.style.color = '#E7D454';
-                }, 200);
-            }, 5000);
-
-            // Animazione delle service cards
-            const serviceCards = document.querySelectorAll('.service-card');
-            serviceCards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-
-                setTimeout(() => {
-                    card.style.transition = 'all 0.6s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, (index + 1) * 200);
-            });
-        });
-    </script>
 </body>
 </html>

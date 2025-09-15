@@ -1,0 +1,81 @@
+sudo sed -i 's/server_name _;/server_name adelchigroup.com;/' /etc/nginx/sites-available/lug25
+sudo nginx -t && sudo systemctl reload nginx
+
+
+
+sudo certbot --nginx -d www.adelchigroup.com
+
+
+
+sudo tee /etc/nginx/sites-available/lug25 >/dev/null <<'EOF'
+server {
+    listen 80;
+    server_name adelchigroup.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+EOF
+
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -sf /etc/nginx/sites-available/lug25 /etc/nginx/sites-enabled/lug25
+sudo nginx -t && sudo systemctl reload nginx
+
+
+
+# 1) Config Nginx HTTPS + redirect
+sudo tee /etc/nginx/sites-available/lug25 >/dev/null <<'EOF'
+# Redirect HTTP -> HTTPS
+server {
+    listen 80;
+    server_name adelchigroup.com adelchigroup.com;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS proxato a Gunicorn
+server {
+    listen 443 ssl http2;
+    server_name adelchigroup.com adelchigroup.com;
+
+    # Certificati Let's Encrypt (già emessi)
+    ssl_certificate     /etc/letsencrypt/live/adelchigroup.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/adelchigroup.com/privkey.pem;
+
+    # (opzionali) hardening base
+    add_header X-Frame-Options DENY;
+    add_header X-Content-Type-Options nosniff;
+    add_header Referrer-Policy no-referrer-when-downgrade;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    # (opzionale) aumenta dimensione upload se ti serve
+    client_max_body_size 25m;
+
+    # Proxy alla tua app Flask (Gunicorn su 127.0.0.1:8000)
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60;
+    }
+
+    # (opzionale) WebSocket upgrade, se usi socket
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+    location /ws/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+    }
+}
+EOF

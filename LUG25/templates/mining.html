@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adelchi Mining Pool - Dashboard</title>
+    <style>
+        :root {
+            --primary-blue: #005B94;
+            --accent-gold: #E7D454;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --success-green: #10B981;
+            --warning-orange: #F59E0B;
+            --error-red: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, white, var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .stat-card:hover::before {
+            left: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .panel:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .panel h2 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+            color: var(--accent-gold);
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 1rem;
+        }
+
+        .mining-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .form-input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 0 20px rgba(231, 212, 84, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
+            color: var(--primary-blue);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(231, 212, 84, 0.4);
+            background: linear-gradient(45deg, #F4E869, white);
+        }
+
+        .btn-download {
+            background: linear-gradient(45deg, var(--success-green), #34D399);
+            color: white;
+        }
+
+        .btn-download:hover {
+            background: linear-gradient(45deg, #34D399, #6EE7B7);
+        }
+
+        .miners-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .miner-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .miner-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+
+        .miner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .miner-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .miner-status {
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-online {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .status-offline {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .miner-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .miner-stat {
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .miner-stat-value {
+            display: block;
+            font-weight: 700;
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+        }
+
+        .download-section {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+            border: 2px dashed var(--success-green);
+            border-radius: 25px;
+        }
+
+        .download-section h2 {
+            color: var(--success-green);
+            margin-bottom: 1rem;
+        }
+
+        .download-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .download-item {
+            background: rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .download-item h3 {
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .blockchain-viz {
+            margin-top: 3rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 2.5rem;
+        }
+
+        .blockchain-viz h2 {
+            text-align: center;
+            color: var(--accent-gold);
+            margin-bottom: 2rem;
+        }
+
+        .blocks-container {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+
+        .block {
+            min-width: 150px;
+            background: linear-gradient(45deg, var(--primary-blue), #2980B9);
+            border: 2px solid var(--accent-gold);
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+            animation: blockPulse 3s ease-in-out infinite;
+        }
+
+        .block:nth-child(odd) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes blockPulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(231, 212, 84, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(231, 212, 84, 0.6);
+                transform: scale(1.02);
+            }
+        }
+
+        .block-id {
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .block-hash {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin: 0.5rem 0;
+            word-break: break-all;
+        }
+
+        .block-reward {
+            font-weight: 600;
+            color: var(--success-green);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .miner-stats {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .download-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛏️ Adelchi Mining Pool</h1>
+            <p>Unisciti alla rete blockchain Adelchi e inizia a minare token ADG</p>
+        </div>
+
+        <!-- Statistiche Globali -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value" id="totalHashrate">2.4 TH/s</div>
+                <div class="stat-label">Hashrate Totale</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="activeMiners">47</div>
+                <div class="stat-label">Miners Attivi</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-value" id="blocksFound">1,337</div>
+                <div class="stat-label">Blocchi Minati</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="totalRewards">89,245</div>
+                <div class="stat-label">ADG Distribuiti</div>
+            </div>
+        </div>
+
+        <!-- Contenuto Principale -->
+        <div class="main-content">
+            <!-- Registrazione Mining -->
+            <div class="panel">
+                <h2>🚀 Registra il tuo Miner</h2>
+                <form class="mining-form" id="minerRegistration">
+                    <div class="form-group">
+                        <label for="minerName">Nome Miner</label>
+                        <input type="text" id="minerName" class="form-input" placeholder="Es: RTX3060-Gaming-Rig" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gpuModel">Modello GPU</label>
+                        <select id="gpuModel" class="form-input" required>
+                            <option value="">Seleziona GPU</option>
+                            <option value="rtx4090">RTX 4090</option>
+                            <option value="rtx4080">RTX 4080</option>
+                            <option value="rtx4070">RTX 4070</option>
+                            <option value="rtx3090">RTX 3090</option>
+                            <option value="rtx3080">RTX 3080</option>
+                            <option value="rtx3070">RTX 3070</option>
+                            <option value="rtx3060">RTX 3060</option>
+                            <option value="rx7900xt">RX 7900 XT</option>
+                            <option value="rx6800xt">RX 6800 XT</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="walletAddress">Wallet ADG Address</label>
+                        <input type="text" id="walletAddress" class="form-input" placeholder="ADG1A2B3C4D5E6F7G8H9I0J..." required>
+                    </div>
+                    <button type="submit" class="btn">🎯 Registra Miner</button>
+                </form>
+            </div>
+
+            <!-- Lista Miners Attivi -->
+            <div class="panel">
+                <h2>👥 Miners Attivi</h2>
+                <div class="miners-list" id="minersList">
+                    <div class="miner-item">
+                        <div class="miner-header">
+                            <span class="miner-name">🖥️ Adelchi-Prime-RTX3060</span>
+                            <span class="miner-status status-online">Online</span>
+                        </div>
+                        <div class="miner-stats">
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">45.2 MH/s</span>
+                                <span>Hashrate</span>
+                            </div>
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">847</span>
+                                <span>Shares</span>
+                            </div>
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">125 ADG</span>
+                                <span>Rewards</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="miner-item">
+                        <div class="miner-header">
+                            <span class="miner-name">⚡ Gaming-Beast-RTX4080</span>
+                            <span class="miner-status status-online">Online</span>
+                        </div>
+                        <div class="miner-stats">
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">78.4 MH/s</span>
+                                <span>Hashrate</span>
+                            </div>
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">1,234</span>
+                                <span>Shares</span>
+                            </div>
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">289 ADG</span>
+                                <span>Rewards</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="miner-item">
+                        <div class="miner-header">
+                            <span class="miner-name">🔥 Crypto-Farm-RX7900XT</span>
+                            <span class="miner-status status-offline">Offline</span>
+                        </div>
+                        <div class="miner-stats">
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">0 MH/s</span>
+                                <span>Hashrate</span>
+                            </div>
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">567</span>
+                                <span>Shares</span>
+                            </div>
+                            <div class="miner-stat">
+                                <span class="miner-stat-value">98 ADG</span>
+                                <span>Rewards</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Client -->
+        <div class="download-section">
+            <h2>📥 Scarica Adelchi Mining Client</h2>
+            <p>Client leggero e ottimizzato per tutte le GPU. Plug & Play!</p>
+
+            <div class="download-info">
+                <div class="download-item">
+                    <h3>🪟 Windows</h3>
+                    <p>Supporta RTX/GTX Serie</p>
+                    <p><strong>v2.1.4</strong> - 45MB</p>
+                </div>
+                <div class="download-item">
+                    <h3>🐧 Linux</h3>
+                    <p>Ubuntu/Debian/Arch</p>
+                    <p><strong>v2.1.4</strong> - 38MB</p>
+                </div>
+                <div class="download-item">
+                    <h3>🍎 macOS</h3>
+                    <p>Metal Performance Shaders</p>
+                    <p><strong>v2.1.2</strong> - 52MB</p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-download" onclick="downloadClient('windows')">
+                    🪟 Download Windows
+                </button>
+                <button class="btn btn-download" onclick="downloadClient('linux')">
+                    🐧 Download Linux
+                </button>
+                <button class="btn btn-download" onclick="downloadClient('macos')">
+                    🍎 Download macOS
+                </button>
+            </div>
+        </div>
+
+        <!-- Visualizzazione Blockchain -->
+        <div class="blockchain-viz">
+            <h2>⛓️ Adelchi Blockchain Live</h2>
+            <div class="blocks-container" id="blocksContainer">
+                <div class="block">
+                    <div class="block-id">Block #1337</div>
+                    <div class="block-hash">0x1a2b3c4d...</div>
+                    <div class="block-reward">+50 ADG</div>
+                </div>
+                <div class="block">
+                    <div class="block-id">Block #1338</div>
+                    <div class="block-hash">0x5e6f7a8b...</div>
+                    <div class="block-reward">+50 ADG</div>
+                </div>
+                <div class="block">
+                    <div class="block-id">Block #1339</div>
+                    <div class="block-hash">0x9c0d1e2f...</div>
+                    <div class="block-reward">+50 ADG</div>
+                </div>
+                <div class="block">
+                    <div class="block-id">Mining...</div>
+                    <div class="block-hash">⚡ In Progress</div>
+                    <div class="block-reward">? ADG</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulazione dati in tempo reale
+        let stats = {
+            hashrate: 2.4,
+            miners: 47,
+            blocks: 1337,
+            rewards: 89245
+        };
+
+        // Aggiorna statistiche
+        function updateStats() {
+            stats.hashrate += (Math.random() - 0.5) * 0.1;
+            stats.miners += Math.random() > 0.7 ? 1 : (Math.random() < 0.3 ? -1 : 0);
+
+            if (Math.random() > 0.95) {
+                stats.blocks += 1;
+                stats.rewards += 50;
+                addNewBlock();
+            }
+
+            document.getElementById('totalHashrate').textContent = stats.hashrate.toFixed(1) + ' TH/s';
+            document.getElementById('activeMiners').textContent = Math.max(0, stats.miners);
+            document.getElementById('blocksFound').textContent = stats.blocks.toLocaleString();
+            document.getElementById('totalRewards').textContent = stats.rewards.toLocaleString();
+        }
+
+        // Aggiungi nuovo blocco alla visualizzazione
+        function addNewBlock() {
+            const container = document.getElementById('blocksContainer');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'block';
+            newBlock.innerHTML = `
+                <div class="block-id">Block #${stats.blocks}</div>
+                <div class="block-hash">0x${Math.random().toString(16).substr(2, 8)}...</div>
+                <div class="block-reward">+50 ADG</div>
+            `;
+
+            // Rimuovi il blocco "Mining..." se esiste
+            const miningBlock = container.querySelector('.block:last-child');
+            if (miningBlock && miningBlock.textContent.includes('Mining')) {
+                container.removeChild(miningBlock);
+            }
+
+            container.appendChild(newBlock);
+
+            // Aggiungi nuovo blocco "Mining..."
+            const newMiningBlock = document.createElement('div');
+            newMiningBlock.className = 'block';
+            newMiningBlock.innerHTML = `
+                <div class="block-id">Mining...</div>
+                <div class="block-hash">⚡ In Progress</div>
+                <div class="block-reward">? ADG</div>
+            `;
+            container.appendChild(newMiningBlock);
+
+            // Mantieni solo gli ultimi 6 blocchi
+            while (container.children.length > 6) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // Gestione form registrazione
+        document.getElementById('minerRegistration').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const minerName = document.getElementById('minerName').value;
+            const gpuModel = document.getElementById('gpuModel').value;
+            const walletAddress = document.getElementById('walletAddress').value;
+
+            if (minerName && gpuModel && walletAddress) {
+                alert(`✅ Miner "${minerName}" registrato con successo!\n\nGPU: ${gpuModel.toUpperCase()}\nWallet: ${walletAddress}\n\nScarica il client per iniziare a minare!`);
+
+                // Reset form
+                this.reset();
+
+                // Simula aggiunta alla lista (in realtà andrebbe nel database)
+                stats.miners += 1;
+            }
+        });
+
+        // Download client
+        function downloadClient(platform) {
+            const urls = {
+                windows: '/downloads/adelchi-miner-windows-v2.1.4.exe',
+                linux: '/downloads/adelchi-miner-linux-v2.1.4.tar.gz',
+                macos: '/downloads/adelchi-miner-macos-v2.1.2.dmg'
+            };
+
+            alert(`🚀 Download iniziato!\n\nClient: Adelchi Miner ${platform.charAt(0).toUpperCase() + platform.slice(1)}\n\nDopo l'installazione:\n1. Inserisci le tue credenziali Adelchi\n2. Il client rileverà automaticamente la GPU\n3. Inizia a minare!`);
+
+            // In un'app reale, questo avvierebbe il download
+            // window.location.href = urls[platform];
+        }
+
+        // Avvia aggiornamenti
+        setInterval(updateStats, 3000);
+
+        // Animazione iniziale
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                updateStats();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
