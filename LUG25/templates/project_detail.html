@@ -1,242 +1,50 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ project.name }} - Adelchi Group</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
+{% extends "base_app.html" %}
 
-        .header {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
+{% block title %}{{ project.name }} - Adelchi Group{% endblock %}
 
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
+{% block extra_css %}
+<style>
+    .member-card {
+        background: rgba(255,255,255,0.1);
+        padding: 1.5rem;
+        border-radius: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    /* ... resto CSS specifico */
+</style>
+{% endblock %}
 
-        .project-title {
-            color: #005B94;
-            font-size: 2rem;
-        }
+{% block content %}
+<h1 class="page-title">{{ project.name }}</h1>
+<p class="page-subtitle">{{ project.description or 'Nessuna descrizione' }}</p>
 
-        .role-badge {
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
+<!-- MEMBRI -->
+<div class="glass-card">
+    <h2 style="color: #E7D454; margin-bottom: 1.5rem;">👥 Team</h2>
+    {% for member in members %}
+    <div class="member-card">
+        <div>
+            <strong>{{ member.user.username }}</strong>
+            <div style="font-size: 0.9rem; opacity: 0.8;">{{ member.role }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 
-        .role-badge.owner { background: #d4edda; color: #155724; }
-        .role-badge.collaborator { background: #fff3cd; color: #856404; }
-        .role-badge.viewer { background: #e2e3e5; color: #383d41; }
+<!-- FILES -->
+<div class="glass-card">
+    <h2 style="color: #E7D454; margin-bottom: 1.5rem;">📁 File ({{ project_files|length }})</h2>
+    {% for pf in project_files %}
+    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem;">
+        {{ pf.file.original_filename }}
+    </div>
+    {% endfor %}
+</div>
 
-        .project-description {
-            color: #718096;
-            line-height: 1.6;
-            margin-bottom: 1rem;
-        }
-
-        .project-meta {
-            display: flex;
-            gap: 2rem;
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-
-        .btn {
-            padding: 0.7rem 1.5rem;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-block;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-primary { background: #005B94; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-sm { padding: 0.4rem 1rem; font-size: 0.85rem; }
-
-        .section {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .section-title {
-            color: #2d3748;
-            font-size: 1.5rem;
-        }
-
-        /* MEMBRI */
-        .members-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1rem;
-        }
-
-        .member-card {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .member-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .member-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-
-        .member-details h4 {
-            color: #2d3748;
-            margin-bottom: 0.3rem;
-        }
-
-        .member-role {
-            font-size: 0.8rem;
-            color: #718096;
-        }
-
-        /* FILES & NOTES */
-        .items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .item-card {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .item-info {
-            flex: 1;
-        }
-
-        .item-title {
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .item-meta {
-            color: #718096;
-            font-size: 0.85rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #718096;
-        }
-
-        /* MODAL */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-        }
-
-        .modal-content {
-            background: white;
-            margin: 10% auto;
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 500px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .close {
-            font-size: 2rem;
-            cursor: pointer;
-            color: #718096;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #2d3748;
-            font-weight: 600;
-        }
-
-        .form-group select {
-            width: 100%;
-            padding: 0.7rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .header-top { flex-direction: column; gap: 1rem; }
-            .members-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
+{% endblock %}
 <body>
     <div class="container">
         <!-- HEADER PROGETTO -->
