@@ -1,5 +1,5 @@
 {
-  "count": 14,
+  "count": 20,
   "visitors": [
     {
       "timestamp": "2025-07-13T12:40:17.675115",
@@ -80,6 +80,42 @@
       "ip": "127.0.0.1",
       "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
       "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-09-13T17:53:16.287151",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-09-13T17:54:06.430431",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
+      "user": "Anonimo"
+    },
+    {
+      "timestamp": "2025-09-13T17:55:39.577017",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
+      "user": "0000"
+    },
+    {
+      "timestamp": "2025-09-13T17:55:48.673685",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
+      "user": "0000"
+    },
+    {
+      "timestamp": "2025-09-13T17:56:06.055555",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
+      "user": "0000"
+    },
+    {
+      "timestamp": "2025-09-13T17:56:24.210651",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
+      "user": "0000"
     }
   ]
 }

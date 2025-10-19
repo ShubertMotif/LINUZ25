@@ -1,5 +1,6 @@
 Flask==2.3.3
 Werkzeug==2.3.7
-flask_login
-sqlalchemy
-flask_sqlaclhemy
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.0.5
+PyJWT==2.8.0
+gunicorn==21.2.0

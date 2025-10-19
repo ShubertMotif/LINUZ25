@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Note - Adelchi Group</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #005B94, #E7D454);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+            text-decoration: none;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-info h2 {
+            color: #005B94;
+            font-size: 28px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #005B94;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 2px;
+        }
+
+        .quick-actions {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: #005B94;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #004080;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #2f855a;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f56500;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd5800;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #005B94;
+            border: 1px solid #005B94;
+        }
+
+        .btn-outline:hover {
+            background: #005B94;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .note-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .note-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .note-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .note-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #2d3748;
+            word-break: break-word;
+        }
+
+        .note-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .note-type {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .note-type.text {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .note-type.task {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .note-type.idea {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .note-type.link {
+            background: #e9d8fd;
+            color: #553c9a;
+        }
+
+        .priority-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .priority-low {
+            background: #f7fafc;
+            color: #4a5568;
+        }
+
+        .priority-normal {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .priority-high {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-urgent {
+            background: #fc8181;
+            color: white;
+        }
+
+        .note-content {
+            padding: 1rem;
+        }
+
+        .note-text {
+            color: #4a5568;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .note-text::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 30%;
+            height: 20px;
+            background: linear-gradient(90deg, transparent, white);
+        }
+
+        .note-tags {
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .note-footer {
+            padding: 1rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .note-date {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .note-actions .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .task-completed {
+            opacity: 0.6;
+            position: relative;
+        }
+
+        .task-completed::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(72, 187, 120, 0.1) 2px,
+                rgba(72, 187, 120, 0.1) 4px
+            );
+        }
+
+        .completed-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #38a169;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #718096;
+            grid-column: 1 / -1;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #a0aec0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #005B94;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #718096;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            border-color: #38a169;
+            color: #2f855a;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            border-color: #e53e3e;
+            color: #c53030;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-stats {
+                justify-content: center;
+            }
+
+            .notes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .modal {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>📝 Gestione Note</h1>
+        </div>
+        <div class="navbar-user">
+            <span>👋 <strong>{{ current_user.username }}</strong></span>
+            <a href="{{ url_for('index') }}" class="back-btn">🏠 Home</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Header con statistiche -->
+        <div class="header-section">
+            <div class="header-info">
+                <h2>Le tue Note</h2>
+                <p>Organizza idee, task e informazioni importanti</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ total_notes }}</div>
+                    <div class="stat-label">Note Totali</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ completed_tasks }}</div>
+                    <div class="stat-label">Task Completati</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ pending_tasks }}</div>
+                    <div class="stat-label">Task in Sospeso</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Azioni rapide -->
+        <div class="quick-actions">
+            <div class="actions-row">
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    ➕ Nuova Nota
+                </button>
+                <button class="btn btn-success" onclick="openCreateModal('task')">
+                    ✅ Nuovo Task
+                </button>
+                <button class="btn btn-warning" onclick="openCreateModal('idea')">
+                    💡 Nuova Idea
+                </button>
+                <button class="btn btn-outline" onclick="openCreateModal('link')">
+                    🔗 Salva Link
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtri -->
+        <div class="filter-section">
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label>Tipo Nota</label>
+                    <select id="typeFilter">
+                        <option value="">Tutti i tipi</option>
+                        <option value="text">Testo</option>
+                        <option value="task">Task</option>
+                        <option value="idea">Idee</option>
+                        <option value="link">Link</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Priorità</label>
+                    <select id="priorityFilter">
+                        <option value="">Tutte</option>
+                        <option value="low">Bassa</option>
+                        <option value="normal">Normale</option>
+                        <option value="high">Alta</option>
+                        <option value="urgent">Urgente</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>Cerca</label>
+                    <input type="text" id="searchFilter" placeholder="Titolo o contenuto...">
+                </div>
+
+                <div class="filter-group">
+                    <label>Task</label>
+                    <select id="statusFilter">
+                        <option value="">Tutti</option>
+                        <option value="pending">In Sospeso</option>
+                        <option value="completed">Completati</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid delle note -->
+        <div class="notes-grid" id="notesGrid">
+            {% if notes %}
+                {% for note in notes %}
+                <div class="note-card {{ 'task-completed' if note.note_type == 'task' and note.completed else '' }}"
+                     data-type="{{ note.note_type }}"
+                     data-priority="{{ note.priority }}"
+                     data-status="{{ 'completed' if note.completed else 'pending' }}"
+                     data-search="{{ (note.title + ' ' + note.content).lower() }}">
+
+                    {% if note.note_type == 'task' and note.completed %}
+                        <div class="completed-badge">✅ Completato</div>
+                    {% endif %}
+
+                    <div class="note-header">
+                        <div>
+                            <div class="note-title">{{ note.title }}</div>
+                            <div class="note-meta">
+                                <span class="note-type {{ note.note_type }}">{{ note.note_type }}</span>
+                                <span class="priority-badge priority-{{ note.priority }}">{{ note.priority }}</span>
+                                {% if note.due_date %}
+                                    <span class="priority-badge priority-high">
+                                        📅 {{ note.due_date.strftime('%d/%m/%Y') }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="note-content">
+                        <div class="note-text">{{ note.content }}</div>
+
+                        {% if note.tags %}
+                            <div class="note-tags">
+                                {% for tag in note.tags.split(',') %}
+                                    {% if tag.strip() %}
+                                        <span class="tag">🏷️ {{ tag.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% if note.external_url %}
+                            <div style="margin-bottom: 1rem;">
+                                <a href="{{ note.external_url }}" target="_blank" class="btn btn-outline">
+                                    🔗 Apri Link
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="note-footer">
+                        <div class="note-date">
+                            Creato: {{ note.created_at.strftime('%d/%m/%Y %H:%M') }}
+                            {% if note.updated_at != note.created_at %}
+                                <br>Aggiornato: {{ note.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                            {% endif %}
+                        </div>
+
+                        <div class="note-actions">
+                            {% if note.note_type == 'task' and not note.completed %}
+                                <button class="btn btn-success" onclick="completeTask({{ note.id }})">
+                                    ✅
+                                </button>
+                            {% endif %}
+
+                            <button class="btn btn-primary" onclick="editNote({{ note.id }})">
+                                ✏️
+                            </button>
+
+                            <button class="btn btn-danger" onclick="deleteNote({{ note.id }})">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📝</div>
+                    <h3>Nessuna nota ancora</h3>
+                    <p>Crea la tua prima nota per iniziare</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal Creazione/Modifica Note -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Nuova Nota</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+
+            <form id="noteForm">
+                <input type="hidden" id="noteId" name="note_id">
+
+                <div class="form-group">
+                    <label for="title">Titolo</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="note_type">Tipo</label>
+                        <select id="note_type" name="note_type">
+                            <option value="text">Nota Testo</option>
+                            <option value="task">Task</option>
+                            <option value="idea">Idea</option>
+                            <option value="link">Link</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="priority">Priorità</label>
+                        <select id="priority" name="priority">
+                            <option value="low">Bassa</option>
+                            <option value="normal" selected>Normale</option>
+                            <option value="high">Alta</option>
+                            <option value="urgent">Urgente</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Contenuto</label>
+                    <textarea id="content" name="content" placeholder="Scrivi il contenuto della nota..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">Tag (separati da virgola)</label>
+                    <input type="text" id="tags" name="tags" placeholder="lavoro, importante, ideas">
+                </div>
+
+                <div class="form-group" id="urlGroup" style="display: none;">
+                    <label for="external_url">URL</label>
+                    <input type="url" id="external_url" name="external_url" placeholder="https://...">
+                </div>
+
+                <div class="form-group" id="dueDateGroup" style="display: none;">
+                    <label for="due_date">Data Scadenza</label>
+                    <input type="date" id="due_date" name="due_date">
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">
+                        Annulla
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Salva Nota
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <script>
+        // Modal management
+        function openCreateModal(type = 'text') {
+            document.getElementById('modalTitle').textContent = 'Nuova Nota';
+            document.getElementById('noteForm').reset();
+            document.getElementById('noteId').value = '';
+            document.getElementById('note_type').value = type;
+            updateFormFields();
+            document.getElementById('noteModal').style.display = 'block';
+        }
+
+        function editNote(noteId) {
+            // Qui andrebbero caricati i dati della nota
+            document.getElementById('modalTitle').textContent = 'Modifica Nota';
+            document.getElementById('noteId').value = noteId;
+            document.getElementById('noteModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('noteModal').style.display = 'none';
+        }
+
+        // Update form fields based on note type
+        function updateFormFields() {
+            const type = document.getElementById('note_type').value;
+            const urlGroup = document.getElementById('urlGroup');
+            const dueDateGroup = document.getElementById('dueDateGroup');
+
+            if (type === 'link') {
+                urlGroup.style.display = 'block';
+                dueDateGroup.style.display = 'none';
+            } else if (type === 'task') {
+                urlGroup.style.display = 'none';
+                dueDateGroup.style.display = 'block';
+            } else {
+                urlGroup.style.display = 'none';
+                dueDateGroup.style.display = 'none';
+            }
+        }
+
+        document.getElementById('note_type').addEventListener('change', updateFormFields);
+
+        // Form submission
+        document.getElementById('noteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            const isEdit = document.getElementById('noteId').value !== '';
+            const url = isEdit ? `/edit_note/${document.getElementById('noteId').value}` : '/create_note';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`Nota ${isEdit ? 'aggiornata' : 'creata'} con successo!`, 'success');
+                    closeModal();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlert(`Errore: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Errore di connessione', 'error');
+            });
+        });
+
+        // Complete task
+        function completeTask(noteId) {
+            fetch(`/edit_note/${noteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ completed: true })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Task completato!', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlert(`Errore: ${data.message}`, 'error');
+                }
+            });
+        }
+
+        // Delete note
+        function deleteNote(noteId) {
+            if (!confirm('Sei sicuro di voler eliminare questa nota?')) return;
+
+            fetch(`/delete_note/${noteId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Nota eliminata con successo', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlert(`Errore: ${data.message}`, 'error');
+                }
+            });
+        }
+
+        // Filters
+        function applyFilters() {
+            const typeValue = document.getElementById('typeFilter').value;
+            const priorityValue = document.getElementById('priorityFilter').value;
+            const searchValue = document.getElementById('searchFilter').value.toLowerCase();
+            const statusValue = document.getElementById('statusFilter').value;
+
+            const cards = document.querySelectorAll('.note-card');
+            cards.forEach(card => {
+                const cardType = card.getAttribute('data-type');
+                const cardPriority = card.getAttribute('data-priority');
+                const cardSearch = card.getAttribute('data-search');
+                const cardStatus = card.getAttribute('data-status');
+
+                const typeMatch = !typeValue || cardType === typeValue;
+                const priorityMatch = !priorityValue || cardPriority === priorityValue;
+                const searchMatch = !searchValue || cardSearch.includes(searchValue);
+                const statusMatch = !statusValue || cardStatus === statusValue;
+
+                card.style.display = typeMatch && priorityMatch && searchMatch && statusMatch ? 'block' : 'none';
+            });
+        }
+
+        document.getElementById('typeFilter').addEventListener('change', applyFilters);
+        document.getElementById('priorityFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchFilter').addEventListener('input', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+
+        // Alert system
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '10000';
+            alert.style.maxWidth = '400px';
+
+            document.getElementById('alertContainer').appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        // Close modal on outside click
+        window.addEventListener('click', function(e) {
+            if (e.target === document.getElementById('noteModal')) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        updateFormFields();
+    </script>
+</body>
+</html>
