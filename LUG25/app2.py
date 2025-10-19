@@ -1,422 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
-import json
-import os
-import hashlib
-import uuid
-import time
-import threading
-import queue
-import jwt
-from datetime import datetime, timedelta
-from decimal import Decimal
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin, current_user
-from werkzeug.utils import secure_filename
-from werkzeug.datastructures import FileStorage
-from functools import wraps
-
-app = Flask(__name__)
-app.secret_key = 'supersegreto'
-
-# Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///adelchi_complete.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-# Upload configuration
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip',
-                      'rar'}
-MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
-
-# JWT Configuration
-JWT_SECRET = 'your-secret-key-here-change-in-production'
-JWT_ALGORITHM = 'HS256'
-
-# Create folders if they don't exist
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-if not os.path.exists('static'):
-    os.makedirs('static')
-
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-
-# =============================================================================
-# DATABASE MODELS
-# =============================================================================
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-    wallet_address = db.Column(db.String(200), unique=True, nullable=True)
-    balance = db.Column(db.Float, default=0.0)
-    total_earned = db.Column(db.Float, default=0.0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    tx_hash = db.Column(db.String(64), unique=True, nullable=False)
-    from_wallet = db.Column(db.String(200), nullable=True)
-    to_wallet = db.Column(db.String(200), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    tx_type = db.Column(db.String(50), nullable=False)  # 'refresh', 'mining', 'transfer', 'login', 'registration'
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    block_height = db.Column(db.Integer, nullable=True)
-    confirmed = db.Column(db.Boolean, default=True)
-
-
-class MiningSession(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    miner_name = db.Column(db.String(100), nullable=False)
-    gpu_model = db.Column(db.String(50), nullable=False)
-    hashrate = db.Column(db.Float, default=0.0)
-    shares_found = db.Column(db.Integer, default=0)
-    tokens_mined = db.Column(db.Float, default=0.0)
-    is_active = db.Column(db.Boolean, default=False)
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-class Block(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    block_height = db.Column(db.Integer, unique=True, nullable=False)
-    block_hash = db.Column(db.String(64), unique=True, nullable=False)
-    previous_hash = db.Column(db.String(64), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    transactions_count = db.Column(db.Integer, default=0)
-    mined_by = db.Column(db.String(200), nullable=True)
-
-
-class UserFile(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    filename = db.Column(db.String(255), nullable=False)
-    original_filename = db.Column(db.String(255), nullable=False)
-    file_type = db.Column(db.String(50), nullable=False)  # 'image', 'document', 'other'
-    file_size = db.Column(db.Integer, nullable=False)  # in bytes
-    file_path = db.Column(db.String(500), nullable=False)
-    mime_type = db.Column(db.String(100), nullable=True)
-    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
-    is_public = db.Column(db.Boolean, default=False)
-
-    # Relationship
-    user = db.relationship('User', backref=db.backref('files', lazy=True))
-
-
-class UserNote(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    title = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    note_type = db.Column(db.String(50), default='text')  # 'text', 'link', 'task', 'idea'
-    priority = db.Column(db.String(20), default='normal')  # 'low', 'normal', 'high', 'urgent'
-    tags = db.Column(db.String(500), nullable=True)  # comma-separated tags
-    external_url = db.Column(db.String(1000), nullable=True)  # for link notes
-    due_date = db.Column(db.DateTime, nullable=True)  # for task notes
-    completed = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationship
-    user = db.relationship('User', backref=db.backref('notes', lazy=True))
-
-
-class NoteFile(db.Model):
-    """Associazione tra note e file allegati"""
-    id = db.Column(db.Integer, primary_key=True)
-    note_id = db.Column(db.Integer, db.ForeignKey('user_note.id'), nullable=False)
-    file_id = db.Column(db.Integer, db.ForeignKey('user_file.id'), nullable=False)
-    attachment_type = db.Column(db.String(50), default='attachment')  # 'attachment', 'inline_image'
-
-    # Relationships
-    note = db.relationship('UserNote', backref=db.backref('attached_files', lazy=True))
-    file = db.relationship('UserFile', backref=db.backref('note_attachments', lazy=True))
-
-
-class FileShare(db.Model):
-    """Condivisione file tra utenti"""
-    id = db.Column(db.Integer, primary_key=True)
-    file_id = db.Column(db.Integer, db.ForeignKey('user_file.id'), nullable=False)
-    shared_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    shared_with = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    permission = db.Column(db.String(20), default='view')  # 'view', 'edit', 'download'
-    shared_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime, nullable=True)
-
-    # Relationships
-    file = db.relationship('UserFile', backref=db.backref('shares', lazy=True))
-    sharer = db.relationship('User', foreign_keys=[shared_by], backref='shared_files')
-    recipient = db.relationship('User', foreign_keys=[shared_with], backref='received_files')
-
-
-# =============================================================================
-# BLOCKCHAIN SYSTEM
-# =============================================================================
-
-class RTX3060MiningPool:
-    """Simulatore mining pool RTX 3060 con websocket (per ora disattivato)"""
-
-    def __init__(self):
-        self.is_active = False  # Mining pool spento per ora
-        self.connected_gpus = []
-        self.total_hashrate = 0.0
-        self.processing_queue = queue.Queue()
-        self.websocket_enabled = False  # Flag per connessione websocket
-
-    def connect_gpu(self, gpu_id, hashrate):
-        """Connette una GPU al pool"""
-        if self.is_active:
-            self.connected_gpus.append({
-                'id': gpu_id,
-                'hashrate': hashrate,
-                'status': 'mining',
-                'connected_at': datetime.now()
-            })
-            self.calculate_total_hashrate()
-
-    def calculate_total_hashrate(self):
-        """Calcola hashrate totale del pool"""
-        self.total_hashrate = sum(gpu['hashrate'] for gpu in self.connected_gpus)
-
-    def start_mining(self):
-        """Avvia il mining pool (per ora simulato)"""
-        self.is_active = True
-        print("RTX3060 Mining Pool: ATTIVATO (modalità simulazione)")
-
-    def stop_mining(self):
-        """Ferma il mining pool"""
-        self.is_active = False
-        print("RTX3060 Mining Pool: DISATTIVATO")
-
-
-class BlockchainSystem:
-    """Sistema blockchain ADG completo"""
-
-    def __init__(self):
-        self.current_block_height = 1337
-        self.total_supply = 12450
-        self.mining_reward = 50.0  # ADG per blocco minato
-        self.refresh_reward = 0.5  # ADG per visita sito
-        self.login_reward = 1.0  # ADG per login
-        self.registration_reward = 5.0  # ADG per registrazione
-        self.mining_pool = RTX3060MiningPool()
-
-    def generate_wallet_address(self, user_id):
-        """Genera indirizzo wallet univoco ADG"""
-        data = f"ADG{user_id}{int(time.time())}{user_id}"
-        hash_obj = hashlib.sha256(data.encode())
-        return f"ADG{hash_obj.hexdigest()[:32].upper()}"
-
-    def create_transaction_hash(self, from_wallet, to_wallet, amount, tx_type):
-        """Crea hash transazione"""
-        tx_data = f"{from_wallet}{to_wallet}{amount}{tx_type}{time.time()}"
-        return hashlib.sha256(tx_data.encode()).hexdigest()
-
-    def create_transaction(self, from_wallet, to_wallet, amount, tx_type):
-        """Crea e salva una transazione"""
-        tx_hash = self.create_transaction_hash(from_wallet, to_wallet, amount, tx_type)
-
-        transaction = Transaction(
-            tx_hash=tx_hash,
-            from_wallet=from_wallet,
-            to_wallet=to_wallet,
-            amount=amount,
-            tx_type=tx_type,
-            block_height=self.current_block_height,
-            confirmed=True
-        )
-
-        db.session.add(transaction)
-        return transaction
-
-    def reward_user(self, user, amount, source='activity'):
-        """Ricompensa utente con token ADG"""
-        if not user.wallet_address:
-            user.wallet_address = self.generate_wallet_address(user.id)
-
-        # Aggiorna balance utente
-        user.balance += amount
-        user.total_earned += amount
-
-        # Crea transazione
-        transaction = self.create_transaction(
-            from_wallet='SYSTEM_REWARD',
-            to_wallet=user.wallet_address,
-            amount=amount,
-            tx_type=source
-        )
-
-        db.session.commit()
-        print(f"ADG Reward: {user.username} riceve {amount} ADG per {source}")
-        return transaction
-
-    def mine_block(self, miner_address):
-        """Mina un nuovo blocco (simulato se pool non attivo)"""
-        if self.mining_pool.is_active:
-            # Mining reale con pool RTX3060
-            reward = self.mining_reward
-            print(f"Blocco minato da pool RTX3060: {reward} ADG")
-        else:
-            # Mining simulato
-            reward = self.mining_reward * 0.1  # Reward ridotto per simulazione
-            print(f"Blocco simulato: {reward} ADG")
-
-        self.current_block_height += 1
-        return reward
-
-    def get_mining_stats(self):
-        """Statistiche mining"""
-        return {
-            'pool_active': self.mining_pool.is_active,
-            'connected_gpus': len(self.mining_pool.connected_gpus),
-            'total_hashrate': self.mining_pool.total_hashrate,
-            'current_block': self.current_block_height,
-            'websocket_enabled': self.mining_pool.websocket_enabled
-        }
-
-
-# Inizializza sistema blockchain
-blockchain = BlockchainSystem()
-
-# =============================================================================
-# VISIT COUNTER SYSTEM
-# =============================================================================
-
-VISITS_FILE = 'visits.json'
-
-
-def load_visits():
-    if os.path.exists(VISITS_FILE):
-        try:
-            with open(VISITS_FILE, 'r') as f:
-                return json.load(f)
-        except:
-            return {'count': 0, 'visitors': []}
-    return {'count': 0, 'visitors': []}
-
-
-def save_visits(visits_data):
-    with open(VISITS_FILE, 'w') as f:
-        json.dump(visits_data, f, indent=2)
-
-
-# =============================================================================
-# UTILITY FUNCTIONS
-# =============================================================================
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def get_file_type(filename):
-    ext = filename.rsplit('.', 1)[1].lower()
-    if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']:
-        return 'image'
-    elif ext in ['pdf', 'doc', 'docx', 'txt', 'rtf', 'xls', 'xlsx', 'ppt', 'pptx']:
-        return 'document'
-    else:
-        return 'other'
-
-
-def _get_gpu_hashrate(gpu_model):
-    """Hashrate teorico per modello GPU (MH/s)"""
-    hashrates = {
-        'rtx4090': 120.0,
-        'rtx4080': 95.0,
-        'rtx4070': 75.0,
-        'rtx3090': 85.0,
-        'rtx3080': 70.0,
-        'rtx3070': 55.0,
-        'rtx3060': 45.0,  # La nostra GPU target
-        'rx7900xt': 80.0,
-        'rx6800xt': 65.0
-    }
-    return hashrates.get(gpu_model.lower(), 30.0)
-
-
-# JWT Functions
-def generate_token(user_id):
-    """Genera JWT token"""
-    payload = {
-        'user_id': user_id,
-        'exp': datetime.utcnow() + timedelta(days=30)
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-
-
-def verify_token(token):
-    """Verifica JWT token"""
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        return payload['user_id']
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
-
-
-def token_required(f):
-    """Decorator per routes che richiedono autenticazione"""
-
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        if not token:
-            return jsonify({'success': False, 'message': 'Token mancante'}), 401
-
-        if token.startswith('Bearer '):
-            token = token[7:]
-
-        user_id = verify_token(token)
-        if not user_id:
-            return jsonify({'success': False, 'message': 'Token invalido'}), 401
-
-        # Ottieni utente
-        current_user = User.query.get(user_id)
-        if not current_user:
-            return jsonify({'success': False, 'message': 'Utente non trovato'}), 401
-
-        return f(current_user, *args, **kwargs)
-
-    return decorated
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-
-# =============================================================================
-# MAIN ROUTES
-# =============================================================================
-
-@app.route('/')
-def index():
-    visits_data = load_visits()
-    visits_data['count'] += 1
-    visitor_info = {
-        'timestamp': datetime.now().isoformat(),
-        'ip': request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown')),
-        'user_agent': request.environ.get('HTTP_USER_AGENT', 'unknown'),
-        'user': current_user.username if current_user.is_authenticated else 'Anonimo'
-    }
-    visits_data['visitors'].append(visitor_info)
-    if len(visits_data['visitors']) > 100:
-        visits_data['visitors'] = visits_data['visitors'][-100:]
-    save_visits(visits_data)
-
-    # Ricompensa utente loggato per visita con ADG
-    if current_user.is_authenticated:
-        blockchain.reward_user(current_user, blockchain.refresh_reward, 'refresh')
-
-    return render_template('index.html', visit_count=visits_data['count'], current_user=current_user)
+visits_data['visitors'].append(visitor_info)
+if len(visits_data['visitors']) > 100:
+    visits_data['visitors'] = visits_data['visitors'][-100:]
+save_visits(visits_data)
+
+if current_user.is_authenticated:
+    blockchain.reward_user(current_user, blockchain.refresh_reward, 'refresh')
+
+return render_template('index.html', visit_count=visits_data['count'], current_user=current_user)
 
 
 @app.route('/stats')
@@ -443,15 +33,11 @@ def register():
             flash("Username già registrato.")
             return redirect(url_for('register'))
 
-        # Crea nuovo utente con wallet
         new_user = User(username=username, password=password)
         db.session.add(new_user)
-        db.session.flush()  # Per ottenere l'ID
+        db.session.flush()
 
-        # Genera wallet address
         new_user.wallet_address = blockchain.generate_wallet_address(new_user.id)
-
-        # Bonus registrazione: 5 ADG
         blockchain.reward_user(new_user, blockchain.registration_reward, 'registration')
 
         flash(f"Registrazione completata! Ricevuti {blockchain.registration_reward} ADG di benvenuto!")
@@ -469,7 +55,6 @@ def login():
 
         if user:
             login_user(user)
-            # Ricompensa login giornaliero con ADG
             blockchain.reward_user(user, blockchain.login_reward, 'login')
             flash(f"Login effettuato! Ricevuto {blockchain.login_reward} ADG!")
             return redirect(url_for('index'))
@@ -486,6 +71,16 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Dashboard principale con progetti"""
+    user_projects = get_user_projects(current_user)
+    return render_template('dashboard.html',
+                           projects=user_projects,
+                           current_user=current_user)
+
+
 # =============================================================================
 # BLOCKCHAIN ROUTES
 # =============================================================================
@@ -494,17 +89,14 @@ def logout():
 @login_required
 def wallet():
     """Dashboard wallet personale ADG"""
-    # Assicura che l'utente abbia un wallet
     if not current_user.wallet_address:
         current_user.wallet_address = blockchain.generate_wallet_address(current_user.id)
         db.session.commit()
 
-    # Ottieni transazioni dell'utente
     transactions = Transaction.query.filter_by(to_wallet=current_user.wallet_address) \
         .order_by(Transaction.timestamp.desc()) \
         .limit(20).all()
 
-    # Dati wallet
     wallet_data = {
         'balance': current_user.balance,
         'wallet_address': current_user.wallet_address,
@@ -521,55 +113,13 @@ def wallet():
 @login_required
 def mining():
     """Dashboard mining ADG"""
-    # Ottieni miners dell'utente
     user_miners = MiningSession.query.filter_by(user_id=current_user.id).all()
-
-    # Statistiche mining
     mining_stats = blockchain.get_mining_stats()
 
     return render_template('mining.html',
                            miners=user_miners,
                            mining_stats=mining_stats,
                            current_user=current_user)
-
-
-@app.route('/mining/register', methods=['POST'])
-@login_required
-def register_miner():
-    """Registra un nuovo miner RTX3060"""
-    try:
-        data = request.get_json() or request.form
-        miner_name = data.get('miner_name') or data.get('minerName')
-        gpu_model = data.get('gpu_model') or data.get('gpuModel')
-        wallet_address = data.get('wallet_address') or data.get('walletAddress')
-
-        # Verifica wallet
-        if wallet_address and wallet_address != current_user.wallet_address:
-            return jsonify({'success': False, 'message': 'Wallet address non valido'})
-
-        if not current_user.wallet_address:
-            current_user.wallet_address = blockchain.generate_wallet_address(current_user.id)
-            db.session.commit()
-
-        # Crea sessione mining
-        mining_session = MiningSession(
-            user_id=current_user.id,
-            miner_name=miner_name,
-            gpu_model=gpu_model,
-            hashrate=_get_gpu_hashrate(gpu_model),
-            is_active=False  # Non attivo finché pool non è avviato
-        )
-
-        db.session.add(mining_session)
-        db.session.commit()
-
-        # Ricompensa setup miner
-        blockchain.reward_user(current_user, 2.0, 'mining_setup')
-
-        return jsonify({'success': True, 'message': 'Miner registrato! +2 ADG bonus'})
-
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
 
 
 # =============================================================================
@@ -583,11 +133,9 @@ def files_dashboard():
     user_files = UserFile.query.filter_by(user_id=current_user.id) \
         .order_by(UserFile.uploaded_at.desc()).all()
 
-    # Statistiche
     total_files = len(user_files)
     total_size = sum(f.file_size for f in user_files)
 
-    # Raggruppa per tipo
     files_by_type = {}
     for file in user_files:
         if file.file_type not in files_by_type:
@@ -618,22 +166,16 @@ def upload_file():
         if not allowed_file(file.filename):
             return jsonify({'success': False, 'message': 'Tipo file non consentito'})
 
-        # Genera nome file sicuro
         original_filename = file.filename
         file_extension = original_filename.rsplit('.', 1)[1].lower()
         safe_filename = f"{uuid.uuid4().hex}.{file_extension}"
 
-        # Percorso completo
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
-
-        # Salva file
         file.save(file_path)
 
-        # Ottieni informazioni file
         file_size = os.path.getsize(file_path)
         file_type = get_file_type(original_filename)
 
-        # Salva nel database
         user_file = UserFile(
             user_id=current_user.id,
             filename=safe_filename,
@@ -692,11 +234,9 @@ def delete_file(file_id):
         return jsonify({'success': False, 'message': 'File non trovato'})
 
     try:
-        # Rimuovi file fisico
         if os.path.exists(file_record.file_path):
             os.remove(file_record.file_path)
 
-        # Rimuovi dal database
         db.session.delete(file_record)
         db.session.commit()
 
@@ -714,15 +254,12 @@ def delete_file(file_id):
 @login_required
 def notes_dashboard():
     """Dashboard note utente"""
-    # Filtri
     note_type = request.args.get('type', '')
     priority = request.args.get('priority', '')
     search = request.args.get('search', '')
 
-    # Query base
     query = UserNote.query.filter_by(user_id=current_user.id)
 
-    # Applica filtri
     if note_type:
         query = query.filter_by(note_type=note_type)
     if priority:
@@ -733,7 +270,6 @@ def notes_dashboard():
 
     notes = query.order_by(UserNote.updated_at.desc()).all()
 
-    # Statistiche
     total_notes = UserNote.query.filter_by(user_id=current_user.id).count()
     completed_tasks = UserNote.query.filter_by(
         user_id=current_user.id, note_type='task', completed=True
@@ -765,88 +301,30 @@ def create_note():
                 note_type=data.get('note_type', 'text'),
                 priority=data.get('priority', 'normal'),
                 tags=data.get('tags', ''),
-                external_url=data.get('external_url')
+                external_url=data.get('external_url', '')
             )
 
-            # Se è un task con due date
-            if data.get('due_date'):
-                try:
-                    note.due_date = datetime.strptime(data.get('due_date'), '%Y-%m-%d')
-                except:
-                    pass
-
             db.session.add(note)
-            db.session.flush()  # Per ottenere l'ID
-
-            # Allega file se presenti
-            if 'attached_files' in data:
-                file_ids = data.get('attached_files', '').split(',')
-                for file_id in file_ids:
-                    if file_id.strip():
-                        note_file = NoteFile(note_id=note.id, file_id=int(file_id.strip()))
-                        db.session.add(note_file)
-
             db.session.commit()
 
+            blockchain.reward_user(current_user, 1.0, 'note_created')
+
+            flash('Nota creata con successo! (+1 ADG)', 'success')
+
             if request.is_json:
-                return jsonify({'success': True, 'note_id': note.id, 'message': 'Nota creata'})
+                return jsonify({'success': True, 'message': 'Nota creata', 'note_id': note.id})
             else:
-                flash('Nota creata con successo')
                 return redirect(url_for('notes_dashboard'))
 
         except Exception as e:
+            db.session.rollback()
             if request.is_json:
                 return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
             else:
-                flash(f'Errore: {str(e)}')
+                flash(f'Errore: {str(e)}', 'error')
                 return redirect(url_for('notes_dashboard'))
 
-    # GET - mostra form
-    user_files = UserFile.query.filter_by(user_id=current_user.id).all()
-    return render_template('create_note.html', user_files=user_files, current_user=current_user)
-
-
-@app.route('/edit_note/<int:note_id>', methods=['GET', 'POST'])
-@login_required
-def edit_note(note_id):
-    """Modifica nota"""
-    note = UserNote.query.filter_by(id=note_id, user_id=current_user.id).first()
-
-    if not note:
-        flash('Nota non trovata')
-        return redirect(url_for('notes_dashboard'))
-
-    if request.method == 'POST':
-        try:
-            data = request.get_json() or request.form
-
-            note.title = data.get('title')
-            note.content = data.get('content')
-            note.note_type = data.get('note_type', note.note_type)
-            note.priority = data.get('priority', note.priority)
-            note.tags = data.get('tags', '')
-            note.external_url = data.get('external_url')
-            note.updated_at = datetime.utcnow()
-
-            # Task completion
-            if 'completed' in data:
-                note.completed = bool(data.get('completed'))
-
-            db.session.commit()
-
-            if request.is_json:
-                return jsonify({'success': True, 'message': 'Nota aggiornata'})
-            else:
-                flash('Nota aggiornata con successo')
-                return redirect(url_for('notes_dashboard'))
-
-        except Exception as e:
-            if request.is_json:
-                return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
-            else:
-                flash(f'Errore: {str(e)}')
-
-    return render_template('edit_note.html', note=note, current_user=current_user)
+    return render_template('create_note.html', current_user=current_user)
 
 
 @app.route('/delete_note/<int:note_id>', methods=['POST'])
@@ -859,10 +337,6 @@ def delete_note(note_id):
         return jsonify({'success': False, 'message': 'Nota non trovata'})
 
     try:
-        # Rimuovi allegati
-        NoteFile.query.filter_by(note_id=note.id).delete()
-
-        # Rimuovi nota
         db.session.delete(note)
         db.session.commit()
 
@@ -872,271 +346,293 @@ def delete_note(note_id):
         return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
 
 
-@app.route('/api/notes/search')
+# =============================================================================
+# PROGETTI ROUTES (NUOVO)
+# =============================================================================
+
+@app.route('/projects')
 @login_required
-def search_notes():
-    """API ricerca note"""
-    query = request.args.get('q', '')
-    note_type = request.args.get('type', '')
+def projects_list():
+    """Lista progetti accessibili dall'utente"""
+    user_projects = get_user_projects(current_user)
 
-    base_query = UserNote.query.filter_by(user_id=current_user.id)
-
-    if query:
-        base_query = base_query.filter(
-            UserNote.title.contains(query) |
-            UserNote.content.contains(query) |
-            UserNote.tags.contains(query)
-        )
-
-    if note_type:
-        base_query = base_query.filter_by(note_type=note_type)
-
-    notes = base_query.order_by(UserNote.updated_at.desc()).limit(20).all()
-
-    return jsonify({
-        'notes': [{
-            'id': note.id,
-            'title': note.title,
-            'content': note.content[:100],
-            'type': note.note_type,
-            'priority': note.priority,
-            'created_at': note.created_at.isoformat(),
-            'updated_at': note.updated_at.isoformat()
-        } for note in notes]
-    })
+    return render_template('projects_list.html',
+                           projects=user_projects,
+                           current_user=current_user)
 
 
-# =============================================================================
-# MOBILE API ROUTES
-# =============================================================================
+@app.route('/project/<int:project_id>')
+@login_required
+@project_access_required('view')
+def project_detail(project_id):
+    """Dettaglio progetto"""
+    project = Project.query.get_or_404(project_id)
 
-@app.route('/api/mobile/login', methods=['POST'])
-def mobile_login():
-    """Login per app mobile"""
-    try:
-        data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+    members = ProjectMember.query.filter_by(project_id=project_id).all()
 
-        if not username or not password:
-            return jsonify({
-                'success': False,
-                'message': 'Username e password richiesti'
-            }), 400
+    project_files = UserFile.query.filter_by(project_id=project_id) \
+        .order_by(UserFile.uploaded_at.desc()).all()
 
-        user = User.query.filter_by(username=username, password=password).first()
+    project_notes = UserNote.query.filter_by(project_id=project_id) \
+        .order_by(UserNote.updated_at.desc()).all()
 
-        if not user:
-            return jsonify({
-                'success': False,
-                'message': 'Credenziali errate'
-            }), 401
+    user_role = 'owner' if project.owner_id == current_user.id else None
+    if not user_role:
+        member = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=current_user.id
+        ).first()
+        user_role = member.role_in_project if member else 'viewer'
 
-        # Genera wallet se non esiste
-        if not user.wallet_address:
-            user.wallet_address = blockchain.generate_wallet_address(user.id)
+    stats = {
+        'members_count': len(members),
+        'files_count': len(project_files),
+        'notes_count': len(project_notes),
+        'recent_activity_count': 0
+    }
+
+    return render_template('project_detail.html',
+                           project=project,
+                           members=members,
+                           files=project_files,
+                           notes=project_notes,
+                           user_role=user_role,
+                           stats=stats,
+                           current_user=current_user)
+
+
+@app.route('/project/create', methods=['GET', 'POST'])
+@login_required
+@can_create_projects
+def create_project():
+    """Crea nuovo progetto (solo admin e role_a)"""
+    if request.method == 'POST':
+        try:
+            data = request.get_json() or request.form
+
+            name = data.get('name')
+            description = data.get('description', '')
+
+            if not name:
+                return jsonify({'success': False, 'message': 'Nome progetto obbligatorio'})
+
+            project = Project(
+                name=name,
+                description=description,
+                owner_id=current_user.id,
+                status='active'
+            )
+
+            db.session.add(project)
             db.session.commit()
 
-        # Genera token
-        token = generate_token(user.id)
+            blockchain.reward_user(current_user, 5.0, 'project_created')
 
-        # Ricompensa login
-        blockchain.reward_user(user, blockchain.login_reward, 'login')
+            flash(f'Progetto "{name}" creato con successo! (+5 ADG)', 'success')
 
-        response_data = {
-            'success': True,
-            'message': 'Login effettuato',
-            'data': {
-                'id': user.id,
-                'username': user.username,
-                'wallet_address': user.wallet_address,
-                'balance': user.balance,
-                'total_earned': user.total_earned,
-                'created_at': user.created_at.isoformat()
-            }
-        }
+            if request.is_json:
+                return jsonify({
+                    'success': True,
+                    'message': 'Progetto creato con successo',
+                    'project_id': project.id,
+                    'redirect': url_for('project_detail', project_id=project.id)
+                })
+            else:
+                return redirect(url_for('project_detail', project_id=project.id))
 
-        response = jsonify(response_data)
-        response.headers['Authorization'] = f'Bearer {token}'
-        return response
+        except Exception as e:
+            db.session.rollback()
+            if request.is_json:
+                return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+            else:
+                flash(f'Errore nella creazione: {str(e)}', 'error')
+                return redirect(url_for('projects_list'))
 
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore server: {str(e)}'
-        }), 500
+    return render_template('create_project.html', current_user=current_user)
 
 
-@app.route('/api/mobile/validate', methods=['GET'])
-@token_required
-def mobile_validate(current_user):
-    """Valida token e restituisce dati utente"""
-    return jsonify({
-        'success': True,
-        'data': {
-            'id': current_user.id,
-            'username': current_user.username,
-            'wallet_address': current_user.wallet_address,
-            'balance': current_user.balance,
-            'total_earned': current_user.total_earned,
-            'created_at': current_user.created_at.isoformat()
-        }
-    })
+@app.route('/project/<int:project_id>/edit', methods=['GET', 'POST'])
+@login_required
+@project_access_required('admin')
+def edit_project(project_id):
+    """Modifica progetto (solo owner)"""
+    project = Project.query.get_or_404(project_id)
+
+    if request.method == 'POST':
+        try:
+            data = request.get_json() or request.form
+
+            project.name = data.get('name', project.name)
+            project.description = data.get('description', project.description)
+            project.status = data.get('status', project.status)
+            project.updated_at = datetime.utcnow()
+
+            db.session.commit()
+
+            notify_project_members(
+                project,
+                'project_updated',
+                f'Progetto "{project.name}" aggiornato',
+                'Il progetto è stato modificato dal proprietario',
+                exclude_user_id=current_user.id
+            )
+
+            flash('Progetto aggiornato con successo!', 'success')
+
+            if request.is_json:
+                return jsonify({'success': True, 'message': 'Progetto aggiornato'})
+            else:
+                return redirect(url_for('project_detail', project_id=project_id))
+
+        except Exception as e:
+            db.session.rollback()
+            if request.is_json:
+                return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+            else:
+                flash(f'Errore: {str(e)}', 'error')
+                return redirect(url_for('project_detail', project_id=project_id))
+
+    return render_template('edit_project.html', project=project, current_user=current_user)
 
 
-@app.route('/api/mobile/wallet', methods=['GET'])
-@token_required
-def mobile_wallet(current_user):
-    """Dati wallet per mobile"""
+@app.route('/project/<int:project_id>/delete', methods=['POST'])
+@login_required
+@project_access_required('admin')
+def delete_project(project_id):
+    """Elimina progetto (solo owner o admin)"""
     try:
-        # Ottieni transazioni recenti
-        recent_transactions = Transaction.query.filter_by(to_wallet=current_user.wallet_address) \
-            .order_by(Transaction.timestamp.desc()) \
-            .limit(10).all()
+        project = Project.query.get_or_404(project_id)
+        project_name = project.name
 
-        transactions_data = []
-        for tx in recent_transactions:
-            transactions_data.append({
-                'tx_hash': tx.tx_hash,
-                'amount': tx.amount,
-                'tx_type': tx.tx_type,
-                'timestamp': tx.timestamp.isoformat(),
-                'confirmed': tx.confirmed
-            })
-
-        return jsonify({
-            'success': True,
-            'data': {
-                'wallet_address': current_user.wallet_address,
-                'balance': current_user.balance,
-                'total_earned': current_user.total_earned,
-                'recent_transactions': transactions_data
-            }
-        })
-
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore: {str(e)}'
-        }), 500
-
-
-@app.route('/api/mobile/notes', methods=['GET'])
-@token_required
-def mobile_get_notes(current_user):
-    """Ottieni note utente per mobile"""
-    try:
-        notes = UserNote.query.filter_by(user_id=current_user.id) \
-            .order_by(UserNote.updated_at.desc()).all()
-
-        notes_data = []
-        for note in notes:
-            notes_data.append({
-                'id': note.id,
-                'title': note.title,
-                'content': note.content,
-                'note_type': note.note_type,
-                'priority': note.priority,
-                'tags': note.tags,
-                'external_url': note.external_url,
-                'due_date': note.due_date.isoformat() if note.due_date else None,
-                'completed': note.completed,
-                'created_at': note.created_at.isoformat(),
-                'updated_at': note.updated_at.isoformat()
-            })
-
-        return jsonify({
-            'success': True,
-            'data': notes_data
-        })
-
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore: {str(e)}'
-        }), 500
-
-
-@app.route('/api/mobile/notes', methods=['POST'])
-@token_required
-def mobile_create_note(current_user):
-    """Crea nota da mobile"""
-    try:
-        data = request.get_json()
-
-        note = UserNote(
-            user_id=current_user.id,
-            title=data.get('title'),
-            content=data.get('content'),
-            note_type=data.get('note_type', 'text'),
-            priority=data.get('priority', 'normal'),
-            tags=data.get('tags', ''),
-            external_url=data.get('external_url')
+        notify_project_members(
+            project,
+            'project_deleted',
+            f'Progetto "{project_name}" eliminato',
+            'Il progetto è stato eliminato dal proprietario',
+            exclude_user_id=current_user.id
         )
 
-        # Due date se fornita
-        if data.get('due_date'):
-            try:
-                note.due_date = datetime.fromisoformat(data.get('due_date'))
-            except:
-                pass
-
-        db.session.add(note)
+        db.session.delete(project)
         db.session.commit()
 
-        return jsonify({
-            'success': True,
-            'message': 'Nota creata',
-            'data': {
-                'id': note.id,
-                'title': note.title,
-                'content': note.content,
-                'note_type': note.note_type,
-                'priority': note.priority,
-                'created_at': note.created_at.isoformat(),
-                'updated_at': note.updated_at.isoformat()
-            }
-        })
+        flash(f'Progetto "{project_name}" eliminato con successo.', 'success')
+
+        if request.is_json:
+            return jsonify({'success': True, 'message': 'Progetto eliminato'})
+        else:
+            return redirect(url_for('projects_list'))
 
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore: {str(e)}'
-        }), 500
+        db.session.rollback()
+        if request.is_json:
+            return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+        else:
+            flash(f'Errore: {str(e)}', 'error')
+            return redirect(url_for('projects_list'))
 
 
-@app.route('/api/mobile/upload', methods=['POST'])
-@token_required
-def mobile_upload_file(current_user):
-    """Upload file da mobile"""
+@app.route('/project/<int:project_id>/add_member', methods=['POST'])
+@login_required
+@project_access_required('admin')
+def add_project_member(project_id):
+    """Aggiunge membro al progetto"""
     try:
+        data = request.get_json() or request.form
+
+        user_id = data.get('user_id')
+        role_in_project = data.get('role', 'viewer')
+
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Utente non specificato'})
+
+        if role_in_project not in ['collaborator', 'viewer']:
+            role_in_project = 'viewer'
+
+        success, message, member = add_member_to_project(project_id, user_id, role_in_project)
+
+        if success:
+            project = Project.query.get(project_id)
+            user = User.query.get(user_id)
+            notify_project_members(
+                project,
+                'member_added',
+                f'Nuovo membro aggiunto: {user.username}',
+                f'{user.username} è stato aggiunto come {member.get_role_display()}',
+                exclude_user_id=user_id
+            )
+
+            flash(message, 'success')
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'success': False, 'message': message})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+
+
+@app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
+@login_required
+@project_access_required('admin')
+def remove_project_member(project_id, user_id):
+    """Rimuove membro dal progetto"""
+    try:
+        success, message = remove_member_from_project(project_id, user_id)
+
+        if success:
+            project = Project.query.get(project_id)
+            create_notification(
+                user_id=user_id,
+                notification_type='member_removed',
+                title=f'Rimosso dal progetto: {project.name}',
+                message='Sei stato rimosso da questo progetto',
+                project_id=project_id
+            )
+
+            flash(message, 'success')
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'success': False, 'message': message})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+
+
+@app.route('/project/<int:project_id>/upload_file', methods=['POST'])
+@login_required
+@project_access_required('edit')
+def upload_project_file(project_id):
+    """Upload file in progetto (solo owner e collaborator)"""
+    try:
+        project = Project.query.get_or_404(project_id)
+
         if 'file' not in request.files:
-            return jsonify({'success': False, 'message': 'Nessun file'})
+            return jsonify({'success': False, 'message': 'Nessun file selezionato'})
 
         file = request.files['file']
 
         if file.filename == '':
-            return jsonify({'success': False, 'message': 'File vuoto'})
+            return jsonify({'success': False, 'message': 'Nessun file selezionato'})
 
         if not allowed_file(file.filename):
-            return jsonify({'success': False, 'message': 'Tipo file non supportato'})
+            return jsonify({'success': False, 'message': 'Tipo file non consentito'})
 
-        # Genera nome sicuro
         original_filename = file.filename
         file_extension = original_filename.rsplit('.', 1)[1].lower()
         safe_filename = f"{uuid.uuid4().hex}.{file_extension}"
 
-        # Salva file
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
         file.save(file_path)
 
-        # Salva nel database
+        file_size = os.path.getsize(file_path)
+        file_type = get_file_type(original_filename)
+
         user_file = UserFile(
             user_id=current_user.id,
+            project_id=project_id,
             filename=safe_filename,
             original_filename=original_filename,
-            file_type=get_file_type(original_filename),
-            file_size=os.path.getsize(file_path),
+            file_type=file_type,
+            file_size=file_size,
             file_path=file_path,
             mime_type=file.mimetype
         )
@@ -1144,92 +640,181 @@ def mobile_upload_file(current_user):
         db.session.add(user_file)
         db.session.commit()
 
+        blockchain.reward_user(current_user, 2.0, 'file_upload_project')
+
+        notify_project_members(
+            project,
+            'file_upload',
+            f'Nuovo file in "{project.name}"',
+            f'{current_user.username} ha caricato: {original_filename}',
+            exclude_user_id=current_user.id
+        )
+
         return jsonify({
             'success': True,
-            'message': 'File caricato',
-            'data': {
-                'id': user_file.id,
-                'original_filename': user_file.original_filename,
-                'file_type': user_file.file_type,
-                'file_size': user_file.file_size,
-                'uploaded_at': user_file.uploaded_at.isoformat()
+            'message': 'File caricato nel progetto (+2 ADG)',
+            'file_id': user_file.id,
+            'filename': original_filename
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+
+
+@app.route('/project/<int:project_id>/create_note', methods=['GET', 'POST'])
+@login_required
+@project_access_required('edit')
+def create_project_note(project_id):
+    """Crea nota in progetto (solo owner e collaborator)"""
+    project = Project.query.get_or_404(project_id)
+
+    if request.method == 'POST':
+        try:
+            data = request.get_json() or request.form
+
+            note = UserNote(
+                user_id=current_user.id,
+                project_id=project_id,
+                title=data.get('title'),
+                content=data.get('content'),
+                note_type=data.get('note_type', 'text'),
+                priority=data.get('priority', 'normal'),
+                tags=data.get('tags', '')
+            )
+
+            db.session.add(note)
+            db.session.commit()
+
+            blockchain.reward_user(current_user, 1.0, 'note_created_project')
+
+            notify_project_members(
+                project,
+                'note_added',
+                f'Nuova nota in "{project.name}"',
+                f'{current_user.username} ha creato: {note.title}',
+                exclude_user_id=current_user.id
+            )
+
+            flash('Nota creata con successo! (+1 ADG)', 'success')
+
+            if request.is_json:
+                return jsonify({
+                    'success': True,
+                    'message': 'Nota creata',
+                    'note_id': note.id
+                })
+            else:
+                return redirect(url_for('project_detail', project_id=project_id))
+
+        except Exception as e:
+            db.session.rollback()
+            if request.is_json:
+                return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+            else:
+                flash(f'Errore: {str(e)}', 'error')
+                return redirect(url_for('project_detail', project_id=project_id))
+
+    return render_template('create_project_note.html',
+                           project=project,
+                           current_user=current_user)
+
+
+@app.route('/project/note/<int:note_id>/comment', methods=['POST'])
+@login_required
+def add_note_comment(note_id):
+    """Aggiungi commento a nota (tutti i membri possono commentare)"""
+    try:
+        note = UserNote.query.get_or_404(note_id)
+
+        if note.project_id:
+            project = Project.query.get(note.project_id)
+            if not project.can_user_view(current_user.id):
+                return jsonify({'success': False, 'message': 'Accesso negato'})
+
+        data = request.get_json() or request.form
+        content = data.get('content')
+
+        if not content:
+            return jsonify({'success': False, 'message': 'Contenuto commento mancante'})
+
+        comment = NoteComment(
+            note_id=note_id,
+            user_id=current_user.id,
+            content=content
+        )
+
+        db.session.add(comment)
+        db.session.commit()
+
+        if note.user_id != current_user.id:
+            create_notification(
+                user_id=note.user_id,
+                notification_type='note_comment',
+                title=f'Nuovo commento su: {note.title}',
+                message=f'{current_user.username} ha commentato la tua nota',
+                link=url_for('project_detail', project_id=note.project_id),
+                project_id=note.project_id
+            )
+
+        return jsonify({
+            'success': True,
+            'message': 'Commento aggiunto',
+            'comment': {
+                'id': comment.id,
+                'username': current_user.username,
+                'content': comment.content,
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
             }
         })
 
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore: {str(e)}'
-        }), 500
+        return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
 
 
 # =============================================================================
-# ADMIN/API ROUTES
+# NOTIFICHE ROUTES (NUOVO)
 # =============================================================================
 
-@app.route('/admin/toggle-mining', methods=['POST'])
+@app.route('/notifications')
 @login_required
-def toggle_mining():
-    """Toggle sistema mining RTX3060 (admin only)"""
-    # Per ora tutti possono attivare per test
-    if blockchain.mining_pool.is_active:
-        blockchain.mining_pool.stop_mining()
-    else:
-        blockchain.mining_pool.start_mining()
+def notifications_list():
+    """Lista notifiche utente"""
+    notifications = Notification.query.filter_by(user_id=current_user.id) \
+        .order_by(Notification.created_at.desc()) \
+        .limit(50).all()
 
-    return jsonify({
-        'success': True,
-        'mining_enabled': blockchain.mining_pool.is_active,
-        'message': 'Mining pool ' + ('attivato' if blockchain.mining_pool.is_active else 'disattivato')
-    })
+    return render_template('notifications.html',
+                           notifications=notifications,
+                           current_user=current_user)
 
 
-@app.route('/api/balance/<username>')
-def get_user_balance(username):
-    """API bilancio utente"""
-    user = User.query.filter_by(username=username).first()
-    if user:
-        return jsonify({
-            'balance': user.balance,
-            'total_earned': user.total_earned,
-            'wallet_address': user.wallet_address
-        })
-    return jsonify({'error': 'User not found'}), 404
-
-
-@app.route('/api/stats/blockchain')
-def blockchain_stats():
-    """Statistiche blockchain ADG"""
-    total_users = User.query.count()
-    total_transactions = Transaction.query.count()
-    total_supply_distributed = db.session.query(db.func.sum(User.total_earned)).scalar() or 0
-    active_miners = MiningSession.query.filter_by(is_active=True).count()
-
-    return jsonify({
-        'total_users': total_users,
-        'total_transactions': total_transactions,
-        'total_supply_distributed': round(total_supply_distributed, 2),
-        'current_block_height': blockchain.current_block_height,
-        'mining_pool_active': blockchain.mining_pool.is_active,
-        'active_miners': active_miners,
-        'total_hashrate': blockchain.mining_pool.total_hashrate
-    })
-
-
-@app.route('/api/mining/simulate-block')
+@app.route('/notifications/mark_read/<int:notification_id>', methods=['POST'])
 @login_required
-def simulate_mining():
-    """Simula mining di un blocco (per testing)"""
-    if current_user.wallet_address:
-        reward = blockchain.mine_block(current_user.wallet_address)
-        blockchain.reward_user(current_user, reward, 'mining')
-        return jsonify({
-            'success': True,
-            'reward': reward,
-            'new_balance': current_user.balance,
-            'block_height': blockchain.current_block_height
-        })
-    return jsonify({'success': False, 'message': 'Wallet non trovato'})
+def mark_notification_read(notification_id):
+    """Segna notifica come letta"""
+    try:
+        notification = Notification.query.filter_by(
+            id=notification_id,
+            user_id=current_user.id
+        ).first_or_404()
+
+        notification.mark_as_read()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/notifications/mark_all_read', methods=['POST'])
+@login_required
+def mark_all_notifications_read_route():
+    """Segna tutte notifiche come lette"""
+    try:
+        mark_all_notifications_read(current_user.id)
+        return jsonify({'success': True, 'message': 'Tutte le notifiche segnate come lette'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
 
 
 # =============================================================================
@@ -1274,11 +859,11 @@ def init_db():
     """Inizializza database se necessario"""
     try:
         db.create_all()
-        print("ADG Blockchain System: Database inizializzato")
+        print("✅ Database inizializzato")
         print(f"Mining Pool RTX3060: {'ATTIVO' if blockchain.mining_pool.is_active else 'DISATTIVO'}")
         return True
     except Exception as e:
-        print(f"Errore inizializzazione database: {e}")
+        print(f"❌ Errore inizializzazione database: {e}")
         return False
 
 
@@ -1290,7 +875,6 @@ with app.app_context():
 # WSGI APPLICATION OBJECT
 # =============================================================================
 
-# Per Gunicorn, l'oggetto application è l'app Flask
 application = app
 
 # =============================================================================
@@ -1298,21 +882,786 @@ application = app
 # =============================================================================
 
 if __name__ == '__main__':
-    print("=" * 60)
-    print("ADELCHI BLOCKCHAIN SYSTEM - DEVELOPMENT MODE")
-    print("=" * 60)
+    print("=" * 70)
+    print("ADELCHI GROUP - SISTEMA PROGETTI INTEGRATO")
+    print("=" * 70)
     print(f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
     print(f"Mining Pool RTX3060: {'ATTIVO' if blockchain.mining_pool.is_active else 'DISATTIVATO'}")
-    print(f"Websocket Ready: {blockchain.mining_pool.websocket_enabled}")
     print(f"Current Block Height: {blockchain.current_block_height}")
     print(f"Upload Folder: {UPLOAD_FOLDER}")
-    print("Funzionalità integrate:")
-    print("  - Sistema File Upload completo")
-    print("  - Sistema Note con priorità e tag")
-    print("  - API Mobile per Unity App")
-    print("  - JWT Authentication")
-    print("  - Blockchain ADG Token")
-    print("Nota: Per produzione utilizzare Gunicorn")
-    print("=" * 60)
+    print("\n🎯 Funzionalità Integrate:")
+    print("  ✅ Sistema Ruoli (Admin, Manager, Collaboratore, Utente)")
+    print("  ✅ Progetti Condivisi con Team")
+    print("  ✅ File Management per Progetto")
+    print("  ✅ Note Collaborative con Commenti")
+    print("  ✅ Sistema Notifiche")
+    print("  ✅ Blockchain ADG Token")
+    print("  ✅ API Mobile JWT")
+    print("\n📝 Per produzione utilizzare Gunicorn")
+    print("=" * 70)
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0',
+            port=5000)  # =============================================================================
+# ADELCHI GROUP - APPLICAZIONE FLASK COMPLETA CON SISTEMA PROGETTI
+# File: app2.py
+# Versione: 2.0 - Sistema Progetti Integrato
+# =============================================================================
+
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_file
+import json
+import os
+import hashlib
+import uuid
+import time
+import threading
+import queue
+import jwt
+from datetime import datetime, timedelta
+from decimal import Decimal
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin, current_user
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
+from functools import wraps
+
+app = Flask(__name__)
+app.secret_key = 'supersegreto'
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///adelchi_complete.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# Upload configuration
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip',
+                      'rar', 'mp4', 'mp3', 'wav'}
+MAX_FILE_SIZE = 16 * 1024 * 1024  # 16MB
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
+# JWT Configuration
+JWT_SECRET = 'your-secret-key-here-change-in-production'
+JWT_ALGORITHM = 'HS256'
+
+# Create folders if they don't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+if not os.path.exists('static'):
+    os.makedirs('static')
+
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+
+# =============================================================================
+# DATABASE MODELS - BASE
+# =============================================================================
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    wallet_address = db.Column(db.String(200), unique=True, nullable=True)
+    balance = db.Column(db.Float, default=0.0)
+    total_earned = db.Column(db.Float, default=0.0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    role = db.Column(db.String(20), default='role_c', nullable=False)  # NUOVO: Sistema ruoli
+
+    def get_role_display(self):
+        """Nome leggibile del ruolo"""
+        role_names = {
+            'admin': 'Amministratore',
+            'role_a': 'Manager',
+            'role_b': 'Collaboratore',
+            'role_c': 'Utente Base'
+        }
+        return role_names.get(self.role, 'Utente')
+
+    def can_create_projects(self):
+        """Verifica se può creare progetti"""
+        return self.role in ['admin', 'role_a']
+
+    def can_manage_user(self, target_user):
+        """Verifica se può gestire un altro utente"""
+        return UserRole.can_manage(self.role, target_user.role)
+
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tx_hash = db.Column(db.String(64), unique=True, nullable=False)
+    from_wallet = db.Column(db.String(200), nullable=True)
+    to_wallet = db.Column(db.String(200), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    tx_type = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    block_height = db.Column(db.Integer, nullable=True)
+    confirmed = db.Column(db.Boolean, default=True)
+
+
+class MiningSession(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    miner_name = db.Column(db.String(100), nullable=False)
+    gpu_model = db.Column(db.String(50), nullable=False)
+    hashrate = db.Column(db.Float, default=0.0)
+    is_active = db.Column(db.Boolean, default=True)
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_ping = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class UserFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)  # NUOVO
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    file_type = db.Column(db.String(50), nullable=False)
+    file_size = db.Column(db.Integer, nullable=False)
+    file_path = db.Column(db.String(500), nullable=False)
+    mime_type = db.Column(db.String(100), nullable=True)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='files')
+
+    def is_shared(self):
+        """Verifica se file è condiviso in un progetto"""
+        return self.project_id is not None
+
+
+class UserNote(db.Model):
+    __tablename__ = 'user_notes'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)  # NUOVO
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    note_type = db.Column(db.String(50), default='text')
+    priority = db.Column(db.String(20), default='normal')
+    completed = db.Column(db.Boolean, default=False)
+    tags = db.Column(db.String(500), nullable=True)
+    external_url = db.Column(db.String(500), nullable=True)
+    due_date = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref='notes')
+
+    def is_shared(self):
+        """Verifica se nota è condivisa in un progetto"""
+        return self.project_id is not None
+
+
+# =============================================================================
+# DATABASE MODELS - SISTEMA PROGETTI (NUOVO)
+# =============================================================================
+
+class UserRole:
+    """Classe helper per gestione ruoli"""
+    ADMIN = 'admin'
+    ROLE_A = 'role_a'
+    ROLE_B = 'role_b'
+    ROLE_C = 'role_c'
+
+    @staticmethod
+    def get_level(role):
+        """Restituisce livello gerarchico (4=max, 1=min)"""
+        levels = {'admin': 4, 'role_a': 3, 'role_b': 2, 'role_c': 1}
+        return levels.get(role, 0)
+
+    @staticmethod
+    def can_manage(manager_role, target_role):
+        """Verifica se manager può gestire target"""
+        return UserRole.get_level(manager_role) > UserRole.get_level(target_role)
+
+
+class Project(db.Model):
+    """Progetto condiviso"""
+    __tablename__ = 'projects'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')
+
+    owner = db.relationship('User', backref='owned_projects', foreign_keys=[owner_id])
+    members = db.relationship('ProjectMember', backref='project', lazy='dynamic', cascade='all, delete-orphan')
+    files = db.relationship('UserFile', backref='project', lazy='dynamic')
+    notes = db.relationship('UserNote', backref='project', lazy='dynamic')
+
+    def get_member_count(self):
+        return self.members.count()
+
+    def get_file_count(self):
+        return self.files.count()
+
+    def get_note_count(self):
+        return self.notes.count()
+
+    def is_member(self, user_id):
+        return self.members.filter_by(user_id=user_id).first() is not None
+
+    def get_user_role(self, user_id):
+        member = self.members.filter_by(user_id=user_id).first()
+        return member.role_in_project if member else None
+
+    def can_user_edit(self, user_id):
+        if self.owner_id == user_id:
+            return True
+        role = self.get_user_role(user_id)
+        return role in ['owner', 'collaborator']
+
+    def can_user_view(self, user_id):
+        return self.is_member(user_id) or self.owner_id == user_id
+
+
+class ProjectMember(db.Model):
+    """Membri del progetto"""
+    __tablename__ = 'project_members'
+
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    role_in_project = db.Column(db.String(20), default='viewer')
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_activity = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='project_memberships')
+
+    __table_args__ = (db.UniqueConstraint('project_id', 'user_id', name='unique_project_member'),)
+
+    def get_role_display(self):
+        roles = {'owner': 'Proprietario', 'collaborator': 'Collaboratore', 'viewer': 'Visualizzatore'}
+        return roles.get(self.role_in_project, 'Membro')
+
+    def can_edit(self):
+        return self.role_in_project in ['owner', 'collaborator']
+
+    def can_comment(self):
+        return True
+
+    def can_upload(self):
+        return self.role_in_project in ['owner', 'collaborator']
+
+
+class Notification(db.Model):
+    """Sistema notifiche"""
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    notification_type = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=True)
+    link = db.Column(db.String(200), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='notifications')
+
+    def mark_as_read(self):
+        self.is_read = True
+        db.session.commit()
+
+
+class NoteComment(db.Model):
+    """Commenti alle note"""
+    __tablename__ = 'note_comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    note_id = db.Column(db.Integer, db.ForeignKey('user_notes.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', backref='comments')
+    note = db.relationship('UserNote', backref='comments')
+
+
+# =============================================================================
+# BLOCKCHAIN SYSTEM
+# =============================================================================
+
+class MiningPool:
+    def __init__(self):
+        self.is_active = False
+        self.connected_gpus = []
+        self.total_hashrate = 0.0
+        self.websocket_enabled = True
+        self.mining_thread = None
+        self.stop_flag = False
+
+    def start_mining(self):
+        self.is_active = True
+        print("🚀 Mining Pool RTX3060 ATTIVATO")
+
+    def stop_mining(self):
+        self.is_active = False
+        self.stop_flag = True
+        print("🛑 Mining Pool RTX3060 DISATTIVATO")
+
+
+class BlockchainSystem:
+    def __init__(self):
+        self.current_block_height = 0
+        self.mining_reward = 10.0
+        self.registration_reward = 10.0
+        self.login_reward = 1.0
+        self.refresh_reward = 0.01
+        self.mining_pool = MiningPool()
+
+    def generate_wallet_address(self, user_id):
+        raw = f"ADG-{user_id}-{uuid.uuid4().hex[:8]}"
+        return hashlib.sha256(raw.encode()).hexdigest()[:42]
+
+    def reward_user(self, user, amount, source='unknown'):
+        if not user.wallet_address:
+            user.wallet_address = self.generate_wallet_address(user.id)
+
+        user.balance += amount
+        user.total_earned += amount
+
+        tx_hash = hashlib.sha256(f"{user.wallet_address}-{amount}-{time.time()}".encode()).hexdigest()
+        transaction = Transaction(
+            tx_hash=tx_hash,
+            from_wallet='SYSTEM',
+            to_wallet=user.wallet_address,
+            amount=amount,
+            tx_type=source
+        )
+
+        db.session.add(transaction)
+        db.session.commit()
+        return transaction
+
+    def mine_block(self, miner_address):
+        if self.mining_pool.is_active:
+            reward = self.mining_reward
+        else:
+            reward = self.mining_reward * 0.1
+
+        self.current_block_height += 1
+        return reward
+
+    def get_mining_stats(self):
+        return {
+            'pool_active': self.mining_pool.is_active,
+            'connected_gpus': len(self.mining_pool.connected_gpus),
+            'total_hashrate': self.mining_pool.total_hashrate,
+            'current_block': self.current_block_height,
+            'websocket_enabled': self.mining_pool.websocket_enabled
+        }
+
+
+blockchain = BlockchainSystem()
+
+# =============================================================================
+# VISIT COUNTER SYSTEM
+# =============================================================================
+
+VISITS_FILE = 'visits.json'
+
+
+def load_visits():
+    if os.path.exists(VISITS_FILE):
+        try:
+            with open(VISITS_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return {'count': 0, 'visitors': []}
+    return {'count': 0, 'visitors': []}
+
+
+def save_visits(visits_data):
+    with open(VISITS_FILE, 'w') as f:
+        json.dump(visits_data, f, indent=2)
+
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def get_file_type(filename):
+    ext = filename.rsplit('.', 1)[1].lower()
+    if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']:
+        return 'image'
+    elif ext in ['pdf', 'doc', 'docx', 'txt', 'rtf', 'xls', 'xlsx', 'ppt', 'pptx']:
+        return 'document'
+    elif ext in ['mp4', 'avi', 'mov', 'wmv']:
+        return 'video'
+    elif ext in ['mp3', 'wav', 'flac', 'ogg']:
+        return 'audio'
+    else:
+        return 'other'
+
+
+def _get_gpu_hashrate(gpu_model):
+    hashrates = {
+        'rtx4090': 120.0, 'rtx4080': 95.0, 'rtx4070': 75.0,
+        'rtx3090': 85.0, 'rtx3080': 70.0, 'rtx3070': 55.0,
+        'rtx3060': 45.0, 'rx7900xt': 80.0, 'rx6800xt': 65.0
+    }
+    return hashrates.get(gpu_model.lower(), 30.0)
+
+
+def generate_token(user_id):
+    payload = {'user_id': user_id, 'exp': datetime.utcnow() + timedelta(days=30)}
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+def verify_token(token):
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return payload['user_id']
+    except:
+        return None
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return jsonify({'success': False, 'message': 'Token mancante'}), 401
+
+        if token.startswith('Bearer '):
+            token = token[7:]
+
+        user_id = verify_token(token)
+        if not user_id:
+            return jsonify({'success': False, 'message': 'Token invalido'}), 401
+
+        current_user = User.query.get(user_id)
+        if not current_user:
+            return jsonify({'success': False, 'message': 'Utente non trovato'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# =============================================================================
+# DECORATORI PERMESSI (NUOVO)
+# =============================================================================
+
+def role_required(*roles):
+    """Decoratore che verifica ruolo utente"""
+
+    def decorator(f):
+        @wraps(f)
+        @login_required
+        def decorated_function(*args, **kwargs):
+            if current_user.role not in roles:
+                flash('Non hai i permessi per accedere a questa pagina.', 'error')
+                return redirect(url_for('dashboard'))
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
+def admin_required(f):
+    """Decoratore che richiede ruolo admin"""
+
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.role != 'admin':
+            flash('Accesso riservato agli amministratori.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def can_create_projects(f):
+    """Decoratore che verifica se può creare progetti"""
+
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.role not in ['admin', 'role_a']:
+            flash('Solo Manager e Admin possono creare progetti.', 'error')
+            return redirect(url_for('projects_list'))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def project_access_required(permission_level='view'):
+    """Decoratore che verifica accesso a progetto"""
+
+    def decorator(f):
+        @wraps(f)
+        @login_required
+        def decorated_function(*args, **kwargs):
+            project_id = kwargs.get('project_id') or kwargs.get('id')
+
+            if not project_id:
+                flash('Progetto non specificato.', 'error')
+                return redirect(url_for('projects_list'))
+
+            project = Project.query.get_or_404(project_id)
+
+            if current_user.role == 'admin':
+                return f(*args, **kwargs)
+
+            if project.owner_id == current_user.id:
+                return f(*args, **kwargs)
+
+            member = ProjectMember.query.filter_by(
+                project_id=project_id,
+                user_id=current_user.id
+            ).first()
+
+            if not member:
+                flash('Non hai accesso a questo progetto.', 'error')
+                return redirect(url_for('projects_list'))
+
+            if permission_level == 'view':
+                return f(*args, **kwargs)
+            elif permission_level == 'edit':
+                if member.role_in_project in ['owner', 'collaborator']:
+                    return f(*args, **kwargs)
+                else:
+                    flash('Non hai i permessi per modificare questo progetto.', 'error')
+                    return redirect(url_for('project_detail', project_id=project_id))
+            elif permission_level == 'admin':
+                flash('Solo il proprietario può eseguire questa azione.', 'error')
+                return redirect(url_for('project_detail', project_id=project_id))
+
+            flash('Permessi insufficienti.', 'error')
+            return redirect(url_for('projects_list'))
+
+        return decorated_function
+
+    return decorator
+
+
+# =============================================================================
+# HELPER FUNCTIONS - NOTIFICHE (NUOVO)
+# =============================================================================
+
+def create_notification(user_id, notification_type, title, message=None, link=None, project_id=None):
+    """Crea notifica per utente"""
+    try:
+        notification = Notification(
+            user_id=user_id,
+            project_id=project_id,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            link=link
+        )
+        db.session.add(notification)
+        db.session.commit()
+        return notification
+    except Exception as e:
+        print(f"Errore creazione notifica: {e}")
+        db.session.rollback()
+        return None
+
+
+def notify_project_members(project, notification_type, title, message=None, exclude_user_id=None):
+    """Invia notifica a tutti i membri progetto"""
+    members = project.members.all()
+
+    for member in members:
+        if exclude_user_id and member.user_id == exclude_user_id:
+            continue
+
+        create_notification(
+            user_id=member.user_id,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            link=url_for('project_detail', project_id=project.id),
+            project_id=project.id
+        )
+
+    if project.owner_id != exclude_user_id:
+        create_notification(
+            user_id=project.owner_id,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            link=url_for('project_detail', project_id=project.id),
+            project_id=project.id
+        )
+
+
+def get_user_unread_notifications_count(user_id):
+    """Conta notifiche non lette"""
+    return Notification.query.filter_by(user_id=user_id, is_read=False).count()
+
+
+def mark_all_notifications_read(user_id):
+    """Segna tutte notifiche come lette"""
+    Notification.query.filter_by(user_id=user_id, is_read=False).update({'is_read': True})
+    db.session.commit()
+
+
+# =============================================================================
+# HELPER FUNCTIONS - GESTIONE PROGETTI (NUOVO)
+# =============================================================================
+
+def get_user_projects(user):
+    """Ottiene tutti i progetti dell'utente categorizzati"""
+    owned = Project.query.filter_by(owner_id=user.id, status='active').all()
+
+    memberships = ProjectMember.query.filter_by(user_id=user.id).all()
+
+    collaborating = []
+    viewing = []
+
+    for membership in memberships:
+        if membership.project.status == 'active':
+            if membership.role_in_project == 'collaborator':
+                collaborating.append(membership.project)
+            elif membership.role_in_project == 'viewer':
+                viewing.append(membership.project)
+
+    return {
+        'owned': owned,
+        'collaborating': collaborating,
+        'viewing': viewing,
+        'total': len(owned) + len(collaborating) + len(viewing)
+    }
+
+
+def add_member_to_project(project_id, user_id, role_in_project='viewer'):
+    """Aggiunge membro a progetto"""
+    try:
+        project = Project.query.get(project_id)
+        if not project:
+            return False, "Progetto non trovato", None
+
+        user = User.query.get(user_id)
+        if not user:
+            return False, "Utente non trovato", None
+
+        existing = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=user_id
+        ).first()
+
+        if existing:
+            return False, "Utente già membro del progetto", None
+
+        member = ProjectMember(
+            project_id=project_id,
+            user_id=user_id,
+            role_in_project=role_in_project
+        )
+
+        db.session.add(member)
+        db.session.commit()
+
+        create_notification(
+            user_id=user_id,
+            notification_type='project_invite',
+            title=f'Aggiunto al progetto: {project.name}',
+            message=f'Sei stato aggiunto come {member.get_role_display()}',
+            link=url_for('project_detail', project_id=project_id),
+            project_id=project_id
+        )
+
+        return True, "Membro aggiunto con successo", member
+
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Errore: {str(e)}", None
+
+
+def remove_member_from_project(project_id, user_id):
+    """Rimuove membro da progetto"""
+    try:
+        member = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=user_id
+        ).first()
+
+        if not member:
+            return False, "Membro non trovato"
+
+        db.session.delete(member)
+        db.session.commit()
+
+        return True, "Membro rimosso con successo"
+
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Errore: {str(e)}"
+
+
+def update_member_role(project_id, user_id, new_role):
+    """Aggiorna ruolo membro"""
+    try:
+        member = ProjectMember.query.filter_by(
+            project_id=project_id,
+            user_id=user_id
+        ).first()
+
+        if not member:
+            return False, "Membro non trovato"
+
+        member.role_in_project = new_role
+        member.last_activity = datetime.utcnow()
+        db.session.commit()
+
+        return True, "Ruolo aggiornato con successo"
+
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Errore: {str(e)}"
+
+
+# =============================================================================
+# CONTEXT PROCESSOR
+# =============================================================================
+
+@app.context_processor
+def inject_global_vars():
+    """Inietta variabili globali in tutti i template"""
+    unread_notifications = 0
+    if current_user.is_authenticated:
+        unread_notifications = get_user_unread_notifications_count(current_user.id)
+
+    return dict(
+        current_user=current_user,
+        unread_notifications=unread_notifications,
+        UserRole=UserRole
+    )
+
+
+# =============================================================================
+# MAIN ROUTES
+# =============================================================================
+
+@app.route('/')
+def index():
+    visits_data = load_visits()
+    visits_data['count'] += 1
+    visitor_info = {
+        'timestamp': datetime.now().isoformat(),
+        'ip': request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown')),
+        'user_agent': request.environ.get('HTTP_USER_AGENT', 'unknown'),
+        'user': current_user.username if current_user.is_authenticated else 'Anonimo'
+    }
+    visits_
