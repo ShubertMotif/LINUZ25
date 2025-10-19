@@ -1,774 +1,421 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestione File - Adelchi Group</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base_app.html" %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            color: #2d3748;
-            min-height: 100vh;
-        }
+{% block title %}Files - Adelchi Group{% endblock %}
 
-        .navbar {
-            background: linear-gradient(135deg, #005B94, #E7D454);
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+{% block extra_css %}
+<style>
+    .files-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+    .file-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
 
-        .navbar h1 {
-            color: white;
-            font-size: 24px;
-            margin: 0;
-        }
+    .file-card:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
 
-        .navbar-user {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+    .file-preview {
+        height: 120px;
+        background: rgba(0, 91, 148, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
 
-        .back-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            padding: 0.5rem 1rem;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
+    .file-icon {
+        font-size: 3rem;
+    }
 
-        .back-btn:hover {
-            background: rgba(255,255,255,0.2);
-            text-decoration: none;
-            color: white;
-        }
+    .file-type-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(231, 212, 84, 0.9);
+        color: #005B94;
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+    .file-info {
+        padding: 1.5rem;
+    }
 
-        .header-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
+    .file-name {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        word-break: break-word;
+        color: white;
+    }
 
-        .header-info h2 {
-            color: #005B94;
-            font-size: 28px;
-            margin-bottom: 0.5rem;
-        }
+    .file-details {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-bottom: 1rem;
+    }
 
-        .header-stats {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
+    .file-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
 
-        .stat-item {
-            text-align: center;
-            padding: 0.5rem 1rem;
-            background: #f8f9fa;
-            border-radius: 8px;
-            min-width: 80px;
-        }
+    .btn-icon {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-block;
+    }
 
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #005B94;
-        }
+    .btn-icon:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+    }
 
-        .stat-label {
-            font-size: 12px;
-            color: #718096;
-            margin-top: 2px;
-        }
+    .btn-primary { background: rgba(16, 185, 129, 0.3); }
+    .btn-danger { background: rgba(239, 68, 68, 0.3); }
 
-        .upload-section {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+    .upload-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
 
-        .upload-zone {
-            border: 2px dashed #cbd5e0;
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+    .upload-zone {
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
 
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: #005B94;
-            background: #f7fafc;
-        }
+    .upload-zone:hover {
+        border-color: #E7D454;
+        background: rgba(255, 255, 255, 0.05);
+    }
 
-        .upload-icon {
-            font-size: 3rem;
-            color: #a0aec0;
-            margin-bottom: 1rem;
-        }
+    .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
 
-        .upload-text {
-            color: #4a5568;
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
 
-        .upload-subtext {
-            color: #718096;
-            font-size: 0.9rem;
-        }
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 1.5rem;
+        text-align: center;
+    }
 
-        #fileInput {
-            display: none;
-        }
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #E7D454;
+    }
 
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
 
-        .btn-primary {
-            background: #005B94;
-            color: white;
-        }
+    .filter-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
 
-        .btn-primary:hover {
-            background: #004080;
-            text-decoration: none;
-            color: white;
-        }
+    .filter-controls {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
 
-        .btn-danger {
-            background: #e53e3e;
-            color: white;
-        }
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
 
-        .btn-danger:hover {
-            background: #c53030;
-        }
+    .filter-group label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        opacity: 0.9;
+    }
 
-        .btn-outline {
-            background: transparent;
-            color: #005B94;
-            border: 1px solid #005B94;
-        }
+    .filter-group select,
+    .filter-group input {
+        padding: 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 0.9rem;
+    }
 
-        .btn-outline:hover {
-            background: #005B94;
-            color: white;
-        }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        opacity: 0.6;
+    }
 
+    @media (max-width: 768px) {
         .files-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: 1fr;
         }
-
-        .file-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-        }
-
-        .file-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
-
-        .file-preview {
-            height: 120px;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .file-icon {
-            font-size: 3rem;
-            color: #a0aec0;
-        }
-
-        .file-type-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #005B94;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .file-info {
-            padding: 1rem;
-        }
-
-        .file-name {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            word-break: break-word;
-            color: #2d3748;
-        }
-
-        .file-details {
-            font-size: 0.8rem;
-            color: #718096;
-            margin-bottom: 1rem;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: space-between;
-        }
-
-        .files-list {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .files-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .files-table th,
-        .files-table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .files-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #4a5568;
-        }
-
-        .files-table tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .filter-section {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
         .filter-controls {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .filter-group {
-            display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            align-items: stretch;
         }
+    }
+</style>
+{% endblock %}
 
-        .filter-group label {
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: #4a5568;
-        }
+{% block content %}
+<h1 class="page-title">📁 I tuoi File</h1>
+<p class="page-subtitle">Gestisci e organizza i tuoi documenti</p>
 
-        .filter-group select,
-        .filter-group input {
-            padding: 0.5rem;
-            border: 1px solid #cbd5e0;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
+<!-- STATS -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_files }}</div>
+        <div class="stat-label">File Totali</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ "%.1f"|format(total_size / 1024 / 1024) }} MB</div>
+        <div class="stat-label">Spazio Usato</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ files_by_type.keys()|length }}</div>
+        <div class="stat-label">Tipi File</div>
+    </div>
+</div>
 
-        .view-toggle {
-            display: flex;
-            background: #f1f5f9;
-            border-radius: 6px;
-            padding: 2px;
-        }
+<!-- UPLOAD SECTION -->
+<div class="upload-section">
+    <h3 style="margin-bottom: 1rem; color: #E7D454; font-size: 1.5rem;">⬆️ Carica Nuovo File</h3>
 
-        .view-toggle button {
-            padding: 0.5rem 1rem;
-            border: none;
-            background: transparent;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-
-        .view-toggle button.active {
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 1rem 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #005B94, #E7D454);
-            transition: width 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border: 1px solid;
-        }
-
-        .alert-success {
-            background: #f0fff4;
-            border-color: #38a169;
-            color: #2f855a;
-        }
-
-        .alert-error {
-            background: #fed7d7;
-            border-color: #e53e3e;
-            color: #c53030;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #718096;
-        }
-
-        .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #a0aec0;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .header-section {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .header-stats {
-                justify-content: center;
-            }
-
-            .files-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .filter-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .files-table {
-                font-size: 0.8rem;
-            }
-
-            .files-table th,
-            .files-table td {
-                padding: 0.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <h1>📁 Gestione File</h1>
-        </div>
-        <div class="navbar-user">
-            <span>👋 <strong>{{ current_user.username }}</strong></span>
-            <a href="{{ url_for('index') }}" class="back-btn">🏠 Home</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <!-- Header con statistiche -->
-        <div class="header-section">
-            <div class="header-info">
-                <h2>I tuoi File</h2>
-                <p>Gestisci e organizza i tuoi documenti</p>
-            </div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <div class="stat-value">{{ total_files }}</div>
-                    <div class="stat-label">File Totali</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">{{ "%.1f"|format(total_size / 1024 / 1024) }} MB</div>
-                    <div class="stat-label">Spazio Usato</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-value">{{ files_by_type.keys()|length }}</div>
-                    <div class="stat-label">Tipi File</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sezione Upload -->
-        <div class="upload-section">
-            <h3 style="margin-bottom: 1rem; color: #005B94;">⬆️ Carica Nuovo File</h3>
-
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">📁</div>
-                <div class="upload-text">Clicca per selezionare file o trascinali qui</div>
-                <div class="upload-subtext">Formati supportati: PDF, DOC, IMG, ZIP (Max 16MB)</div>
-            </div>
-
-            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.xls,.xlsx,.ppt,.pptx">
-
-            <div id="uploadProgress" style="display: none;">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 0%"></div>
-                </div>
-                <p id="uploadStatus">Caricamento in corso...</p>
-            </div>
-
-            <div id="uploadResults"></div>
-        </div>
-
-        <!-- Filtri -->
-        <div class="filter-section">
-            <div class="filter-controls">
-                <div class="filter-group">
-                    <label>Tipo File</label>
-                    <select id="typeFilter">
-                        <option value="">Tutti i tipi</option>
-                        <option value="image">Immagini</option>
-                        <option value="document">Documenti</option>
-                        <option value="other">Altri</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label>Cerca</label>
-                    <input type="text" id="searchFilter" placeholder="Nome file...">
-                </div>
-
-                <div class="filter-group">
-                    <label>Visualizzazione</label>
-                    <div class="view-toggle">
-                        <button id="gridView" class="active">🔲 Griglia</button>
-                        <button id="listView">📋 Lista</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Files Grid View -->
-        <div id="filesGrid" class="files-grid">
-            {% if files %}
-                {% for file in files %}
-                <div class="file-card" data-type="{{ file.file_type }}" data-name="{{ file.original_filename.lower() }}">
-                    <div class="file-preview">
-                        {% if file.file_type == 'image' %}
-                            <div class="file-icon">🖼️</div>
-                        {% elif file.file_type == 'document' %}
-                            <div class="file-icon">📄</div>
-                        {% else %}
-                            <div class="file-icon">📦</div>
-                        {% endif %}
-                        <div class="file-type-badge">{{ file.file_type }}</div>
-                    </div>
-
-                    <div class="file-info">
-                        <div class="file-name">{{ file.original_filename }}</div>
-                        <div class="file-details">
-                            {{ "%.1f"|format(file.file_size / 1024) }} KB •
-                            {{ file.uploaded_at.strftime('%d/%m/%Y') }}
-                        </div>
-
-                        <div class="file-actions">
-                            <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary" title="Download">
-                                ⬇️
-                            </a>
-                            <button class="btn btn-danger" onclick="deleteFile({{ file.id }})" title="Elimina">
-                                🗑️
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-icon">📭</div>
-                    <h3>Nessun file caricato</h3>
-                    <p>Carica il tuo primo file usando l'area di upload sopra</p>
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- Files List View (nascosta di default) -->
-        <div id="filesList" class="files-list" style="display: none;">
-            {% if files %}
-            <table class="files-table">
-                <thead>
-                    <tr>
-                        <th>Nome File</th>
-                        <th>Tipo</th>
-                        <th>Dimensione</th>
-                        <th>Data Upload</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for file in files %}
-                    <tr data-type="{{ file.file_type }}" data-name="{{ file.original_filename.lower() }}">
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                {% if file.file_type == 'image' %}🖼️
-                                {% elif file.file_type == 'document' %}📄
-                                {% else %}📦{% endif %}
-                                {{ file.original_filename }}
-                            </div>
-                        </td>
-                        <td>
-                            <span class="file-type-badge">{{ file.file_type }}</span>
-                        </td>
-                        <td>{{ "%.1f"|format(file.file_size / 1024) }} KB</td>
-                        <td>{{ file.uploaded_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                        <td>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary">
-                                    ⬇️ Download
-                                </a>
-                                <button class="btn btn-danger" onclick="deleteFile({{ file.id }})">
-                                    🗑️ Elimina
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% endif %}
-        </div>
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+        <div class="upload-icon">📁</div>
+        <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">Clicca per selezionare file</div>
+        <div style="font-size: 0.9rem; opacity: 0.8;">PDF, DOC, IMG, ZIP (Max 16MB)</div>
     </div>
 
-    <script>
-        // File upload handling
-        const fileInput = document.getElementById('fileInput');
-        const uploadZone = document.querySelector('.upload-zone');
-        const uploadProgress = document.getElementById('uploadProgress');
-        const uploadResults = document.getElementById('uploadResults');
+    <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.xls,.xlsx,.ppt,.pptx" style="display: none;">
 
-        // Drag & drop
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
+    <div id="uploadResults"></div>
+</div>
 
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
+<!-- FILTERS -->
+<div class="filter-section">
+    <div class="filter-controls">
+        <div class="filter-group">
+            <label>Tipo File</label>
+            <select id="typeFilter">
+                <option value="">Tutti i tipi</option>
+                <option value="image">Immagini</option>
+                <option value="document">Documenti</option>
+                <option value="other">Altri</option>
+            </select>
+        </div>
 
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
+        <div class="filter-group">
+            <label>Cerca</label>
+            <input type="text" id="searchFilter" placeholder="Nome file...">
+        </div>
+    </div>
+</div>
 
-        fileInput.addEventListener('change', (e) => {
-            handleFiles(e.target.files);
-        });
+<!-- FILES GRID -->
+{% if files %}
+<div class="files-grid" id="filesGrid">
+    {% for file in files %}
+    <div class="file-card" data-type="{{ file.file_type }}" data-name="{{ file.original_filename.lower() }}">
+        <div class="file-preview">
+            {% if file.file_type == 'image' %}
+                <div class="file-icon">🖼️</div>
+            {% elif file.file_type == 'document' %}
+                <div class="file-icon">📄</div>
+            {% else %}
+                <div class="file-icon">📦</div>
+            {% endif %}
+            <div class="file-type-badge">{{ file.file_type }}</div>
+        </div>
 
-        function handleFiles(files) {
+        <div class="file-info">
+            <div class="file-name">{{ file.original_filename }}</div>
+            <div class="file-details">
+                {{ "%.1f"|format(file.file_size / 1024) }} KB •
+                {{ file.uploaded_at.strftime('%d/%m/%Y') }}
+            </div>
+
+            <div class="file-actions">
+                <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn-icon btn-primary">
+                    ⬇️ Download
+                </a>
+                <button class="btn-icon btn-danger" onclick="deleteFile({{ file.id }})">
+                    🗑️ Elimina
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div style="font-size: 5rem; margin-bottom: 1rem;">📭</div>
+    <h2>Nessun file caricato</h2>
+    <p>Carica il tuo primo file usando l'area di upload sopra</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // FILE UPLOAD
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.querySelector('.upload-zone');
+    const uploadResults = document.getElementById('uploadResults');
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        for (let file of files) {
             const formData = new FormData();
+            formData.append('file', file);
+            uploadFile(formData, file.name);
+        }
+    }
 
-            for (let file of files) {
-                formData.append('file', file);
-                uploadFile(formData, file.name);
-                formData.delete('file'); // Reset for next file
+    function uploadFile(formData, fileName) {
+        fetch('/upload_file', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(`✅ File "${fileName}" caricato! +${data.adg_earned} ADG`, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(`❌ Errore: ${data.message}`, 'error');
             }
-        }
+        })
+        .catch(error => {
+            showAlert('❌ Errore di connessione', 'error');
+        });
+    }
 
-        function uploadFile(formData, fileName) {
-            uploadProgress.style.display = 'block';
+    // DELETE FILE
+    function deleteFile(fileId) {
+        if (!confirm('Sei sicuro di voler eliminare questo file?')) return;
 
-            fetch('/upload_file', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                uploadProgress.style.display = 'none';
+        fetch(`/delete_file/${fileId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✅ File eliminato', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert(`❌ Errore: ${data.message}`, 'error');
+            }
+        });
+    }
 
-                if (data.success) {
-                    showAlert(`File "${fileName}" caricato con successo!`, 'success');
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showAlert(`Errore: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                uploadProgress.style.display = 'none';
-                showAlert('Errore di connessione', 'error');
-            });
-        }
+    // FILTERS
+    function applyFilters() {
+        const typeValue = document.getElementById('typeFilter').value.toLowerCase();
+        const searchValue = document.getElementById('searchFilter').value.toLowerCase();
 
-        function deleteFile(fileId) {
-            if (!confirm('Sei sicuro di voler eliminare questo file?')) return;
+        const cards = document.querySelectorAll('.file-card');
+        cards.forEach(card => {
+            const cardType = card.getAttribute('data-type');
+            const cardName = card.getAttribute('data-name');
 
-            fetch(`/delete_file/${fileId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('File eliminato con successo', 'success');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showAlert(`Errore: ${data.message}`, 'error');
-                }
-            })
-            .catch(error => {
-                showAlert('Errore di connessione', 'error');
-            });
-        }
+            const typeMatch = !typeValue || cardType === typeValue;
+            const nameMatch = !searchValue || cardName.includes(searchValue);
 
-        function showAlert(message, type) {
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            uploadResults.appendChild(alert);
+            card.style.display = typeMatch && nameMatch ? 'block' : 'none';
+        });
+    }
 
+    document.getElementById('typeFilter').addEventListener('change', applyFilters);
+    document.getElementById('searchFilter').addEventListener('input', applyFilters);
+
+    // ALERT
+    function showAlert(message, type) {
+        const alert = document.createElement('div');
+        alert.style.cssText = `
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: ${type === 'success' ? 'rgba(16, 185, 129, 0.9)' : 'rgba(239, 68, 68, 0.9)'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        `;
+        alert.textContent = message;
+        uploadResults.appendChild(alert);
+
+        setTimeout(() => {
+            alert.style.opacity = '1';
+            alert.style.transform = 'translateX(0)';
+        }, 100);
+
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateX(100%)';
             setTimeout(() => {
-                alert.remove();
-            }, 3000);
-        }
-
-        // View toggle
-        const gridView = document.getElementById('gridView');
-        const listView = document.getElementById('listView');
-        const filesGrid = document.getElementById('filesGrid');
-        const filesList = document.getElementById('filesList');
-
-        gridView.addEventListener('click', () => {
-            gridView.classList.add('active');
-            listView.classList.remove('active');
-            filesGrid.style.display = 'grid';
-            filesList.style.display = 'none';
-        });
-
-        listView.addEventListener('click', () => {
-            listView.classList.add('active');
-            gridView.classList.remove('active');
-            filesGrid.style.display = 'none';
-            filesList.style.display = 'block';
-        });
-
-        // Filters
-        const typeFilter = document.getElementById('typeFilter');
-        const searchFilter = document.getElementById('searchFilter');
-
-        function applyFilters() {
-            const typeValue = typeFilter.value.toLowerCase();
-            const searchValue = searchFilter.value.toLowerCase();
-
-            // Grid view
-            const gridCards = filesGrid.querySelectorAll('.file-card');
-            gridCards.forEach(card => {
-                const cardType = card.getAttribute('data-type');
-                const cardName = card.getAttribute('data-name');
-
-                const typeMatch = !typeValue || cardType === typeValue;
-                const nameMatch = !searchValue || cardName.includes(searchValue);
-
-                card.style.display = typeMatch && nameMatch ? 'block' : 'none';
-            });
-
-            // List view
-            const listRows = filesList.querySelectorAll('tbody tr');
-            listRows.forEach(row => {
-                const rowType = row.getAttribute('data-type');
-                const rowName = row.getAttribute('data-name');
-
-                const typeMatch = !typeValue || rowType === typeValue;
-                const nameMatch = !searchValue || rowName.includes(searchValue);
-
-                row.style.display = typeMatch && nameMatch ? 'table-row' : 'none';
-            });
-        }
-
-        typeFilter.addEventListener('change', applyFilters);
-        searchFilter.addEventListener('input', applyFilters);
-
-        // Auto-refresh ogni 30 secondi
-        setInterval(() => {
-            console.log('Checking for new files...');
-        }, 30000);
-    </script>
-</body>
-</html>
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
+        }, 3000);
+    }
+</script>
+{% endblock %}
