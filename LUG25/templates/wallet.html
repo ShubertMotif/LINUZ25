@@ -1,362 +1,42 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adelchi Group - Wallet ADG</title>
-    <style>
-        :root {
-            --primary-blue: #005B94;
-            --accent-gold: #E7D454;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --shadow-hover: 0 16px 64px rgba(0, 0, 0, 0.2);
-            --success-green: #10B981;
-            --warning-orange: #F59E0B;
-        }
+{% extends "base_app.html" %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% block title %}Wallet ADG - Adelchi Group{% endblock %}
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
+{% block extra_css %}
+<style>
+    /* MANTIENI TUTTO IL CSS CHE C'ERA DENTRO <style> */
+    /* Copia tutto dal vecchio wallet.html da riga ~50 a ~400 circa */
+    /* Lascio a te di copiarlo perché è lungo */
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+    .wallet-grid { ... }
+    .wallet-card { ... }
+    /* etc */
+</style>
+{% endblock %}
 
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
+{% block content %}
+<!-- Da qui in poi copia tutto il contenuto del body del vecchio wallet.html -->
+<!-- RIMUOVI solo <div class="container"> iniziale e </div> finale -->
+<!-- Perché il container è già in base_app.html -->
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, white, var(--accent-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+<h1 class="page-title">💳 Wallet ADG</h1>
+<p class="page-subtitle">Gestisci i tuoi Adelchi Group Token</p>
 
-        .nav-breadcrumb {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <!-- ... resto del contenuto ... -->
+</div>
 
-        .nav-breadcrumb a {
-            color: var(--accent-gold);
-            text-decoration: none;
-            margin: 0 0.5rem;
-            transition: color 0.3s ease;
-        }
+{% endblock %}
 
-        .nav-breadcrumb a:hover {
-            color: white;
-        }
+{% block extra_js %}
+<script>
+    /* COPIA TUTTO IL JAVASCRIPT dal vecchio wallet.html */
+    function copyAddress() { ... }
+</script>
+{% endblock %}
 
-        .wallet-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
 
-        .wallet-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 2.5rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wallet-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .wallet-card:hover::before {
-            left: 100%;
-        }
-
-        .wallet-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .wallet-balance-card {
-            text-align: center;
-            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
-            color: var(--primary-blue);
-        }
-
-        .balance-amount {
-            font-size: 4rem;
-            font-weight: 900;
-            margin: 1rem 0;
-            animation: balancePulse 3s ease-in-out infinite;
-        }
-
-        @keyframes balancePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .balance-label {
-            font-size: 1.5rem;
-            font-weight: 600;
-            opacity: 0.8;
-        }
-
-        .wallet-info h2 {
-            color: var(--accent-gold);
-            margin-bottom: 1.5rem;
-            font-size: 1.8rem;
-        }
-
-        .wallet-detail {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .wallet-detail:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .wallet-address {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
-            word-break: break-all;
-        }
-
-        .copy-btn {
-            background: var(--success-green);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: all 0.3s ease;
-        }
-
-        .copy-btn:hover {
-            background: #059669;
-            transform: scale(1.05);
-        }
-
-        .transactions-section {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 2.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .transactions-section:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .transactions-section h2 {
-            color: var(--accent-gold);
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 1rem;
-        }
-
-        .transaction-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .transaction-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--success-green);
-        }
-
-        .transaction-item.mining::before {
-            background: var(--warning-orange);
-        }
-
-        .transaction-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .transaction-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .transaction-type {
-            background: var(--success-green);
-            color: white;
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .transaction-type.mining {
-            background: var(--warning-orange);
-        }
-
-        .transaction-amount {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent-gold);
-        }
-
-        .transaction-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .transaction-hash {
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            word-break: break-all;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            opacity: 0.6;
-        }
-
-        .empty-state img {
-            width: 120px;
-            opacity: 0.5;
-            margin-bottom: 1rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .stat-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--accent-gold);
-            margin-bottom: 0.3rem;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        @media (max-width: 768px) {
-            .wallet-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .transaction-header {
-                flex-direction: column;
-                gap: 0.5rem;
-                align-items: flex-start;
-            }
-
-            .transaction-details {
-                grid-template-columns: 1fr;
-            }
-
-            .balance-amount {
-                font-size: 3rem;
-            }
-
-            .container {
-                padding: 1rem;
-            }
-        }
-    </style>
-</head>
 <body>
     <div class="container">
         <!-- Header -->

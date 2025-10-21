@@ -1,0 +1,2 @@
+sudo systemctl stop lug25.service
+sudo systemctl start lug25.service
