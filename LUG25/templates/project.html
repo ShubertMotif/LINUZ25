@@ -1,0 +1,301 @@
+{% extends "base_app.html" %}
+
+{% block title %}Progetti - Adelchi Group{% endblock %}
+
+{% block extra_css %}
+<style>
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .project-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .project-card:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-5px);
+    }
+
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1rem;
+    }
+
+    .project-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .project-meta {
+        font-size: 0.85rem;
+        opacity: 0.7;
+        margin-bottom: 1rem;
+    }
+
+    .project-stats {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: linear-gradient(135deg, #005B94, #2980B9);
+        padding: 2rem;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #E7D454, #F4E869);
+        color: #005B94;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .members-list {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 1rem;
+    }
+
+    .member-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📁 Progetti</h1>
+<p class="page-subtitle">Organizza note in progetti collaborativi</p>
+
+<div style="margin-bottom: 2rem;">
+    <button onclick="openCreateModal()" class="btn btn-primary">
+        ➕ Nuovo Progetto
+    </button>
+</div>
+
+<!-- PROGETTI -->
+{% if projects %}
+<div class="projects-grid">
+    {% for project in projects %}
+    <div class="project-card" onclick="openProject({{ project.id }})">
+        <div class="project-header">
+            <div>
+                <div class="project-title">{{ project.name }}</div>
+                <div class="project-meta">Owner: {{ project.owner.username }}</div>
+            </div>
+        </div>
+        <p style="opacity: 0.8; margin-bottom: 1rem;">{{ project.description[:80] }}...</p>
+        <div class="project-stats">
+            <span>📝 {{ project.get_note_count() }} note</span>
+            <span>👥 {{ project.get_member_count() }} membri</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="glass-card" style="text-align: center; padding: 3rem;">
+    <div style="font-size: 4rem; opacity: 0.5;">📁</div>
+    <p>Nessun progetto. Creane uno!</p>
+</div>
+{% endif %}
+
+<!-- MODAL CREA PROGETTO -->
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-bottom: 1.5rem;">Crea Nuovo Progetto</h2>
+        <form id="createForm">
+            <div class="form-group">
+                <label>Nome Progetto</label>
+                <input type="text" name="name" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label>Descrizione</label>
+                <textarea name="description" class="form-input" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary">Crea</button>
+                <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL DETTAGLIO PROGETTO -->
+<div id="detailModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+            <h2 id="projectName"></h2>
+            <button onclick="closeDetailModal()" class="btn btn-secondary">✕</button>
+        </div>
+
+        <div id="projectDescription" style="margin-bottom: 2rem; opacity: 0.9;"></div>
+
+        <!-- ASSEGNA NOTE -->
+        <div class="glass-card" style="margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 1rem;">📝 Assegna Note</h3>
+            <select id="noteSelect" class="form-input">
+                <option value="">Seleziona nota...</option>
+                {% for note in user_notes %}
+                <option value="{{ note.id }}">{{ note.title }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="assignNote()" class="btn btn-primary" style="margin-top: 0.5rem;">Aggiungi al Progetto</button>
+        </div>
+
+        <!-- MEMBRI -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 1rem;">👥 Membri</h3>
+            <div id="membersList"></div>
+            <select id="userSelect" class="form-input" style="margin-top: 1rem;">
+                <option value="">Aggiungi membro...</option>
+                {% for user in all_users %}
+                <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+            <button onclick="addMember()" class="btn btn-primary" style="margin-top: 0.5rem;">Aggiungi</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentProjectId = null;
+
+function openCreateModal() {
+    document.getElementById('createModal').style.display = 'flex';
+}
+
+function closeCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+}
+
+function openProject(projectId) {
+    currentProjectId = projectId;
+    fetch(`/api/project/${projectId}`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('projectName').textContent = data.name;
+            document.getElementById('projectDescription').textContent = data.description;
+
+            // Render members
+            let html = '';
+            data.members.forEach(m => {
+                html += `<div class="member-item">${m.username} <span style="opacity:0.7;">${m.role}</span></div>`;
+            });
+            document.getElementById('membersList').innerHTML = html;
+
+            document.getElementById('detailModal').style.display = 'flex';
+        });
+}
+
+function closeDetailModal() {
+    document.getElementById('detailModal').style.display = 'none';
+}
+
+document.getElementById('createForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    fetch('/create_project', {
+        method: 'POST',
+        body: formData
+    }).then(r => r.json())
+      .then(d => { if (d.success) location.reload(); });
+});
+
+function assignNote() {
+    const noteId = document.getElementById('noteSelect').value;
+    if (!noteId) return;
+
+    fetch(`/project/${currentProjectId}/add_note`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({note_id: noteId})
+    }).then(r => r.json())
+      .then(d => { if (d.success) alert('Nota aggiunta!'); });
+}
+
+function addMember() {
+    const userId = document.getElementById('userSelect').value;
+    if (!userId) return;
+
+    fetch(`/project/${currentProjectId}/add_member`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({user_id: userId, role: 'viewer'})
+    }).then(r => r.json())
+      .then(d => { if (d.success) openProject(currentProjectId); });
+}
+
+window.onclick = (e) => {
+    if (e.target.className === 'modal') {
+        e.target.style.display = 'none';
+    }
+};
+</script>
+{% endblock %}

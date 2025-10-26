@@ -1064,16 +1064,14 @@ def delete_file(file_id):
 @app.route('/notes')
 @login_required
 def notes_dashboard():
-    """Dashboard note utente"""
-    # Filtri
+    """Dashboard unificata Note + Files"""
+    # Filtri note
     note_type = request.args.get('type', '')
     priority = request.args.get('priority', '')
     search = request.args.get('search', '')
 
-    # Query base
+    # Query note con filtri
     query = UserNote.query.filter_by(user_id=current_user.id)
-
-    # Applica filtri
     if note_type:
         query = query.filter_by(note_type=note_type)
     if priority:
@@ -1084,7 +1082,7 @@ def notes_dashboard():
 
     notes = query.order_by(UserNote.updated_at.desc()).all()
 
-    # Statistiche
+    # Statistiche note
     total_notes = UserNote.query.filter_by(user_id=current_user.id).count()
     completed_tasks = UserNote.query.filter_by(
         user_id=current_user.id, note_type='task', completed=True
@@ -1093,11 +1091,16 @@ def notes_dashboard():
         user_id=current_user.id, note_type='task', completed=False
     ).count()
 
-    return render_template('notes_dashboard.html',
+    # Files
+    files = UserFile.query.filter_by(user_id=current_user.id) \
+        .order_by(UserFile.uploaded_at.desc()).all()
+
+    return render_template('notes_and_files.html',
                            notes=notes,
                            total_notes=total_notes,
                            completed_tasks=completed_tasks,
                            pending_tasks=pending_tasks,
+                           files=files,
                            current_user=current_user)
 
 

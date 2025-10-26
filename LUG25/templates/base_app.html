@@ -19,85 +19,78 @@
             overflow-x: hidden;
         }
 
-        /* NAVBAR COMUNE */
-        .navbar-common {
+        /* MENU FLOTTANTE IN ALTO A DESTRA */
+        .user-menu {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 1rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 1.5rem;
+            border-radius: 25px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            gap: 1.5rem;
+            margin-bottom: 0.8rem;
         }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+        .username {
+            font-weight: 600;
+            font-size: 0.95rem;
         }
 
-        .navbar-brand h1 {
-            font-size: 1.5rem;
+        .wallet-badge {
+            background: linear-gradient(45deg, #E7D454, #F4E869);
+            color: #005B94;
+            padding: 0.4rem 1rem;
+            border-radius: 15px;
             font-weight: 700;
-            background: linear-gradient(45deg, white, #E7D454);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 0.9rem;
         }
 
-        .navbar-links {
+        .nav-links {
             display: flex;
-            gap: 1rem;
-            align-items: center;
+            gap: 0.8rem;
             flex-wrap: wrap;
+            justify-content: center;
         }
 
         .nav-link {
             color: white;
             text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 500;
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
         }
 
-        .nav-link.primary {
-            background: linear-gradient(45deg, #E7D454, #F4E869);
-            color: #005B94;
-            border-color: #E7D454;
+        .nav-link.active {
+            background: rgba(231, 212, 84, 0.3);
+            color: #E7D454;
         }
 
-        .nav-link.primary:hover {
-            background: linear-gradient(45deg, #F4E869, white);
-        }
-
-        .user-badge {
-            background: rgba(231, 212, 84, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            border: 1px solid rgba(231, 212, 84, 0.5);
-            font-size: 0.9rem;
-        }
-
-        /* CONTAINER PAGINA */
+        /* CONTAINER PRINCIPALE */
         .page-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 8rem 2rem 2rem 2rem; /* Spazio per menu flottante */
         }
 
-        /* CARD GLASS */
+        /* GLASS CARDS */
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
@@ -114,7 +107,7 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
-        /* TITOLI */
+        /* TITOLI PAGINA */
         .page-title {
             font-size: 2.5rem;
             font-weight: 800;
@@ -130,22 +123,32 @@
             text-align: center;
             font-size: 1.1rem;
             opacity: 0.9;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
         }
 
         /* RESPONSIVE */
         @media (max-width: 768px) {
-            .navbar-common {
-                flex-direction: column;
-                gap: 1rem;
+            .user-menu {
+                position: static;
+                margin: 1rem;
+                text-align: center;
             }
 
-            .navbar-links {
-                justify-content: center;
+            .user-info-row {
+                flex-direction: column;
+                gap: 0.5rem;
             }
 
             .page-container {
                 padding: 1rem;
+            }
+
+            .nav-links {
+                flex-direction: column;
+            }
+
+            .page-title {
+                font-size: 2rem;
             }
         }
 
@@ -153,28 +156,23 @@
     </style>
 </head>
 <body>
-    <!-- NAVBAR COMUNE -->
-    <nav class="navbar-common">
-        <div class="navbar-brand">
-            <h1>🏢 Adelchi Group</h1>
+    <!-- MENU FLOTTANTE IN ALTO A DESTRA -->
+    <div class="user-menu">
+        <div class="user-info-row">
+            <span class="username">👋 {{ current_user.username }}</span>
+            <span class="wallet-badge">💰 {{ "%.1f"|format(current_user.balance) }} ADG</span>
         </div>
-        <div class="navbar-links">
-            {% if current_user.is_authenticated %}
-                <span class="user-badge">👋 {{ current_user.username }}</span>
-                <a href="/stats" class="nav-link">📊 Dashboard</a>
-                <a href="/projects" class="nav-link">📁 Progetti</a>
-                <a href="/files" class="nav-link">📂 Files</a>
-                <a href="/notes" class="nav-link">📝 Note</a>
-                <a href="/wallet" class="nav-link primary">💰 {{ "%.1f"|format(current_user.balance) }} ADG</a>
-                <a href="/mining" class="nav-link">⛏️ Mining</a>
-                <a href="/logout" class="nav-link">🚪 Logout</a>
-            {% else %}
-                <a href="/" class="nav-link">🏠 Home</a>
-                <a href="/login" class="nav-link primary">🔐 Login</a>
-                <a href="/register" class="nav-link">✨ Registrati</a>
-            {% endif %}
+        <div class="nav-links">
+            <a href="/stats" class="nav-link">📊 Dashboard</a>
+            <a href="/projects" class="nav-link">📁 Progetti</a>
+            <a href="/files" class="nav-link">📂 Files</a>
+            <a href="/notes" class="nav-link">📝 Note</a>
+            <a href="/wallet" class="nav-link">💳 Wallet</a>
+            <a href="/mining" class="nav-link">⛏️ Mining</a>
+            <a href="/" class="nav-link">🏠 Home</a>
+            <a href="/logout" class="nav-link">🚪 Logout</a>
         </div>
-    </nav>
+    </div>
 
     <!-- CONTENUTO PAGINA -->
     <div class="page-container">
