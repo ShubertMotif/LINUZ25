@@ -132,6 +132,8 @@ class UserNote(db.Model):
     completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=True)
+    project = db.relationship('Project', backref='notes')
 
     # Relationship
     user = db.relationship('User', backref=db.backref('notes', lazy=True))
@@ -163,79 +165,6 @@ class FileShare(db.Model):
     file = db.relationship('UserFile', backref=db.backref('shares', lazy=True))
     sharer = db.relationship('User', foreign_keys=[shared_by], backref='shared_files')
     recipient = db.relationship('User', foreign_keys=[shared_with], backref='received_files')
-
-
-class Project(db.Model):
-    """Progetto aziendale con team members"""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    # Relationship
-    owner = db.relationship('User', backref=db.backref('owned_projects', lazy=True))
-
-    def get_member_count(self):
-        """Conta membri del progetto"""
-        return ProjectMember.query.filter_by(project_id=self.id).count()
-
-    def get_file_count(self):
-        """Conta file nel progetto"""
-        return ProjectFile.query.filter_by(project_id=self.id).count()
-
-    def get_note_count(self):
-        """Conta note nel progetto"""
-        return ProjectNote.query.filter_by(project_id=self.id).count()
-
-    def get_members(self):
-        """Ottieni tutti i membri"""
-        return ProjectMember.query.filter_by(project_id=self.id).all()
-
-    def get_user_role(self, user_id):
-        """Ottieni ruolo di un utente nel progetto"""
-        member = ProjectMember.query.filter_by(project_id=self.id, user_id=user_id).first()
-        return member.role if member else None
-
-
-class ProjectMember(db.Model):
-    """Membri di un progetto con ruoli"""
-    id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    role = db.Column(db.String(50), nullable=False)  # 'owner', 'collaborator', 'viewer'
-    added_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships
-    project = db.relationship('Project', backref=db.backref('members', lazy=True))
-    user = db.relationship('User', backref=db.backref('project_memberships', lazy=True))
-
-
-class ProjectFile(db.Model):
-    """Link tra progetti e file"""
-    id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-    file_id = db.Column(db.Integer, db.ForeignKey('user_file.id'), nullable=False)
-    added_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    added_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships
-    project = db.relationship('Project', backref=db.backref('project_files', lazy=True))
-    file = db.relationship('UserFile', backref=db.backref('in_projects', lazy=True))
-
-
-class ProjectNote(db.Model):
-    """Link tra progetti e note"""
-    id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-    note_id = db.Column(db.Integer, db.ForeignKey('user_note.id'), nullable=False)
-    added_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    added_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    # Relationships
-    project = db.relationship('Project', backref=db.backref('project_notes', lazy=True))
-    note = db.relationship('UserNote', backref=db.backref('in_projects', lazy=True))
 
 
 # =============================================================================
@@ -372,6 +301,9 @@ class BlockchainSystem:
 # Inizializza sistema blockchain
 blockchain = BlockchainSystem()
 
+
+
+
 # =============================================================================
 # VISIT COUNTER SYSTEM
 # =============================================================================
@@ -392,6 +324,149 @@ def load_visits():
 def save_visits(visits_data):
     with open(VISITS_FILE, 'w') as f:
         json.dump(visits_data, f, indent=2)
+
+
+# =============================================================================
+# PROJECT
+# =============================================================================
+
+class Project(db.Model):
+    """Progetto - contenitore di note collaborative"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    owner = db.relationship('User', backref='owned_projects')
+
+    def has_access(self, user_id):
+        """Verifica se user ha accesso"""
+        if self.owner_id == user_id:
+            return True
+        return ProjectMember.query.filter_by(
+            project_id=self.id,
+            user_id=user_id
+        ).first() is not None
+
+
+class ProjectMember(db.Model):
+    """Membri progetto"""
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', backref='members')
+    user = db.relationship('User', backref='project_memberships')
+
+
+# =============================================================================
+# PROJECT ROUTES
+# =============================================================================
+
+@app.route('/projects')
+@login_required
+def projects_list():
+    """Lista progetti accessibili"""
+    owned = Project.query.filter_by(owner_id=current_user.id).all()
+
+    member_projects = db.session.query(Project).join(ProjectMember).filter(
+        ProjectMember.user_id == current_user.id
+    ).all()
+
+    return render_template('projects.html',
+                           owned=owned,
+                           member_projects=member_projects)
+
+
+@app.route('/project/create', methods=['GET', 'POST'])
+@login_required
+def create_project():
+    """Crea progetto (solo manager)"""
+    if not current_user.can_create_projects():
+        flash('Solo i Manager possono creare progetti')
+        return redirect(url_for('projects_list'))
+
+    if request.method == 'POST':
+        project = Project(
+            name=request.form['name'],
+            description=request.form.get('description', ''),
+            owner_id=current_user.id
+        )
+        db.session.add(project)
+        db.session.commit()
+
+        blockchain.reward_user(current_user, blockchain.project_creation_reward, 'project_creation')
+        flash(f'Progetto creato! +{blockchain.project_creation_reward} ADG')
+        return redirect(url_for('project_detail', project_id=project.id))
+
+    return render_template('create_project.html')
+
+
+@app.route('/project/<int:project_id>')
+@login_required
+def project_detail(project_id):
+    """Dettaglio progetto con note"""
+    project = Project.query.get_or_404(project_id)
+
+    if not project.has_access(current_user.id):
+        flash('Accesso negato')
+        return redirect(url_for('projects_list'))
+
+    notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
+    members = project.members
+    is_owner = project.owner_id == current_user.id
+
+    # Utenti da aggiungere (solo owner)
+    available_users = []
+    if is_owner:
+        member_ids = [m.user_id for m in members] + [project.owner_id]
+        available_users = User.query.filter(~User.id.in_(member_ids)).all()
+
+    return render_template('project_detail.html',
+                           project=project,
+                           notes=notes,
+                           members=members,
+                           is_owner=is_owner,
+                           available_users=available_users)
+
+
+@app.route('/project/<int:project_id>/add_member', methods=['POST'])
+@login_required
+def add_member(project_id):
+    """Aggiungi membro (solo owner)"""
+    project = Project.query.get_or_404(project_id)
+
+    if project.owner_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Solo owner'}), 403
+
+    user_id = request.json.get('user_id')
+
+    if ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first():
+        return jsonify({'success': False, 'message': 'Già membro'}), 400
+
+    member = ProjectMember(project_id=project_id, user_id=user_id)
+    db.session.add(member)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+
+@app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
+@login_required
+def remove_member(project_id, user_id):
+    """Rimuovi membro (solo owner)"""
+    project = Project.query.get_or_404(project_id)
+
+    if project.owner_id != current_user.id:
+        return jsonify({'success': False}), 403
+
+    member = ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first_or_404()
+    db.session.delete(member)
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 
 # =============================================================================
@@ -573,264 +648,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-# =============================================================================
-# BLOCCO 2: ROUTES SISTEMA PROGETTI
-# =============================================================================
-# ISTRUZIONI:
-# INCOLLA questo blocco DOPO @app.route('/logout') (dopo riga 456 circa)
-# PRIMA della sezione # BLOCKCHAIN ROUTES
-# =============================================================================
-
-# =============================================================================
-# PROJECT ROUTES
-# =============================================================================
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    """Dashboard personale con progetti"""
-    # Progetti di cui sono owner
-    owned = Project.query.filter_by(owner_id=current_user.id).all()
-
-    # Progetti dove sono collaborator
-    collab_memberships = ProjectMember.query.filter_by(
-        user_id=current_user.id,
-        role='collaborator'
-    ).all()
-    collaborating = [m.project for m in collab_memberships]
-
-    # Progetti dove sono viewer
-    view_memberships = ProjectMember.query.filter_by(
-        user_id=current_user.id,
-        role='viewer'
-    ).all()
-    viewing = [m.project for m in view_memberships]
-
-    # Raggruppa progetti
-    projects = {
-        'owned': owned,
-        'collaborating': collaborating,
-        'viewing': viewing,
-        'total': len(owned) + len(collaborating) + len(viewing)
-    }
-
-    return render_template('dashboard.html',
-                           projects=projects,
-                           current_user=current_user)
-
-
-@app.route('/projects')
-@login_required
-def projects_list():
-    """Lista completa progetti accessibili"""
-    # Progetti di cui sono owner
-    owned = Project.query.filter_by(owner_id=current_user.id).all()
-
-    # Progetti dove sono collaborator
-    collab_memberships = ProjectMember.query.filter_by(
-        user_id=current_user.id,
-        role='collaborator'
-    ).all()
-    collaborating = [m.project for m in collab_memberships]
-
-    # Progetti dove sono viewer
-    view_memberships = ProjectMember.query.filter_by(
-        user_id=current_user.id,
-        role='viewer'
-    ).all()
-    viewing = [m.project for m in view_memberships]
-
-    # Raggruppa progetti
-    projects = {
-        'owned': owned,
-        'collaborating': collaborating,
-        'viewing': viewing,
-        'total': len(owned) + len(collaborating) + len(viewing)
-    }
-
-    return render_template('project_list.html',
-                           projects=projects,
-                           current_user=current_user)
-
-
-@app.route('/create_project', methods=['GET', 'POST'])
-@login_required
-def create_project():
-    """Crea nuovo progetto (solo manager)"""
-    # Verifica permessi
-    if not current_user.can_create_projects():
-        flash('Solo i Manager possono creare progetti')
-        return redirect(url_for('dashboard'))
-
-    if request.method == 'POST':
-        try:
-            name = request.form.get('name')
-            description = request.form.get('description', '')
-
-            if not name:
-                flash('Nome progetto obbligatorio')
-                return redirect(url_for('create_project'))
-
-            # Crea progetto
-            project = Project(
-                name=name,
-                description=description,
-                owner_id=current_user.id
-            )
-            db.session.add(project)
-            db.session.flush()  # Per ottenere l'ID
-
-            # Aggiungi owner come membro
-            owner_member = ProjectMember(
-                project_id=project.id,
-                user_id=current_user.id,
-                role='owner'
-            )
-            db.session.add(owner_member)
-            db.session.commit()
-
-            # Ricompensa ADG per creazione progetto
-            blockchain.reward_user(current_user, blockchain.project_creation_reward, 'project_creation')
-
-            flash(f'Progetto "{name}" creato con successo! +{blockchain.project_creation_reward} ADG')
-            return redirect(url_for('project_detail', project_id=project.id))
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Errore: {str(e)}')
-            return redirect(url_for('create_project'))
-
-    # GET - mostra form
-    return render_template('create_project.html', current_user=current_user)
-
-
-@app.route('/project/<int:project_id>')
-@login_required
-def project_detail(project_id):
-    """Dettaglio progetto"""
-    project = Project.query.get_or_404(project_id)
-
-    # Verifica accesso
-    member = ProjectMember.query.filter_by(
-        project_id=project_id,
-        user_id=current_user.id
-    ).first()
-
-    if not member and project.owner_id != current_user.id:
-        flash('Non hai accesso a questo progetto')
-        return redirect(url_for('dashboard'))
-
-    # Determina ruolo utente
-    user_role = member.role if member else 'owner'
-
-    # Ottieni membri, file e note del progetto
-    members = project.get_members()
-    project_files = ProjectFile.query.filter_by(project_id=project_id).all()
-    project_notes = ProjectNote.query.filter_by(project_id=project_id).all()
-
-    # Utenti disponibili da aggiungere (solo per owner)
-    available_users = []
-    if user_role == 'owner':
-        member_ids = [m.user_id for m in members]
-        available_users = User.query.filter(
-            User.id != current_user.id,
-            ~User.id.in_(member_ids)
-        ).all()
-
-    return render_template('project_detail.html',
-                           project=project,
-                           user_role=user_role,
-                           members=members,
-                           project_files=project_files,
-                           project_notes=project_notes,
-                           available_users=available_users,
-                           current_user=current_user)
-
-
-@app.route('/project/<int:project_id>/add_member', methods=['POST'])
-@login_required
-def add_project_member(project_id):
-    """Aggiungi membro al progetto (solo owner)"""
-    project = Project.query.get_or_404(project_id)
-
-    # Verifica che sia owner
-    if project.owner_id != current_user.id:
-        return jsonify({'success': False, 'message': 'Solo il proprietario può aggiungere membri'}), 403
-
-    try:
-        data = request.get_json() or request.form
-        user_id = data.get('user_id')
-        role = data.get('role', 'viewer')  # Default: viewer
-
-        if not user_id:
-            return jsonify({'success': False, 'message': 'user_id mancante'}), 400
-
-        # Verifica che l'utente esista
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({'success': False, 'message': 'Utente non trovato'}), 404
-
-        # Verifica che non sia già membro
-        existing = ProjectMember.query.filter_by(
-            project_id=project_id,
-            user_id=user_id
-        ).first()
-
-        if existing:
-            return jsonify({'success': False, 'message': 'Utente già nel progetto'}), 400
-
-        # Aggiungi membro
-        member = ProjectMember(
-            project_id=project_id,
-            user_id=user_id,
-            role=role
-        )
-        db.session.add(member)
-        db.session.commit()
-
-        return jsonify({
-            'success': True,
-            'message': f'{user.username} aggiunto come {role}'
-        })
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-
-@app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
-@login_required
-def remove_project_member(project_id, user_id):
-    """Rimuovi membro dal progetto (solo owner)"""
-    project = Project.query.get_or_404(project_id)
-
-    # Verifica che sia owner
-    if project.owner_id != current_user.id:
-        return jsonify({'success': False, 'message': 'Solo il proprietario può rimuovere membri'}), 403
-
-    try:
-        # Trova membro
-        member = ProjectMember.query.filter_by(
-            project_id=project_id,
-            user_id=user_id
-        ).first()
-
-        if not member:
-            return jsonify({'success': False, 'message': 'Membro non trovato'}), 404
-
-        # Non permettere rimozione owner
-        if member.role == 'owner':
-            return jsonify({'success': False, 'message': 'Non puoi rimuovere il proprietario'}), 400
-
-        # Rimuovi membro
-        db.session.delete(member)
-        db.session.commit()
-
-        return jsonify({'success': True, 'message': 'Membro rimosso dal progetto'})
-
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 # =============================================================================

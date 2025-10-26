@@ -25,56 +25,6 @@
             padding: 2rem;
         }
 
-        /* User Info */
-        .user-info {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 1rem 1.5rem;
-            border-radius: 25px;
-            z-index: 1000;
-            font-size: 0.9rem;
-        }
-
-        .user-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .wallet-balance {
-            background: linear-gradient(45deg, #E7D454, #F4E869);
-            color: #005B94;
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            font-weight: 700;
-            font-size: 0.85rem;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 0.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .nav-links a {
-            color: #E7D454;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-            font-size: 0.85rem;
-        }
-
-        .nav-links a:hover {
-            color: white;
-        }
-
         /* Header */
         .header {
             text-align: center;
@@ -239,17 +189,6 @@
                 padding: 1rem;
             }
 
-            .user-info {
-                position: static;
-                margin-bottom: 2rem;
-                text-align: center;
-            }
-
-            .nav-links {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
             .service-content {
                 flex-direction: column;
                 text-align: center;
@@ -272,25 +211,6 @@
     </style>
 </head>
 <body>
-    <!-- User Info -->
-    {% if current_user.is_authenticated %}
-    <div class="user-info">
-        <div class="user-row">
-            <span>👋 {{ current_user.username }}</span>
-            <span class="wallet-balance">💰 {{ "%.1f"|format(current_user.balance) }} ADG</span>
-        </div>
-        <div class="nav-links">
-            <a href="/stats">📊 Dashboard</a>
-            <a href="/projects">📋 Progetti</a>
-            <a href="/wallet">💳 Wallet</a>
-            <a href="/files">📁 Files</a>
-            <a href="/notes">📝 Note</a>
-            <a href="/mining">⛏️ Mining</a>
-            <a href="/logout">🚪 Logout</a>
-        </div>
-    </div>
-    {% endif %}
-
     <div class="container">
         <!-- Header -->
         <header class="header">
@@ -306,7 +226,11 @@
                 <div class="visit-number">{{ visit_count }}</div>
             </div>
 
-            {% if not current_user.is_authenticated %}
+            {% if current_user.is_authenticated %}
+            <div style="margin-top: 2rem;">
+                <a href="/dashboard" class="login-btn">📊 Vai alla Dashboard</a>
+            </div>
+            {% else %}
             <div style="margin-top: 2rem;">
                 <a href="/login" class="login-btn">🔐 Accedi al Portale</a>
             </div>
