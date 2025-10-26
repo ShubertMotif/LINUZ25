@@ -4,253 +4,237 @@
 
 {% block extra_css %}
 <style>
-    /* MANTIENI TUTTO IL CSS CHE C'ERA DENTRO <style> */
-    /* Copia tutto dal vecchio wallet.html da riga ~50 a ~400 circa */
-    /* Lascio a te di copiarlo perché è lungo */
+/* --- Stili specifici del wallet (il resto è già in base_app.html) --- */
+.nav-breadcrumb {
+    margin: -0.5rem 0 1.5rem 0;
+    opacity: 0.9;
+}
+.nav-breadcrumb a { color: #fff; text-decoration: none; }
+.nav-breadcrumb a:hover { text-decoration: underline; }
 
-    .wallet-grid { ... }
-    .wallet-card { ... }
-    /* etc */
+.stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem; margin-bottom: 2rem;
+}
+.stat-card {
+    background: rgba(255,255,255,0.10);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 18px; padding: 1.25rem; text-align: center;
+    transition: transform .2s ease;
+}
+.stat-card:hover { transform: translateY(-3px); }
+.stat-icon { font-size: 1.7rem; margin-bottom: .4rem; }
+.stat-value { font-size: 1.8rem; font-weight: 800; color: #E7D454; }
+.stat-label { font-size: .9rem; opacity: .85; }
+
+.wallet-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem; margin-bottom: 2rem;
+}
+.wallet-card {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 18px; padding: 1.5rem;
+}
+.wallet-balance-card .balance-label { opacity: .85; font-weight: 600; }
+.wallet-balance-card .balance-amount { font-size: 2.4rem; font-weight: 800; color: #E7D454; }
+
+.wallet-info h2 { margin-bottom: .8rem; }
+.wallet-detail {
+    display: flex; justify-content: space-between; gap: .75rem;
+    padding: .5rem 0; border-bottom: 1px dashed rgba(255,255,255,.2);
+}
+.wallet-detail:last-child { border-bottom: 0; }
+.copy-btn {
+    border: 0; border-radius: 10px; padding: .35rem .7rem; font-weight: 700;
+    background: rgba(255,255,255,.15); color: #fff; cursor: pointer;
+}
+.copy-btn:hover { background: rgba(255,255,255,.25); }
+.wallet-address {
+    margin-top: .6rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(0,0,0,.2); padding: .6rem .8rem; border-radius: 10px; word-break: break-all;
+}
+
+.transactions-section h2 { margin-bottom: 1rem; }
+.transaction-item {
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 14px; padding: 1rem; margin-bottom: .9rem;
+    transition: all .2s ease;
+}
+.transaction-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem;
+}
+.transaction-type { font-weight: 700; }
+.transaction-amount { font-weight: 800; color: #E7D454; }
+.transaction-details {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem;
+    font-size: .92rem; opacity: .9;
+}
+.transaction-hash { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.empty-state { text-align: center; padding: 2rem; opacity: .9; }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Da qui in poi copia tutto il contenuto del body del vecchio wallet.html -->
-<!-- RIMUOVI solo <div class="container"> iniziale e </div> finale -->
-<!-- Perché il container è già in base_app.html -->
+    <div class="header">
+        <h1 class="page-title">💳 Wallet ADG</h1>
+        <p class="page-subtitle">Gestisci i tuoi Adelchi Group Token</p>
+    </div>
 
-<h1 class="page-title">💳 Wallet ADG</h1>
-<p class="page-subtitle">Gestisci i tuoi Adelchi Group Token</p>
+    <div class="nav-breadcrumb">
+        <a href="/">🏠 Home</a> →
+        <a href="/stats">📊 Dashboard</a> →
+        <span>💳 Wallet</span>
+    </div>
 
-<!-- Stats Grid -->
-<div class="stats-grid">
-    <!-- ... resto del contenuto ... -->
-</div>
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">{{ "%.2f"|format(wallet.balance) }}</div>
+            <div class="stat-label">Balance Totale ADG</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-value">{{ transactions|length }}</div>
+            <div class="stat-label">Transazioni Totali</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-value">
+                {{ transactions|selectattr('tx_type', 'equalto', 'refresh')|list|length }}
+            </div>
+            <div class="stat-label">Reward Refresh</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⛏️</div>
+            <div class="stat-value">
+                {{ transactions|selectattr('tx_type', 'equalto', 'mining')|list|length }}
+            </div>
+            <div class="stat-label">Mining Rewards</div>
+        </div>
+    </div>
 
+    <!-- Wallet Info Grid -->
+    <div class="wallet-grid">
+        <!-- Balance Card -->
+        <div class="wallet-card wallet-balance-card">
+            <div class="balance-label">💰 Balance ADG</div>
+            <div class="balance-amount">{{ "%.1f"|format(wallet.balance) }}</div>
+            <div class="balance-label">Adelchi Group Token</div>
+        </div>
+
+        <!-- Wallet Details -->
+        <div class="wallet-card wallet-info">
+            <h2>📋 Informazioni Wallet</h2>
+
+            <div class="wallet-detail">
+                <span><strong>👤 Proprietario:</strong></span>
+                <span>{{ current_user.username }}</span>
+            </div>
+
+            <div class="wallet-detail">
+                <span><strong>📅 Creato:</strong></span>
+                <span>{{ wallet.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+            </div>
+
+            <div class="wallet-detail">
+                <span><strong>🔑 Indirizzo:</strong></span>
+                <span>
+                    <button class="copy-btn" onclick="copyAddress()">📋 Copia</button>
+                </span>
+            </div>
+
+            <div class="wallet-address" id="walletAddress">
+                {{ wallet.wallet_address }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Section -->
+    <div class="transactions-section">
+        <h2>📊 Storico Transazioni</h2>
+
+        {% if transactions %}
+            {% for tx in transactions %}
+            <div class="transaction-item {{ tx.tx_type }}">
+                <div class="transaction-header">
+                    <span class="transaction-type {{ tx.tx_type }}">
+                        {% if tx.tx_type == 'refresh' %}
+                            🔄 Refresh Reward
+                        {% elif tx.tx_type == 'mining' %}
+                            ⛏️ Mining Reward
+                        {% else %}
+                            💸 {{ tx.tx_type.title() }}
+                        {% endif %}
+                    </span>
+                    <span class="transaction-amount">+{{ "%.2f"|format(tx.amount) }} ADG</span>
+                </div>
+
+                <div class="transaction-details">
+                    <div>
+                        <strong>📅 Data:</strong><br>
+                        {{ tx.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}
+                    </div>
+                    <div>
+                        <strong>🔗 Hash:</strong><br>
+                        <span class="transaction-hash">{{ tx.tx_hash[:16] }}...</span>
+                    </div>
+                    <div>
+                        <strong>🏗️ Blocco:</strong><br>
+                        #{{ tx.block_height or 'Pending' }}
+                    </div>
+                    <div>
+                        <strong>📍 Da:</strong><br>
+                        {{ tx.from_wallet[:12] + '...' if tx.from_wallet else 'Sistema ADG' }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🤷‍♂️</div>
+                <h3>Nessuna transazione ancora</h3>
+                <p>Le tue transazioni ADG appariranno qui</p>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    /* COPIA TUTTO IL JAVASCRIPT dal vecchio wallet.html */
-    function copyAddress() { ... }
+function copyAddress() {
+    const address = document.getElementById('walletAddress').textContent.trim();
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(address).then(function() {
+            showNotification('✅ Indirizzo copiato!');
+        });
+    } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = address;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('✅ Indirizzo copiato!');
+    }
+}
+
+// Piccola animazione in entrata
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.wallet-card, .stat-card, .transaction-item');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        card.style.transition = 'all 0.6s ease';
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 80);
+    });
+});
 </script>
 {% endblock %}
-
-
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>💳 Wallet ADG</h1>
-            <p>Gestisci i tuoi Adelchi Group Token</p>
-        </div>
-
-        <!-- Navigation -->
-        <div class="nav-breadcrumb">
-            <a href="/">🏠 Home</a> →
-            <a href="/stats">📊 Dashboard</a> →
-            <span>💳 Wallet</span>
-        </div>
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-value">{{ "%.2f"|format(wallet.balance) }}</div>
-                <div class="stat-label">Balance Totale ADG</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-value">{{ transactions|length }}</div>
-                <div class="stat-label">Transazioni Totali</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔄</div>
-                <div class="stat-value">
-                    {{ transactions|selectattr('tx_type', 'equalto', 'refresh')|list|length }}
-                </div>
-                <div class="stat-label">Reward Refresh</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⛏️</div>
-                <div class="stat-value">
-                    {{ transactions|selectattr('tx_type', 'equalto', 'mining')|list|length }}
-                </div>
-                <div class="stat-label">Mining Rewards</div>
-            </div>
-        </div>
-
-        <!-- Wallet Info Grid -->
-        <div class="wallet-grid">
-            <!-- Balance Card -->
-            <div class="wallet-card wallet-balance-card">
-                <div class="balance-label">💰 Balance ADG</div>
-                <div class="balance-amount">{{ "%.1f"|format(wallet.balance) }}</div>
-                <div class="balance-label">Adelchi Group Token</div>
-            </div>
-
-            <!-- Wallet Details -->
-            <div class="wallet-card wallet-info">
-                <h2>📋 Informazioni Wallet</h2>
-
-                <div class="wallet-detail">
-                    <span><strong>👤 Proprietario:</strong></span>
-                    <span>{{ current_user.username }}</span>
-                </div>
-
-                <div class="wallet-detail">
-                    <span><strong>📅 Creato:</strong></span>
-                    <span>{{ wallet.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
-                </div>
-
-                <div class="wallet-detail">
-                    <span><strong>🔑 Indirizzo:</strong></span>
-                    <button class="copy-btn" onclick="copyAddress()">📋 Copia</button>
-                </div>
-
-                <div class="wallet-address" id="walletAddress">
-                    {{ wallet.wallet_address }}
-                </div>
-            </div>
-        </div>
-
-        <!-- Transactions Section -->
-        <div class="transactions-section">
-            <h2>📊 Storico Transazioni</h2>
-
-            {% if transactions %}
-                {% for tx in transactions %}
-                <div class="transaction-item {{ tx.tx_type }}">
-                    <div class="transaction-header">
-                        <span class="transaction-type {{ tx.tx_type }}">
-                            {% if tx.tx_type == 'refresh' %}
-                                🔄 Refresh Reward
-                            {% elif tx.tx_type == 'mining' %}
-                                ⛏️ Mining Reward
-                            {% else %}
-                                💸 {{ tx.tx_type.title() }}
-                            {% endif %}
-                        </span>
-                        <span class="transaction-amount">+{{ "%.2f"|format(tx.amount) }} ADG</span>
-                    </div>
-
-                    <div class="transaction-details">
-                        <div>
-                            <strong>📅 Data:</strong><br>
-                            {{ tx.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}
-                        </div>
-                        <div>
-                            <strong>🔗 Hash:</strong><br>
-                            <span class="transaction-hash">{{ tx.tx_hash[:16] }}...</span>
-                        </div>
-                        <div>
-                            <strong>🏗️ Blocco:</strong><br>
-                            #{{ tx.block_height or 'Pending' }}
-                        </div>
-                        <div>
-                            <strong>📍 Da:</strong><br>
-                            {{ tx.from_wallet[:12] + '...' if tx.from_wallet else 'Sistema ADG' }}
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="empty-state">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">🤷‍♂️</div>
-                    <h3>Nessuna transazione ancora</h3>
-                    <p>Le tue transazioni ADG appariranno qui</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <script>
-        function copyAddress() {
-            const address = document.getElementById('walletAddress').textContent.trim();
-
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(address).then(function() {
-                    showNotification('✅ Indirizzo copiato!');
-                });
-            } else {
-                // Fallback per browser più vecchi
-                const textArea = document.createElement('textarea');
-                textArea.value = address;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('✅ Indirizzo copiato!');
-            }
-        }
-
-        function showNotification(message) {
-            // Crea notifica temporanea
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 2rem;
-                right: 2rem;
-                background: linear-gradient(45deg, #10B981, #34D399);
-                color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 10px;
-                font-weight: 600;
-                z-index: 10000;
-                opacity: 0;
-                transform: translateX(100%);
-                transition: all 0.3s ease;
-            `;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            // Anima entrata
-            setTimeout(() => {
-                notification.style.opacity = '1';
-                notification.style.transform = 'translateX(0)';
-            }, 100);
-
-            // Rimuovi dopo 3 secondi
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Animazioni al caricamento
-        document.addEventListener('DOMContentLoaded', function() {
-            const cards = document.querySelectorAll('.wallet-card, .stat-card, .transaction-item');
-
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(30px)';
-                card.style.transition = 'all 0.6s ease';
-
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
-
-            // Effetto hover sui transaction items
-            const transactions = document.querySelectorAll('.transaction-item');
-            transactions.forEach(tx => {
-                tx.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateX(10px) scale(1.02)';
-                    this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
-                });
-
-                tx.addEventListener('mouseleave', function() {
-                    this.style.transform = '';
-                    this.style.boxShadow = '';
-                });
-            });
-        });
-    </script>
-</body>
-</html>

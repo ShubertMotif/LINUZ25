@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Adelchi Group{% endblock %}</title>
     <style>
+        /* ========== RESET ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* ========== BODY / BACKGROUND ========== */
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #005B94 0%, #2980B9 50%, #E7D454 100%);
@@ -19,7 +21,7 @@
             overflow-x: hidden;
         }
 
-        /* MENU FLOTTANTE IN ALTO A DESTRA */
+        /* ========== MENU FLOTTANTE (DESTRA) ========== */
         .user-menu {
             position: fixed;
             top: 2rem;
@@ -83,14 +85,21 @@
             color: #E7D454;
         }
 
-        /* CONTAINER PRINCIPALE */
+        /* ========== CONTAINER PRINCIPALE ========== */
         .page-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 8rem 2rem 2rem 2rem; /* Spazio per menu flottante */
+            padding: 8rem 2rem 2rem 2rem; /* spazio top per menu */
         }
 
-        /* GLASS CARDS */
+        /* Su desktop: aggiungo spazio a destra per non “sbattere” contro il menu fisso. */
+        @media (min-width: 1024px) {
+            .page-container {
+                padding-right: 22rem; /* ~ larghezza user-menu + margini (tweakabile) */
+            }
+        }
+
+        /* ========== GLASS CARDS GENERICHE ========== */
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
@@ -107,7 +116,7 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
-        /* TITOLI PAGINA */
+        /* ========== TITOLI PAGINA ========== */
         .page-title {
             font-size: 2.5rem;
             font-weight: 800;
@@ -126,7 +135,241 @@
             margin-bottom: 3rem;
         }
 
-        /* RESPONSIVE */
+        /* ========== HEADER COMUNE DELLE PAGINE DASHBOARD ========== */
+        .header {
+            text-align: center;
+            margin-top: 1rem;
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 0;
+        }
+
+        .welcome-back {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 1rem 0;
+        }
+
+        /* ========== GRID & CARD STILI (riusabili) ========== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+        }
+
+        /* ========== STATS (riusabili) ========== */
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #E7D454;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .stat-label {
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ========== ADG OVERVIEW (riusabile) ========== */
+        .adg-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .adg-stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .adg-stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .adg-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #E7D454;
+        }
+
+        .adg-stat-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 0.3rem;
+        }
+
+        .mining-toggle {
+            margin-top: 1.5rem;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(45deg, #10B981, #34D399);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .toggle-btn.disabled {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        /* ========== AZIONI RAPIDE (riusabile) ========== */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-title {
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .action-desc {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* ========== LIVE FEED / VISITORS (riusabile) ========== */
+        .feed-item {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+        }
+
+        .feed-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+        }
+
+        .feed-message {
+            font-weight: 600;
+        }
+
+        .visitors-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .visitor-item {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+        }
+
+        .visitor-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .visitor-user {
+            font-weight: 700;
+        }
+
+        .visitor-time {
+            opacity: 0.7;
+            font-size: 0.85rem;
+        }
+
+        .visitor-details {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
             .user-menu {
                 position: static;
@@ -150,8 +393,17 @@
             .page-title {
                 font-size: 2rem;
             }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
+        /* Hook per CSS specifico pagina */
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -163,20 +415,34 @@
             <span class="wallet-badge">💰 {{ "%.1f"|format(current_user.balance) }} ADG</span>
         </div>
         <div class="nav-links">
-    <a href="/dashboard" class="nav-link">📊 Dashboard</a>
-    <a href="/projects" class="nav-link">📁 Progetti</a>
-    <a href="/notes" class="nav-link">📝 Note</a>
-    <a href="/files" class="nav-link">📂 Files</a>
-    <a href="/wallet" class="nav-link">💳 Wallet</a>
-    <a href="/mining" class="nav-link">⛏️ Mining</a>
-    <a href="/" class="nav-link">🏠 Home</a>
-    <a href="/logout" class="nav-link">🚪 Logout</a>
-    </div>
+            <a href="/stats" class="nav-link">📊 Dashboard</a>
+            <a href="/projects" class="nav-link">📁 Progetti</a>
+            <a href="/notes" class="nav-link">📝 Note</a>
+            <a href="/files" class="nav-link">📂 Files</a>
+            <a href="/wallet" class="nav-link">💳 Wallet</a>
+            <a href="/mining" class="nav-link">⛏️ Mining</a>
+            <a href="/" class="nav-link">🏠 Home</a>
+            <a href="/logout" class="nav-link">🚪 Logout</a>
+        </div>
+    </div> <!-- ← chiusura mancante prima: FIX -->
 
     <!-- CONTENUTO PAGINA -->
     <div class="page-container">
         {% block content %}{% endblock %}
     </div>
+
+    <!-- Evidenzia la voce di menu corrente -->
+    <script>
+        (function() {
+            try {
+                var path = location.pathname.replace(/\/+$/, '') || '/';
+                document.querySelectorAll('.nav-link').forEach(function(a){
+                    var href = a.getAttribute('href').replace(/\/+$/, '') || '/';
+                    if (href === path) a.classList.add('active');
+                });
+            } catch (e) {}
+        })();
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

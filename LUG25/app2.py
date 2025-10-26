@@ -375,9 +375,7 @@ def projects_list():
         ProjectMember.user_id == current_user.id
     ).all()
 
-    return render_template('projects.html',
-                           owned=owned,
-                           member_projects=member_projects)
+    return render_template('project.html', owned=owned, member_projects=member_projects)
 
 
 @app.route('/project/create', methods=['GET', 'POST'])
@@ -743,27 +741,7 @@ def register_miner():
 @app.route('/files')
 @login_required
 def files_dashboard():
-    """Dashboard file utente"""
-    user_files = UserFile.query.filter_by(user_id=current_user.id) \
-        .order_by(UserFile.uploaded_at.desc()).all()
-
-    # Statistiche
-    total_files = len(user_files)
-    total_size = sum(f.file_size for f in user_files)
-
-    # Raggruppa per tipo
-    files_by_type = {}
-    for file in user_files:
-        if file.file_type not in files_by_type:
-            files_by_type[file.file_type] = []
-        files_by_type[file.file_type].append(file)
-
-    return render_template('files_dashboard.html',
-                           files=user_files,
-                           files_by_type=files_by_type,
-                           total_files=total_files,
-                           total_size=total_size,
-                           current_user=current_user)
+    return redirect(url_for('notes_dashboard'))
 
 
 @app.route('/upload_file', methods=['POST'])
@@ -912,7 +890,7 @@ def notes_dashboard():
     files = UserFile.query.filter_by(user_id=current_user.id) \
         .order_by(UserFile.uploaded_at.desc()).all()
 
-    return render_template('notes_and_files.html',
+    return render_template('notes_dashboard.html',
                            notes=notes,
                            total_notes=total_notes,
                            completed_tasks=completed_tasks,

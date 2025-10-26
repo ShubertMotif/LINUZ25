@@ -227,13 +227,9 @@
             </div>
 
             {% if current_user.is_authenticated %}
-            <div style="margin-top: 2rem;">
-                <a href="/dashboard" class="login-btn">📊 Vai alla Dashboard</a>
-            </div>
+            <a href="/stats" class="login-btn">🔐 Area riservata</a>
             {% else %}
-            <div style="margin-top: 2rem;">
-                <a href="/login" class="login-btn">🔐 Accedi al Portale</a>
-            </div>
+            <a href="/login" class="login-btn">🔐 Area riservata</a>
             {% endif %}
         </header>
 
