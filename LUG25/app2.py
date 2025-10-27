@@ -655,8 +655,12 @@ def register():
             flash("Username già registrato.")
             return redirect(url_for('register'))
 
+        # ⭐ PRIMO UTENTE = MANAGER AUTOMATICO
+        user_count = User.query.count()
+        role = 'manager' if user_count == 0 else 'employee'
+
         # Crea nuovo utente con wallet
-        new_user = User(username=username, password=password)
+        new_user = User(username=username, password=password, role=role)
         db.session.add(new_user)
         db.session.flush()  # Per ottenere l'ID
 
@@ -666,11 +670,15 @@ def register():
         # Bonus registrazione: 5 ADG
         blockchain.reward_user(new_user, blockchain.registration_reward, 'registration')
 
-        flash(f"Registrazione completata! Ricevuti {blockchain.registration_reward} ADG di benvenuto!")
+        # ⭐ Messaggio diverso per manager
+        if role == 'manager':
+            flash(f"🎉 Benvenuto Manager! Ricevuti {blockchain.registration_reward} ADG. Puoi creare progetti!")
+        else:
+            flash(f"Registrazione completata! Ricevuti {blockchain.registration_reward} ADG di benvenuto!")
+
         return redirect(url_for('login'))
 
     return render_template('register.html')
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
