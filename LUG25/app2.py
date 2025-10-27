@@ -139,6 +139,7 @@ class UserNote(db.Model):
     user = db.relationship('User', backref=db.backref('notes', lazy=True))
 
 
+
 class NoteFile(db.Model):
     """Associazione tra note e file allegati"""
     id = db.Column(db.Integer, primary_key=True)
@@ -340,6 +341,25 @@ class Project(db.Model):
 
     owner = db.relationship('User', backref='owned_projects')
 
+    def get_member_role(self, user_id):
+        """Ottiene ruolo utente nel progetto"""
+        if self.owner_id == user_id:
+            return 'owner'
+        member = ProjectMember.query.filter_by(
+            project_id=self.id,
+            user_id=user_id
+        ).first()
+        return member.role if member else None
+
+    def user_can_edit(self, user_id):
+        """Verifica se user può modificare contenuti"""
+        role = self.get_member_role(user_id)
+        return role in ['owner', 'collaborator']
+
+    def user_can_view(self, user_id):
+        """Verifica se user può vedere il progetto"""
+        return self.get_member_role(user_id) is not None
+
     def has_access(self, user_id):
         """Verifica se user ha accesso"""
         if self.owner_id == user_id:
@@ -355,10 +375,24 @@ class ProjectMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    role = db.Column(db.String(20), default='viewer')  # ← AGGIUNGERE
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     project = db.relationship('Project', backref='members')
     user = db.relationship('User', backref='project_memberships')
+
+
+class ProjectFile(db.Model):
+    """File associati a progetti"""
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    file_id = db.Column(db.Integer, db.ForeignKey('user_file.id'), nullable=False)
+    uploaded_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    added_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', backref='project_files')
+    file = db.relationship('UserFile')
+    uploader = db.relationship('User')
 
 
 # =============================================================================
@@ -411,21 +445,21 @@ def project_detail(project_id):
         flash('Accesso negato')
         return redirect(url_for('projects_list'))
 
-    # Determina ruolo
+    # Determina ruolo utente
     if project.owner_id == current_user.id:
         user_role = 'owner'
     else:
         member = ProjectMember.query.filter_by(project_id=project_id, user_id=current_user.id).first()
-        user_role = 'collaborator' if member else 'viewer'
+        user_role = member.role if member else 'viewer'
 
     notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
     members = project.members
     is_owner = project.owner_id == current_user.id
 
-    # ✅ Aggiungere queste variabili:
-    project_files = []  # TODO: implementare ProjectFile se serve
+    project_files = []
     project_notes = notes  # Alias per compatibilità template
 
+    # Utenti disponibili (solo per owner)
     available_users = []
     if is_owner:
         member_ids = [m.user_id for m in members] + [project.owner_id]
@@ -443,7 +477,8 @@ def project_detail(project_id):
                            current_user=current_user)
 
 
-@app.route('/project/<int:project_id>/add_member', methods=['POST'])
+app.route('/project/<int:project_id>/add_member', methods=['POST'])
+@login_required
 def add_project_member(project_id):
     project = Project.query.get_or_404(project_id)
 
@@ -466,8 +501,8 @@ def add_project_member(project_id):
 
 
 @app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
+@login_required
 def remove_project_member(project_id, user_id):
-    """Rimuovi membro (solo owner)"""
     project = Project.query.get_or_404(project_id)
 
     if project.owner_id != current_user.id:

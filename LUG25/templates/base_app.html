@@ -5,79 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Adelchi Group{% endblock %}</title>
     <style>
-        /* ========== RESET ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* ========== BODY / BACKGROUND ========== */
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: linear-gradient(135deg, #005B94 0%, #2980B9 50%, #E7D454 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             color: white;
-            overflow-x: hidden;
         }
 
-        /* ========== MENU FLOTTANTE (DESTRA) ========== */
-        .user-menu {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
+        /* ========== LAYOUT CONTAINER ========== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        /* ========== SIDEBAR MENU (SINISTRA) ========== */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 1rem 1.5rem;
             border-radius: 25px;
-            z-index: 1000;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 2rem 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
         }
 
-        .user-info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1.5rem;
-            margin-bottom: 0.8rem;
+        .user-info {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 1.5rem;
         }
 
         .username {
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
 
         .wallet-badge {
             background: linear-gradient(45deg, #E7D454, #F4E869);
             color: #005B94;
-            padding: 0.4rem 1rem;
+            padding: 0.5rem 1rem;
             border-radius: 15px;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            display: inline-block;
         }
 
         .nav-links {
             display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .nav-link {
             color: white;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.85rem;
-            padding: 0.3rem 0.8rem;
+            font-size: 0.95rem;
+            padding: 0.8rem 1rem;
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .nav-link:hover {
             background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
+            transform: translateX(5px);
         }
 
         .nav-link.active {
@@ -85,38 +94,14 @@
             color: #E7D454;
         }
 
-        /* ========== CONTAINER PRINCIPALE ========== */
-        .page-container {
-            max-width: 1400px;
+        /* ========== MAIN CONTENT (CENTRO) ========== */
+        .main-content {
+            flex: 1;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 8rem 2rem 2rem 2rem; /* spazio top per menu */
         }
 
-        /* Su desktop: aggiungo spazio a destra per non “sbattere” contro il menu fisso. */
-        @media (min-width: 1024px) {
-            .page-container {
-                padding-right: 22rem; /* ~ larghezza user-menu + margini (tweakabile) */
-            }
-        }
-
-        /* ========== GLASS CARDS GENERICHE ========== */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .glass-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        /* ========== TITOLI PAGINA ========== */
+        /* ========== TITOLI ========== */
         .page-title {
             font-size: 2.5rem;
             font-weight: 800;
@@ -135,26 +120,29 @@
             margin-bottom: 3rem;
         }
 
-        /* ========== HEADER COMUNE DELLE PAGINE DASHBOARD ========== */
-        .header {
-            text-align: center;
-            margin-top: 1rem;
-            margin-bottom: 3rem;
-            position: relative;
-            z-index: 0;
+        /* ========== CARDS ========== */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
         }
 
-        .welcome-back {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin: 1rem 0;
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
-        /* ========== GRID & CARD STILI (riusabili) ========== */
+        /* ========== GRID LAYOUTS ========== */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .dashboard-card {
@@ -190,7 +178,7 @@
             font-size: 1.5rem;
         }
 
-        /* ========== STATS (riusabili) ========== */
+        /* ========== STATS ========== */
         .stat-value {
             font-size: 3rem;
             font-weight: 800;
@@ -205,87 +193,10 @@
             font-size: 0.9rem;
         }
 
-        .system-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            justify-content: center;
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            background: #10B981;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* ========== ADG OVERVIEW (riusabile) ========== */
-        .adg-stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .adg-stat {
-            text-align: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-        }
-
-        .adg-stat-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .adg-stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #E7D454;
-        }
-
-        .adg-stat-label {
-            font-size: 0.85rem;
-            opacity: 0.8;
-            margin-top: 0.3rem;
-        }
-
-        .mining-toggle {
-            margin-top: 1.5rem;
-        }
-
-        .toggle-btn {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            background: linear-gradient(45deg, #10B981, #34D399);
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .toggle-btn.disabled {
-            background: rgba(239, 68, 68, 0.3);
-        }
-
-        /* ========== AZIONI RAPIDE (riusabile) ========== */
+        /* ========== ACTIONS GRID ========== */
         .actions-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
         }
 
@@ -297,6 +208,7 @@
             color: white;
             transition: all 0.3s ease;
             text-align: center;
+            display: block;
         }
 
         .action-btn:hover {
@@ -319,75 +231,26 @@
             opacity: 0.7;
         }
 
-        /* ========== LIVE FEED / VISITORS (riusabile) ========== */
-        .feed-item {
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            margin-bottom: 0.8rem;
-        }
-
-        .feed-time {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-bottom: 0.3rem;
-        }
-
-        .feed-message {
-            font-weight: 600;
-        }
-
-        .visitors-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .visitor-item {
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            margin-bottom: 0.8rem;
-        }
-
-        .visitor-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .visitor-user {
-            font-weight: 700;
-        }
-
-        .visitor-time {
-            opacity: 0.7;
-            font-size: 0.85rem;
-        }
-
-        .visitor-details {
-            font-size: 0.8rem;
-            opacity: 0.6;
-        }
-
         /* ========== RESPONSIVE ========== */
-        @media (max-width: 768px) {
-            .user-menu {
-                position: static;
-                margin: 1rem;
-                text-align: center;
-            }
-
-            .user-info-row {
+        @media (max-width: 1024px) {
+            .app-container {
                 flex-direction: column;
-                gap: 0.5rem;
             }
 
-            .page-container {
-                padding: 1rem;
+            .sidebar {
+                width: 100%;
+                position: static;
             }
 
             .nav-links {
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 1rem;
             }
 
             .page-title {
@@ -403,34 +266,38 @@
             }
         }
 
-        /* Hook per CSS specifico pagina */
+        /* Hook CSS extra */
         {% block extra_css %}{% endblock %}
     </style>
 </head>
 <body>
-    <!-- MENU FLOTTANTE IN ALTO A DESTRA -->
-    <div class="user-menu">
-        <div class="user-info-row">
-            <span class="username">👋 {{ current_user.username }}</span>
-            <span class="wallet-badge">💰 {{ "%.1f"|format(current_user.balance) }} ADG</span>
-        </div>
-        <div class="nav-links">
-            <a href="/stats" class="nav-link">📊 Dashboard</a>
-            <a href="/projects" class="nav-link">📁 Progetti</a>
-            <a href="/notes" class="nav-link">📝 Note</a>
-            <a href="/files" class="nav-link">📂 Files</a>
-            <a href="/wallet" class="nav-link">💳 Wallet</a>
-            <a href="/mining" class="nav-link">⛏️ Mining</a>
-            <a href="/" class="nav-link">🏠 Home</a>
-            <a href="/logout" class="nav-link">🚪 Logout</a>
-        </div>
+    <div class="app-container">
+        <!-- SIDEBAR SINISTRA -->
+        <aside class="sidebar">
+            <div class="user-info">
+                <div class="username">👋 {{ current_user.username }}</div>
+                <div class="wallet-badge">💰 {{ "%.1f"|format(current_user.balance) }} ADG</div>
+            </div>
 
-    <!-- CONTENUTO PAGINA -->
-    <div class="page-container">
-        {% block content %}{% endblock %}
+            <nav class="nav-links">
+                <a href="/stats" class="nav-link">📊 Dashboard</a>
+                <a href="/projects" class="nav-link">📁 Progetti</a>
+                <a href="/notes" class="nav-link">📝 Note</a>
+                <a href="/files" class="nav-link">📂 Files</a>
+                <a href="/wallet" class="nav-link">💳 Wallet</a>
+                <a href="/mining" class="nav-link">⛏️ Mining</a>
+                <a href="/" class="nav-link">🏠 Home</a>
+                <a href="/logout" class="nav-link">🚪 Logout</a>
+            </nav>
+        </aside>
+
+        <!-- CONTENUTO PRINCIPALE -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
     </div>
 
-    <!-- Evidenzia la voce di menu corrente -->
+    <!-- Script evidenzia menu attivo -->
     <script>
         (function() {
             try {
