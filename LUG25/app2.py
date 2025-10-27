@@ -411,18 +411,21 @@ def project_detail(project_id):
         flash('Accesso negato')
         return redirect(url_for('projects_list'))
 
-    # Determina ruolo utente
+    # Determina ruolo
     if project.owner_id == current_user.id:
         user_role = 'owner'
     else:
         member = ProjectMember.query.filter_by(project_id=project_id, user_id=current_user.id).first()
-        user_role = member.role if member else 'viewer'
+        user_role = 'collaborator' if member else 'viewer'
 
     notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
     members = project.members
     is_owner = project.owner_id == current_user.id
 
-    # Utenti disponibili (solo per owner)
+    # ✅ Aggiungere queste variabili:
+    project_files = []  # TODO: implementare ProjectFile se serve
+    project_notes = notes  # Alias per compatibilità template
+
     available_users = []
     if is_owner:
         member_ids = [m.user_id for m in members] + [project.owner_id]
@@ -431,17 +434,17 @@ def project_detail(project_id):
     return render_template('project_detail.html',
                            project=project,
                            notes=notes,
+                           project_notes=project_notes,
                            members=members,
                            is_owner=is_owner,
                            available_users=available_users,
-                           user_role=user_role,  # ✅ AGGIUNTO
-                           project_files=[],      # ✅ AGGIUNTO (vuoto per ora)
+                           user_role=user_role,
+                           project_files=project_files,
                            current_user=current_user)
 
 
 @app.route('/project/<int:project_id>/add_member', methods=['POST'])
-@login_required
-def add_member(project_id):
+def add_project_member(project_id):
     project = Project.query.get_or_404(project_id)
 
     if project.owner_id != current_user.id:
@@ -449,7 +452,7 @@ def add_member(project_id):
 
     data = request.json
     user_id = data.get('user_id')
-    role = data.get('role', 'viewer')  # ✅ AGGIUNTO supporto ruolo
+    role = data.get('role', 'viewer')
 
     if ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first():
         return jsonify({'success': False, 'message': 'Già membro'}), 400
@@ -463,8 +466,7 @@ def add_member(project_id):
 
 
 @app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
-@login_required
-def remove_member(project_id, user_id):
+def remove_project_member(project_id, user_id):
     """Rimuovi membro (solo owner)"""
     project = Project.query.get_or_404(project_id)
 
