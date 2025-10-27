@@ -405,18 +405,24 @@ def create_project():
 @app.route('/project/<int:project_id>')
 @login_required
 def project_detail(project_id):
-    """Dettaglio progetto con note"""
     project = Project.query.get_or_404(project_id)
 
     if not project.has_access(current_user.id):
         flash('Accesso negato')
         return redirect(url_for('projects_list'))
 
+    # Determina ruolo utente
+    if project.owner_id == current_user.id:
+        user_role = 'owner'
+    else:
+        member = ProjectMember.query.filter_by(project_id=project_id, user_id=current_user.id).first()
+        user_role = member.role if member else 'viewer'
+
     notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
     members = project.members
     is_owner = project.owner_id == current_user.id
 
-    # Utenti da aggiungere (solo owner)
+    # Utenti disponibili (solo per owner)
     available_users = []
     if is_owner:
         member_ids = [m.user_id for m in members] + [project.owner_id]
@@ -427,19 +433,23 @@ def project_detail(project_id):
                            notes=notes,
                            members=members,
                            is_owner=is_owner,
-                           available_users=available_users)
+                           available_users=available_users,
+                           user_role=user_role,  # ✅ AGGIUNTO
+                           project_files=[],      # ✅ AGGIUNTO (vuoto per ora)
+                           current_user=current_user)
 
 
 @app.route('/project/<int:project_id>/add_member', methods=['POST'])
 @login_required
 def add_member(project_id):
-    """Aggiungi membro (solo owner)"""
     project = Project.query.get_or_404(project_id)
 
     if project.owner_id != current_user.id:
         return jsonify({'success': False, 'message': 'Solo owner'}), 403
 
-    user_id = request.json.get('user_id')
+    data = request.json
+    user_id = data.get('user_id')
+    role = data.get('role', 'viewer')  # ✅ AGGIUNTO supporto ruolo
 
     if ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first():
         return jsonify({'success': False, 'message': 'Già membro'}), 400
@@ -448,7 +458,8 @@ def add_member(project_id):
     db.session.add(member)
     db.session.commit()
 
-    return jsonify({'success': True})
+    user = User.query.get(user_id)
+    return jsonify({'success': True, 'message': f'{user.username} aggiunto al progetto'})
 
 
 @app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
@@ -741,7 +752,21 @@ def register_miner():
 @app.route('/files')
 @login_required
 def files_dashboard():
-    return redirect(url_for('notes_dashboard'))
+    files = UserFile.query.filter_by(user_id=current_user.id).order_by(UserFile.uploaded_at.desc()).all()
+
+    # Stats
+    total_files = len(files)
+    total_size = sum(f.file_size for f in files)
+    files_by_type = {}
+    for f in files:
+        files_by_type[f.file_type] = files_by_type.get(f.file_type, 0) + 1
+
+    return render_template('files_dashboard.html',
+                           files=files,
+                           total_files=total_files,
+                           total_size=total_size,
+                           files_by_type=files_by_type,
+                           current_user=current_user)
 
 
 @app.route('/upload_file', methods=['POST'])
