@@ -1,18 +1,6 @@
 {
-  "count": 113,
+  "count": 115,
   "visitors": [
-    {
-      "timestamp": "2025-08-10T23:49:46.035214",
-      "ip": "127.0.0.1",
-      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0",
-      "user": "Anonimo"
-    },
-    {
-      "timestamp": "2025-09-13T17:53:16.287151",
-      "ip": "127.0.0.1",
-      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0",
-      "user": "Anonimo"
-    },
     {
       "timestamp": "2025-09-13T17:54:06.430431",
       "ip": "127.0.0.1",
@@ -600,6 +588,18 @@
       "ip": "127.0.0.1",
       "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0",
       "user": "AAAA"
+    },
+    {
+      "timestamp": "2025-10-28T13:44:44.721216",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0",
+      "user": "linuz"
+    },
+    {
+      "timestamp": "2025-10-28T21:44:17.392750",
+      "ip": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:144.0) Gecko/20100101 Firefox/144.0",
+      "user": "linuz"
     }
   ]
 }

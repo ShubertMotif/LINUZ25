@@ -1016,71 +1016,66 @@ def notes_dashboard():
 @app.route('/create_note', methods=['GET', 'POST'])
 @login_required
 def create_note():
-    """Crea nuova nota con ricompensa ADG"""
+    """Crea nuova nota"""
+    # ⭐ Leggi project_id dalla query string
+    preselected_project_id = request.args.get('project_id', type=int)
+
     if request.method == 'POST':
-        try:
-            data = request.get_json() or request.form
+        note = UserNote(
+            user_id=current_user.id,
+            title=request.form['title'],
+            content=request.form['content'],
+            note_type=request.form.get('note_type', 'text'),
+            priority=request.form.get('priority', 'normal'),
+            tags=request.form.get('tags', ''),
+            external_url=request.form.get('external_url'),
+            project_id=request.form.get('project_id') or None
+        )
 
-            note = UserNote(
-                user_id=current_user.id,
-                title=data.get('title'),
-                content=data.get('content'),
-                note_type=data.get('note_type', 'text'),
-                priority=data.get('priority', 'normal'),
-                tags=data.get('tags', ''),
-                external_url=data.get('external_url')
-            )
+        # Due date se fornita
+        if request.form.get('due_date'):
+            try:
+                note.due_date = datetime.strptime(request.form.get('due_date'), '%Y-%m-%d')
+            except:
+                pass
 
-            # Se è un task con due date
-            if data.get('due_date'):
-                try:
-                    note.due_date = datetime.strptime(data.get('due_date'), '%Y-%m-%d')
-                except:
-                    pass
+        db.session.add(note)
+        db.session.commit()
 
-            db.session.add(note)
-            db.session.flush()  # Per ottenere l'ID
+        # Ricompensa ADG
+        blockchain.reward_user(current_user, blockchain.note_creation_reward, 'note_creation')
 
-            # Allega file se presenti
-            if 'attached_files' in data:
-                file_ids = data.get('attached_files', '').split(',')
-                for file_id in file_ids:
-                    if file_id.strip():
-                        note_file = NoteFile(note_id=note.id, file_id=int(file_id.strip()))
-                        db.session.add(note_file)
+        flash(f'Nota creata! +{blockchain.note_creation_reward} ADG')
 
-            db.session.commit()
+        # ⭐ Redirect al progetto se la nota appartiene ad uno
+        if note.project_id:
+            return redirect(url_for('project_detail', project_id=note.project_id))
+        else:
+            return redirect(url_for('notes_dashboard'))
 
-            # RICOMPENSA ADG PER CREAZIONE NOTA
-            blockchain.reward_user(current_user, blockchain.note_creation_reward, 'note_creation')
+    # ⭐ GET - Passa lista progetti accessibili al template
+    owned_projects = Project.query.filter_by(owner_id=current_user.id).all()
 
-            if request.is_json:
-                return jsonify({
-                    'success': True,
-                    'note_id': note.id,
-                    'message': f'Nota creata! +{blockchain.note_creation_reward} ADG',
-                    'adg_earned': blockchain.note_creation_reward
-                })
-            else:
-                flash(f'Nota creata con successo! +{blockchain.note_creation_reward} ADG')
-                return redirect(url_for('notes_dashboard'))
+    member_projects = db.session.query(Project).join(ProjectMember).filter(
+        ProjectMember.user_id == current_user.id
+    ).all()
 
-        except Exception as e:
-            if request.is_json:
-                return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
-            else:
-                flash(f'Errore: {str(e)}')
-                return redirect(url_for('notes_dashboard'))
+    accessible_projects = owned_projects + member_projects
 
-    # GET - mostra form
-    user_files = UserFile.query.filter_by(user_id=current_user.id).all()
-    return render_template('create_note.html', user_files=user_files, current_user=current_user)
+    return render_template('create_note.html',
+                           current_user=current_user,
+                           projects=accessible_projects,
+                           preselected_project_id=preselected_project_id)  # ⭐ NUOVO
+
+
+
+
 
 
 @app.route('/edit_note/<int:note_id>', methods=['GET', 'POST'])
 @login_required
 def edit_note(note_id):
-    """Modifica nota con ricompensa per completamento task"""
+    """Modifica nota esistente"""
     note = UserNote.query.filter_by(id=note_id, user_id=current_user.id).first()
 
     if not note:
@@ -1089,42 +1084,41 @@ def edit_note(note_id):
 
     if request.method == 'POST':
         try:
-            data = request.get_json() or request.form
-
-            # Controlla se è un task che viene completato per la prima volta
-            was_incomplete_task = (note.note_type == 'task' and not note.completed)
-
-            note.title = data.get('title')
-            note.content = data.get('content')
-            note.note_type = data.get('note_type', note.note_type)
-            note.priority = data.get('priority', note.priority)
-            note.tags = data.get('tags', '')
-            note.external_url = data.get('external_url')
+            # Aggiorna campi
+            note.title = request.form['title']
+            note.content = request.form['content']
+            note.note_type = request.form.get('note_type', 'text')
+            note.priority = request.form.get('priority', 'normal')
+            note.tags = request.form.get('tags', '')
+            note.external_url = request.form.get('external_url')
+            note.project_id = request.form.get('project_id') or None  # ⭐ NUOVO
             note.updated_at = datetime.utcnow()
 
-            # Task completion
+            # Due date
+            if request.form.get('due_date'):
+                try:
+                    note.due_date = datetime.strptime(request.form.get('due_date'), '%Y-%m-%d')
+                except:
+                    pass
+
+            # Completamento task
             task_completed_now = False
-            if 'completed' in data:
-                new_completed_status = bool(data.get('completed'))
-                if was_incomplete_task and new_completed_status:
+            if note.note_type == 'task':
+                was_completed = note.completed
+                note.completed = 'completed' in request.form
+
+                if note.completed and not was_completed:
                     task_completed_now = True
-                note.completed = new_completed_status
+                    blockchain.reward_user(current_user, blockchain.note_completion_reward, 'task_completion')
 
             db.session.commit()
 
-            # RICOMPENSA ADG PER COMPLETAMENTO TASK
+            success_message = 'Nota aggiornata!'
             if task_completed_now:
-                blockchain.reward_user(current_user, blockchain.note_completion_reward, 'task_completion')
-
-            success_message = 'Nota aggiornata'
-            if task_completed_now:
-                success_message += f'! +{blockchain.note_completion_reward} ADG per completamento task'
+                success_message += f' +{blockchain.note_completion_reward} ADG per completamento task'
 
             if request.is_json:
-                response_data = {
-                    'success': True,
-                    'message': success_message
-                }
+                response_data = {'success': True, 'message': success_message}
                 if task_completed_now:
                     response_data['adg_earned'] = blockchain.note_completion_reward
                 return jsonify(response_data)
@@ -1138,7 +1132,20 @@ def edit_note(note_id):
             else:
                 flash(f'Errore: {str(e)}')
 
-    return render_template('edit_note.html', note=note, current_user=current_user)
+    # ⭐ GET - Passa lista progetti accessibili
+    owned_projects = Project.query.filter_by(owner_id=current_user.id).all()
+
+    member_projects = db.session.query(Project).join(ProjectMember).filter(
+        ProjectMember.user_id == current_user.id
+    ).all()
+
+    accessible_projects = owned_projects + member_projects
+
+    return render_template('edit_note.html',
+                           note=note,
+                           current_user=current_user,
+                           projects=accessible_projects)
+
 
 
 @app.route('/delete_note/<int:note_id>', methods=['POST'])

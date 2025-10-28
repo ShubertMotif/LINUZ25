@@ -1,433 +1,162 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifica Nota - Adelchi Group</title>
-    <style>
-        :root {
-            --primary-blue: #005B94;
-            --accent-gold: #E7D454;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --success-green: #10B981;
-            --warning-orange: #F59E0B;
-            --error-red: #EF4444;
-        }
+{% extends "base_app.html" %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% block title %}Modifica Nota - Adelchi Group{% endblock %}
 
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2980B9 50%, var(--accent-gold) 100%);
-            min-height: 100vh;
-            color: white;
-        }
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+    <h1 class="page-title">✏️ Modifica Nota</h1>
+    <p class="page-subtitle">Aggiorna la tua nota</p>
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, white, var(--accent-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .nav-breadcrumb {
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .nav-breadcrumb a {
-            color: var(--accent-gold);
-            text-decoration: none;
-            margin: 0 0.5rem;
-            transition: color 0.3s ease;
-        }
-
-        .nav-breadcrumb a:hover {
-            color: white;
-        }
-
-        .form-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 25px;
-            padding: 2.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            color: white;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-gold);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 20px rgba(231, 212, 84, 0.3);
-        }
-
-        .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        .form-textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        .form-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 16 16'%3e%3cpath d='M8 12L3 7h10l-5 5z'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 16px 12px;
-            padding-right: 2.5rem;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .checkbox-group label {
-            margin: 0;
-            cursor: pointer;
-            flex: 1;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .btn {
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, var(--accent-gold), #F4E869);
-            color: var(--primary-blue);
-            flex: 1;
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid var(--glass-border);
-        }
-
-        .btn-danger {
-            background: var(--error-red);
-            color: white;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(45deg, #F4E869, white);
-        }
-
-        .alert {
-            background: var(--success-green);
-            color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .alert.error {
-            background: var(--error-red);
-        }
-
-        .note-meta {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>✏️ Modifica Nota</h1>
-            <p>Aggiorna la tua nota</p>
-        </div>
-
-        <div class="nav-breadcrumb">
-            <a href="/">🏠 Home</a> →
-            <a href="/stats">📊 Dashboard</a> →
-            <a href="/notes">📝 Note</a> →
-            <span>Modifica Nota</span>
-        </div>
-
-        <div class="form-container">
-            <div class="alert" id="alert"></div>
-
-            <!-- Note Metadata -->
-            <div class="note-meta">
-                <strong>📅 Creata:</strong> {{ note.created_at.strftime('%d/%m/%Y %H:%M') }}<br>
-                <strong>🔄 Ultima modifica:</strong> {{ note.updated_at.strftime('%d/%m/%Y %H:%M') }}
-            </div>
-
-            <form id="noteForm">
-                <div class="form-group">
-                    <label for="title">Titolo *</label>
-                    <input type="text" id="title" name="title" class="form-input" value="{{ note.title }}" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="content">Contenuto *</label>
-                    <textarea id="content" name="content" class="form-input form-textarea" required>{{ note.content }}</textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="note_type">Tipo Nota</label>
-                        <select id="note_type" name="note_type" class="form-input form-select">
-                            <option value="text" {% if note.note_type == 'text' %}selected{% endif %}>📝 Testo</option>
-                            <option value="task" {% if note.note_type == 'task' %}selected{% endif %}>✅ Task</option>
-                            <option value="idea" {% if note.note_type == 'idea' %}selected{% endif %}>💡 Idea</option>
-                            <option value="link" {% if note.note_type == 'link' %}selected{% endif %}>🔗 Link</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="priority">Priorità</label>
-                        <select id="priority" name="priority" class="form-input form-select">
-                            <option value="low" {% if note.priority == 'low' %}selected{% endif %}>Bassa</option>
-                            <option value="normal" {% if note.priority == 'normal' %}selected{% endif %}>Normale</option>
-                            <option value="high" {% if note.priority == 'high' %}selected{% endif %}>Alta</option>
-                            <option value="urgent" {% if note.priority == 'urgent' %}selected{% endif %}>Urgente</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="tags">Tag (separati da virgola)</label>
-                    <input type="text" id="tags" name="tags" class="form-input" value="{{ note.tags or '' }}" placeholder="lavoro, importante, progetto...">
-                </div>
-
-                <div class="form-group" id="urlGroup" style="display: {% if note.note_type == 'link' %}block{% else %}none{% endif %};">
-                    <label for="external_url">URL Esterno</label>
-                    <input type="url" id="external_url" name="external_url" class="form-input" value="{{ note.external_url or '' }}" placeholder="https://...">
-                </div>
-
-                <div class="form-group" id="dueDateGroup" style="display: {% if note.note_type == 'task' %}block{% else %}none{% endif %};">
-                    <label for="due_date">Scadenza</label>
-                    <input type="date" id="due_date" name="due_date" class="form-input" value="{{ note.due_date.strftime('%Y-%m-%d') if note.due_date else '' }}">
-                </div>
-
-                <!-- Task Completion (only for tasks) -->
-                {% if note.note_type == 'task' %}
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="completed" name="completed" {% if note.completed %}checked{% endif %}>
-                        <label for="completed">✅ Segna come completata</label>
-                    </div>
-                </div>
-                {% endif %}
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">💾 Salva Modifiche</button>
-                    <a href="/notes" class="btn btn-secondary">❌ Annulla</a>
-                    <button type="button" class="btn btn-danger" onclick="deleteNote()">🗑️ Elimina</button>
-                </div>
-            </form>
-        </div>
+    <!-- Meta Info -->
+    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px; margin-bottom: 2rem; font-size: 0.9rem; opacity: 0.8;">
+        <strong>📅 Creata:</strong> {{ note.created_at.strftime('%d/%m/%Y %H:%M') }}<br>
+        <strong>🔄 Ultima modifica:</strong> {{ note.updated_at.strftime('%d/%m/%Y %H:%M') }}
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const noteForm = document.getElementById('noteForm');
-            const noteTypeSelect = document.getElementById('note_type');
-            const urlGroup = document.getElementById('urlGroup');
-            const dueDateGroup = document.getElementById('dueDateGroup');
-            const alert = document.getElementById('alert');
-            const noteId = {{ note.id }};
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div style="background: rgba(72, 187, 120, 0.3); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid rgba(72, 187, 120, 0.5);">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
-            // Mostra/nascondi campi in base al tipo di nota
-            noteTypeSelect.addEventListener('change', function() {
-                const type = this.value;
+    <form method="POST" action="/edit_note/{{ note.id }}">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Titolo *</label>
+            <input type="text" name="title" value="{{ note.title }}" required
+                   style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+        </div>
 
-                // Reset visibility
-                urlGroup.style.display = 'none';
-                dueDateGroup.style.display = 'none';
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Contenuto *</label>
+            <textarea name="content" rows="6" required
+                      style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem; resize: vertical;">{{ note.content }}</textarea>
+        </div>
 
-                // Show relevant fields
-                if (type === 'link') {
-                    urlGroup.style.display = 'block';
-                } else if (type === 'task') {
-                    dueDateGroup.style.display = 'block';
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Tipo Nota</label>
+                <select name="note_type" id="note_type" style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+                    <option value="text" {% if note.note_type == 'text' %}selected{% endif %}>📝 Testo</option>
+                    <option value="task" {% if note.note_type == 'task' %}selected{% endif %}>✅ Task</option>
+                    <option value="idea" {% if note.note_type == 'idea' %}selected{% endif %}>💡 Idea</option>
+                    <option value="link" {% if note.note_type == 'link' %}selected{% endif %}>🔗 Link</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Priorità</label>
+                <select name="priority" style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+                    <option value="low" {% if note.priority == 'low' %}selected{% endif %}>Bassa</option>
+                    <option value="normal" {% if note.priority == 'normal' %}selected{% endif %}>Normale</option>
+                    <option value="high" {% if note.priority == 'high' %}selected{% endif %}>Alta</option>
+                    <option value="urgent" {% if note.priority == 'urgent' %}selected{% endif %}>Urgente</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Tag (separati da virgola)</label>
+            <input type="text" name="tags" value="{{ note.tags or '' }}" placeholder="lavoro, importante, progetto..."
+                   style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+        </div>
+
+        <!-- ⭐ DROPDOWN PROGETTO -->
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">📁 Assegna a Progetto</label>
+            <select name="project_id" style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+                <option value="">-- Nessun progetto (nota personale) --</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}" {% if note.project_id == project.id %}selected{% endif %}>
+                    {{ project.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <small style="opacity: 0.7; font-size: 0.85rem; display: block; margin-top: 0.5rem;">
+                {% if note.project_id %}
+                Attualmente in: <strong>{{ note.project.name }}</strong>
+                {% else %}
+                Nota personale - seleziona un progetto per condividerla
+                {% endif %}
+            </small>
+        </div>
+
+        <!-- URL esterno (solo per link) -->
+        <div id="urlGroup" style="{% if note.note_type != 'link' %}display: none;{% endif %} margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">URL Esterno</label>
+            <input type="url" name="external_url" value="{{ note.external_url or '' }}" placeholder="https://..."
+                   style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+        </div>
+
+        <!-- Scadenza (solo per task) -->
+        <div id="dueDateGroup" style="{% if note.note_type != 'task' %}display: none;{% endif %} margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Scadenza</label>
+            <input type="date" name="due_date" value="{{ note.due_date.strftime('%Y-%m-%d') if note.due_date else '' }}"
+                   style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
+        </div>
+
+        <!-- Completamento task -->
+        {% if note.note_type == 'task' %}
+        <div style="margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3);">
+                <input type="checkbox" id="completed" name="completed" {% if note.completed %}checked{% endif %} style="width: 20px; height: 20px; cursor: pointer;">
+                <label for="completed" style="margin: 0; cursor: pointer; flex: 1;">✅ Segna come completata</label>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" style="background: linear-gradient(45deg, #E7D454, #F4E869); color: #005B94; padding: 1rem 2rem; border: none; border-radius: 25px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                💾 Salva Modifiche
+            </button>
+            <a href="/notes" style="background: rgba(255,255,255,0.2); color: white; padding: 1rem 2rem; border-radius: 25px; font-weight: 700; text-decoration: none; display: inline-block;">
+                ❌ Annulla
+            </a>
+            <button type="button" onclick="deleteNote()" style="background: #EF4444; color: white; padding: 1rem 2rem; border: none; border-radius: 25px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+                🗑️ Elimina
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Mostra/nascondi campi in base al tipo
+    document.getElementById('note_type').addEventListener('change', function() {
+        const urlGroup = document.getElementById('urlGroup');
+        const dueDateGroup = document.getElementById('dueDateGroup');
+
+        urlGroup.style.display = 'none';
+        dueDateGroup.style.display = 'none';
+
+        if (this.value === 'link') {
+            urlGroup.style.display = 'block';
+        } else if (this.value === 'task') {
+            dueDateGroup.style.display = 'block';
+        }
+    });
+
+    // Funzione elimina nota
+    function deleteNote() {
+        if (confirm('⚠️ Sei sicuro di voler eliminare questa nota? Questa azione non può essere annullata.')) {
+            fetch('/delete_note/{{ note.id }}', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Nota eliminata');
+                    window.location.href = '/notes';
+                } else {
+                    alert('❌ Errore: ' + data.message);
                 }
+            })
+            .catch(error => {
+                alert('❌ Errore di rete');
             });
-
-            // Handle form submission
-            noteForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(noteForm);
-                const data = Object.fromEntries(formData);
-
-                // Handle checkbox value
-                data.completed = document.getElementById('completed') ?
-                    document.getElementById('completed').checked : false;
-
-                // Validate required fields
-                if (!data.title.trim() || !data.content.trim()) {
-                    showAlert('Compila tutti i campi obbligatori', 'error');
-                    return;
-                }
-
-                // Submit to API
-                fetch(`/edit_note/${noteId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showAlert('Nota aggiornata con successo!', 'success');
-                        setTimeout(() => {
-                            window.location.href = '/notes';
-                        }, 1500);
-                    } else {
-                        showAlert(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    showAlert('Errore durante il salvataggio', 'error');
-                });
-            });
-
-            function showAlert(message, type) {
-                alert.textContent = message;
-                alert.className = `alert ${type}`;
-                alert.style.display = 'block';
-
-                setTimeout(() => {
-                    alert.style.display = 'none';
-                }, 5000);
-            }
-
-            window.deleteNote = function() {
-                if (confirm('Sei sicuro di voler eliminare questa nota? Questa azione non può essere annullata.')) {
-                    fetch(`/delete_note/${noteId}`, {
-                        method: 'POST'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showAlert('Nota eliminata', 'success');
-                            setTimeout(() => {
-                                window.location.href = '/notes';
-                            }, 1500);
-                        } else {
-                            showAlert(data.message, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        showAlert('Errore durante l\'eliminazione', 'error');
-                    });
-                }
-            }
-        });
-    </script>
-</body>
-
-<a href="/notes" style="position: fixed; bottom: 2rem; left: 2rem; background: rgba(255,255,255,0.2); color: white; padding: 1rem; border-radius: 50%; text-decoration: none; font-size: 1.5rem; backdrop-filter: blur(10px);">
-    ←
-</a>
-</html>
+        }
+    }
+</script>
+{% endblock %}
