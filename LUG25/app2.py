@@ -375,7 +375,7 @@ class ProjectMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    role = db.Column(db.String(20), default='viewer')
+    role = db.Column(db.String(20), default='viewer')  # ⭐ NUOVO
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     project = db.relationship('Project', backref='members')
@@ -445,23 +445,25 @@ def project_detail(project_id):
         flash('Accesso negato')
         return redirect(url_for('projects_list'))
 
-    # Determina ruolo utente
+    # Determina ruolo utente corrente
     if project.owner_id == current_user.id:
         user_role = 'owner'
     else:
         member = ProjectMember.query.filter_by(project_id=project_id, user_id=current_user.id).first()
         user_role = member.role if member else 'viewer'
 
+    # ⭐ Può gestire membri se è owner o manager del progetto
+    can_manage_members = user_role in ['owner', 'manager']
+
     notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
     members = project.members
     is_owner = project.owner_id == current_user.id
 
     project_files = []
-    project_notes = notes  # Alias per compatibilità template
+    project_notes = notes
 
-    # Utenti disponibili (solo per owner)
     available_users = []
-    if is_owner:
+    if can_manage_members:
         member_ids = [m.user_id for m in members] + [project.owner_id]
         available_users = User.query.filter(~User.id.in_(member_ids)).all()
 
@@ -471,19 +473,27 @@ def project_detail(project_id):
                            project_notes=project_notes,
                            members=members,
                            is_owner=is_owner,
+                           can_manage_members=can_manage_members,  # ⭐ NUOVO
                            available_users=available_users,
                            user_role=user_role,
                            project_files=project_files,
                            current_user=current_user)
 
-
-app.route('/project/<int:project_id>/add_member', methods=['POST'])
-@login_required
+@app.route('/project/<int:project_id>/add_member', methods=['POST'])
 def add_project_member(project_id):
+    """Aggiungi membro - solo owner o project manager"""
     project = Project.query.get_or_404(project_id)
 
-    if project.owner_id != current_user.id:
-        return jsonify({'success': False, 'message': 'Solo owner'}), 403
+    # Verifica permessi
+    is_owner = project.owner_id == current_user.id
+    is_project_manager = ProjectMember.query.filter_by(
+        project_id=project_id,
+        user_id=current_user.id,
+        role='manager'
+    ).first() is not None
+
+    if not (is_owner or is_project_manager):
+        return jsonify({'success': False, 'message': 'Permessi insufficienti'}), 403
 
     data = request.json
     user_id = data.get('user_id')
@@ -492,31 +502,62 @@ def add_project_member(project_id):
     if ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first():
         return jsonify({'success': False, 'message': 'Già membro'}), 400
 
-    member = ProjectMember(
-        project_id=project_id,
-        user_id=user_id,
-        role=role
-    )
+    member = ProjectMember(project_id=project_id, user_id=user_id, role=role)  # ⭐ Salva ruolo
     db.session.add(member)
     db.session.commit()
 
     user = User.query.get(user_id)
-    return jsonify({'success': True, 'message': f'{user.username} aggiunto al progetto'})
+    return jsonify({'success': True, 'message': f'{user.username} aggiunto come {role}'})
+
+
+@app.route('/project/<int:project_id>/change_member_role/<int:user_id>', methods=['POST'])
+def change_member_role(project_id, user_id):
+    """Cambia ruolo membro - solo owner o project manager"""
+    project = Project.query.get_or_404(project_id)
+
+    is_owner = project.owner_id == current_user.id
+    is_project_manager = ProjectMember.query.filter_by(
+        project_id=project_id,
+        user_id=current_user.id,
+        role='manager'
+    ).first() is not None
+
+    if not (is_owner or is_project_manager):
+        return jsonify({'success': False, 'message': 'Permessi insufficienti'}), 403
+
+    data = request.json
+    new_role = data.get('role')
+
+    if new_role not in ['manager', 'collaborator', 'viewer']:
+        return jsonify({'success': False, 'message': 'Ruolo non valido'}), 400
+
+    member = ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first_or_404()
+    member.role = new_role
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': f'Ruolo aggiornato a {new_role}'})
 
 
 @app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
-@login_required
 def remove_project_member(project_id, user_id):
+    """Rimuovi membro - solo owner o project manager"""
     project = Project.query.get_or_404(project_id)
 
-    if project.owner_id != current_user.id:
-        return jsonify({'success': False}), 403
+    is_owner = project.owner_id == current_user.id
+    is_project_manager = ProjectMember.query.filter_by(
+        project_id=project_id,
+        user_id=current_user.id,
+        role='manager'
+    ).first() is not None
+
+    if not (is_owner or is_project_manager):
+        return jsonify({'success': False, 'message': 'Permessi insufficienti'}), 403
 
     member = ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first_or_404()
     db.session.delete(member)
     db.session.commit()
 
-    return jsonify({'success': True})
+    return jsonify({'success': True, 'message': 'Membro rimosso'})
 
 
 # =============================================================================
