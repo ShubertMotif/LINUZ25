@@ -375,7 +375,7 @@ class ProjectMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    role = db.Column(db.String(20), default='viewer')  # ⭐ NUOVO
+    role = db.Column(db.String(20), default='viewer')  # ⭐ AGGIUNGI QUESTO
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     project = db.relationship('Project', backref='members')
@@ -445,14 +445,14 @@ def project_detail(project_id):
         flash('Accesso negato')
         return redirect(url_for('projects_list'))
 
-    # Determina ruolo utente corrente
+    # ⭐ Determina ruolo utente corrente
     if project.owner_id == current_user.id:
         user_role = 'owner'
     else:
         member = ProjectMember.query.filter_by(project_id=project_id, user_id=current_user.id).first()
         user_role = member.role if member else 'viewer'
 
-    # ⭐ Può gestire membri se è owner o manager del progetto
+    # ⭐ Può gestire membri se è owner o manager
     can_manage_members = user_role in ['owner', 'manager']
 
     notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
@@ -463,7 +463,7 @@ def project_detail(project_id):
     project_notes = notes
 
     available_users = []
-    if can_manage_members:
+    if can_manage_members:  # ⭐ CAMBIATO da is_owner
         member_ids = [m.user_id for m in members] + [project.owner_id]
         available_users = User.query.filter(~User.id.in_(member_ids)).all()
 
@@ -479,12 +479,12 @@ def project_detail(project_id):
                            project_files=project_files,
                            current_user=current_user)
 
+
 @app.route('/project/<int:project_id>/add_member', methods=['POST'])
 def add_project_member(project_id):
-    """Aggiungi membro - solo owner o project manager"""
     project = Project.query.get_or_404(project_id)
 
-    # Verifica permessi
+    # ⭐ Verifica permessi (owner O manager)
     is_owner = project.owner_id == current_user.id
     is_project_manager = ProjectMember.query.filter_by(
         project_id=project_id,
@@ -502,7 +502,7 @@ def add_project_member(project_id):
     if ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first():
         return jsonify({'success': False, 'message': 'Già membro'}), 400
 
-    member = ProjectMember(project_id=project_id, user_id=user_id, role=role)  # ⭐ Salva ruolo
+    member = ProjectMember(project_id=project_id, user_id=user_id, role=role)  # ⭐ SALVA ROLE
     db.session.add(member)
     db.session.commit()
 
@@ -512,14 +512,12 @@ def add_project_member(project_id):
 
 @app.route('/project/<int:project_id>/change_member_role/<int:user_id>', methods=['POST'])
 def change_member_role(project_id, user_id):
-    """Cambia ruolo membro - solo owner o project manager"""
+    """Cambia ruolo membro"""
     project = Project.query.get_or_404(project_id)
 
     is_owner = project.owner_id == current_user.id
     is_project_manager = ProjectMember.query.filter_by(
-        project_id=project_id,
-        user_id=current_user.id,
-        role='manager'
+        project_id=project_id, user_id=current_user.id, role='manager'
     ).first() is not None
 
     if not (is_owner or is_project_manager):
@@ -536,6 +534,7 @@ def change_member_role(project_id, user_id):
     db.session.commit()
 
     return jsonify({'success': True, 'message': f'Ruolo aggiornato a {new_role}'})
+
 
 
 @app.route('/project/<int:project_id>/remove_member/<int:user_id>', methods=['POST'])
