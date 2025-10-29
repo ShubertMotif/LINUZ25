@@ -1,0 +1,15 @@
+cd C:\Users\matti\Documents\LINUZ25\STWIN_OTT25\STWINvenv
+py -m venv venv
+STWINFvenv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
+
+**Struttura cartelle necessaria:**
+```
+STWINvenv/
+├── venv/
+├── app.py
+├── requirements.txt
+└── templates/
+    └── dashboard.html
