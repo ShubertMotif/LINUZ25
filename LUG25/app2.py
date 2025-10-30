@@ -473,7 +473,7 @@ def project_detail(project_id):
 
     return render_template('project_detail.html',
                            project=project,
-                           notes=notes,
+                           project_notes=notes,
                            members=members,
                            is_owner=is_owner,
                            can_manage_members=can_manage_members,
