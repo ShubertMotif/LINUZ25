@@ -38,6 +38,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
 
     .section-title {
@@ -81,6 +83,7 @@
         font-size: 1.5rem;
         font-weight: bold;
         color: white;
+        flex-shrink: 0;
     }
 
     .member-details h4 {
@@ -113,6 +116,7 @@
         transition: all 0.3s ease;
         text-decoration: none;
         display: inline-block;
+        color: white;
     }
 
     .btn-success {
@@ -122,6 +126,16 @@
 
     .btn-success:hover {
         background: #38A169;
+        transform: translateY(-2px);
+    }
+
+    .btn-primary {
+        background: #4299E1;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #3182CE;
         transform: translateY(-2px);
     }
 
@@ -155,16 +169,19 @@
         height: 100%;
         background: rgba(0,0,0,0.7);
         backdrop-filter: blur(5px);
+        align-items: center;
+        justify-content: center;
     }
 
     .modal-content {
         background: linear-gradient(135deg, #1a365d, #2d3748);
-        margin: 10% auto;
         padding: 2rem;
         border-radius: 20px;
         width: 90%;
         max-width: 500px;
         border: 2px solid #E7D454;
+        max-height: 80vh;
+        overflow-y: auto;
     }
 
     .modal-header {
@@ -174,20 +191,22 @@
         margin-bottom: 1.5rem;
     }
 
-    .modal-header h2 {
+    .modal-header h2, .modal-header h3 {
         color: #E7D454;
         margin: 0;
     }
 
-    .close {
+    .close, .close-btn {
         color: #E7D454;
         font-size: 2rem;
         font-weight: bold;
         cursor: pointer;
         line-height: 1;
+        background: none;
+        border: none;
     }
 
-    .close:hover {
+    .close:hover, .close-btn:hover {
         color: white;
     }
 
@@ -211,6 +230,36 @@
         color: white;
         font-size: 1rem;
     }
+
+    .file-card-mini {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .file-card-mini:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .member-card {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .member-actions {
+            justify-content: flex-end;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -218,7 +267,7 @@
 
 <!-- HEADER PROGETTO -->
 <div class="project-header">
-    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
         <div>
             <a href="{{ url_for('projects_list') }}" style="color: #E7D454; text-decoration: none; margin-bottom: 0.5rem; display: block;">
                 ← Torna ai progetti
@@ -235,7 +284,7 @@
 
     <p style="opacity: 0.8; margin-bottom: 1rem;">{{ project.description or 'Nessuna descrizione' }}</p>
 
-    <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
+    <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; opacity: 0.7; flex-wrap: wrap;">
         <span>👤 Creato da: <strong>{{ project.owner.username }}</strong></span>
         <span>📅 {{ project.created_at.strftime('%d/%m/%Y') }}</span>
         <span>👥 {{ members|length + 1 }} membri totali</span>
@@ -279,14 +328,12 @@
                     <h4>{{ member.user.username }}</h4>
 
                     {% if can_manage_members %}
-                        <!-- Dropdown cambio ruolo -->
                         <select class="role-select" onchange="changeRole({{ member.user.id }}, this.value, '{{ member.user.username }}')">
                             <option value="manager" {% if member.role == 'manager' %}selected{% endif %}>⚡ Manager Progetto</option>
                             <option value="collaborator" {% if member.role == 'collaborator' %}selected{% endif %}>🤝 Collaboratore</option>
                             <option value="viewer" {% if member.role == 'viewer' %}selected{% endif %}>👁️ Visualizzatore</option>
                         </select>
                     {% else %}
-                        <!-- Mostra solo ruolo -->
                         <span class="role-badge {{ member.role }}">
                             {% if member.role == 'manager' %}⚡ Manager Progetto
                             {% elif member.role == 'collaborator' %}🤝 Collaboratore
@@ -355,6 +402,111 @@
     {% endif %}
 </div>
 
+<!-- SEZIONE FILES -->
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">📁 Files del Progetto ({{ project_files|length }})</h2>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="btn btn-success" onclick="document.getElementById('projectFileInput').click()">
+                ⬆️ Carica Nuovo
+            </button>
+            {% if available_user_files %}
+            <button class="btn btn-primary" onclick="openAttachFileModal()">
+                📎 Allega Esistente
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <input type="file" id="projectFileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.zip,.rar,.txt,.xls,.xlsx,.ppt,.pptx" style="display: none;">
+
+    {% if project_files %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+        {% for pf in project_files %}
+        <div class="file-card-mini">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem;">
+                {% if pf.file.file_type == 'image' %}
+                <img src="/uploads/{{ pf.file.filename }}"
+                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;"
+                     onerror="this.outerHTML='<div style=\'font-size: 2.5rem;\'>🖼️</div>'">
+                {% elif pf.file.file_type == 'document' %}
+                <div style="font-size: 2.5rem;">📄</div>
+                {% else %}
+                <div style="font-size: 2.5rem;">📦</div>
+                {% endif %}
+
+                <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ pf.file.original_filename }}
+                    </div>
+                    <div style="font-size: 0.85rem; opacity: 0.7;">
+                        {{ "%.1f"|format(pf.file.file_size / 1024) }} KB
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; font-size: 0.8rem; opacity: 0.7; margin-bottom: 0.8rem;">
+                <span>👤 {{ pf.uploader.username }}</span>
+                <span>📅 {{ pf.added_at.strftime('%d/%m') }}</span>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{{ url_for('download_file', file_id=pf.file.id) }}"
+                   style="flex: 1; background: rgba(16, 185, 129, 0.3); color: white; padding: 0.5rem; border-radius: 8px; text-align: center; text-decoration: none; font-size: 0.85rem;">
+                    ⬇️ Download
+                </a>
+                {% if is_owner %}
+                <button onclick="removeProjectFile({{ pf.id }})"
+                        style="background: rgba(239, 68, 68, 0.3); color: white; padding: 0.5rem 0.8rem; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
+                    🗑️
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">📁</div>
+        <p>Nessun file nel progetto</p>
+        <p style="font-size: 0.9rem;">Carica o allega file per iniziare</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- MODAL ALLEGA FILE ESISTENTE -->
+<div id="attachFileModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📎 Allega File Esistente</h3>
+            <button class="close-btn" onclick="closeAttachFileModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            {% if available_user_files %}
+            <div style="max-height: 400px; overflow-y: auto;">
+                {% for file in available_user_files %}
+                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ file.original_filename }}
+                        </div>
+                        <div style="font-size: 0.85rem; opacity: 0.7;">
+                            {{ "%.1f"|format(file.file_size / 1024) }} KB
+                        </div>
+                    </div>
+                    <button onclick="attachFileToProject({{ file.id }})" class="btn btn-sm btn-primary">
+                        Allega
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>Nessun file disponibile da allegare</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <!-- MODAL AGGIUNGI MEMBRO -->
 {% if can_manage_members %}
 <div id="addMemberModal" class="modal">
@@ -393,8 +545,9 @@
 {% endif %}
 
 <script>
+    // ===== GESTIONE MEMBRI =====
     function openAddMemberModal() {
-        document.getElementById('addMemberModal').style.display = 'block';
+        document.getElementById('addMemberModal').style.display = 'flex';
     }
 
     function closeAddMemberModal() {
@@ -406,7 +559,7 @@
         const role = document.getElementById('roleSelect').value;
 
         if (!userId) {
-            alert('❌ Seleziona un utente');
+            showAlert('❌ Seleziona un utente', 'error');
             return;
         }
 
@@ -420,19 +573,19 @@
             const data = await response.json();
 
             if (data.success) {
-                alert('✅ ' + data.message);
-                location.reload();
+                showAlert('✅ ' + data.message, 'success');
+                setTimeout(() => location.reload(), 1000);
             } else {
-                alert('❌ Errore: ' + data.message);
+                showAlert('❌ ' + data.message, 'error');
             }
         } catch (error) {
-            alert('❌ Errore di rete: ' + error);
+            showAlert('❌ Errore di rete', 'error');
         }
     }
 
     async function changeRole(userId, newRole, username) {
         if (!confirm(`Cambiare ruolo di ${username}?`)) {
-            location.reload(); // Reset select
+            location.reload();
             return;
         }
 
@@ -446,13 +599,13 @@
             const data = await response.json();
 
             if (data.success) {
-                alert('✅ ' + data.message);
-                location.reload();
+                showAlert('✅ ' + data.message, 'success');
+                setTimeout(() => location.reload(), 1000);
             } else {
-                alert('❌ Errore: ' + data.message);
+                showAlert('❌ ' + data.message, 'error');
             }
         } catch (error) {
-            alert('❌ Errore: ' + error);
+            showAlert('❌ Errore', 'error');
         }
     }
 
@@ -469,21 +622,113 @@
             const data = await response.json();
 
             if (data.success) {
-                alert('✅ ' + data.message);
-                location.reload();
+                showAlert('✅ ' + data.message, 'success');
+                setTimeout(() => location.reload(), 1000);
             } else {
-                alert('❌ Errore: ' + data.message);
+                showAlert('❌ ' + data.message, 'error');
             }
         } catch (error) {
-            alert('❌ Errore: ' + error);
+            showAlert('❌ Errore', 'error');
         }
+    }
+
+    // ===== GESTIONE FILE =====
+    document.getElementById('projectFileInput').addEventListener('change', function(e) {
+        Array.from(e.target.files).forEach(file => {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/project/{{ project.id }}/upload_file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(`✅ ${data.message}`, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert(`❌ ${data.message}`, 'error');
+                }
+            })
+            .catch(() => showAlert('❌ Errore di connessione', 'error'));
+        });
+    });
+
+    function openAttachFileModal() {
+        document.getElementById('attachFileModal').style.display = 'flex';
+    }
+
+    function closeAttachFileModal() {
+        document.getElementById('attachFileModal').style.display = 'none';
+    }
+
+    function attachFileToProject(fileId) {
+        fetch('/project/{{ project.id }}/attach_file', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({file_id: fileId})
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✅ File allegato!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert(`❌ ${data.message}`, 'error');
+            }
+        })
+        .catch(() => showAlert('❌ Errore', 'error'));
+    }
+
+    function removeProjectFile(projectFileId) {
+        if (!confirm('Rimuovere questo file dal progetto?')) return;
+
+        fetch(`/project/{{ project.id }}/remove_file/${projectFileId}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✅ File rimosso', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlert('❌ ' + data.message, 'error');
+            }
+        })
+        .catch(() => showAlert('❌ Errore', 'error'));
+    }
+
+    // ===== HELPER =====
+    function showAlert(message, type) {
+        const alert = document.createElement('div');
+        alert.textContent = message;
+        alert.style.cssText = `
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: ${type === 'success' ? '#48BB78' : '#F56565'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        `;
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 3000);
     }
 
     // Chiudi modal cliccando fuori
     window.onclick = function(event) {
-        const modal = document.getElementById('addMemberModal');
-        if (event.target == modal) {
+        const addModal = document.getElementById('addMemberModal');
+        const attachModal = document.getElementById('attachFileModal');
+
+        if (event.target == addModal) {
             closeAddMemberModal();
+        }
+        if (event.target == attachModal) {
+            closeAttachFileModal();
         }
     }
 </script>

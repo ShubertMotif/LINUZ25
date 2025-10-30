@@ -26,13 +26,22 @@
     }
 
     .file-preview {
-        height: 120px;
-        background: rgba(0, 91, 148, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
+    height: 200px;
+    background: rgba(0, 91, 148, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.file-preview img {
+    max-width: min(550px, 100%);
+    max-height: min(450px, 100%);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
 
     .file-icon {
         font-size: 3rem;
@@ -268,7 +277,9 @@
     <div class="file-card" data-type="{{ file.file_type }}" data-name="{{ file.original_filename.lower() }}">
         <div class="file-preview">
             {% if file.file_type == 'image' %}
-                <div class="file-icon">🖼️</div>
+                <img src="{{ url_for('serve_upload', filename=file.filename) }}"
+                     alt="{{ file.original_filename }}"
+                     onerror="this.parentElement.innerHTML='<div class=\'file-icon\'>🖼️</div>'">
             {% elif file.file_type == 'document' %}
                 <div class="file-icon">📄</div>
             {% else %}
