@@ -290,4 +290,42 @@
         setInterval(addFeedItem, 15000);
     });
 </script>
+
+
+<!-- ⭐ PULSANTE MANAGER -->
+{% if current_user.role == 'manager' %}
+<div style="text-align: center; margin: 2rem 0;">
+    <button onclick="toggleUsers()" class="action-btn" style="display: inline-block; padding: 1rem 2rem; background: #E7D454; color: #005B94; border-radius: 15px; font-weight: bold; cursor: pointer; border: none;">
+        👥 Visualizza Tutti gli Utenti ({{ all_users|length }})
+    </button>
+</div>
+
+<div id="usersList" style="display: none; margin-top: 2rem;">
+    <h3 style="margin-bottom: 1rem;">📋 Lista Utenti Registrati</h3>
+    <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 15px;">
+        {% for user in all_users %}
+        <div style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>{{ user.username }}</strong>
+                {% if user.role == 'manager' %}
+                    <span style="color: #E7D454; margin-left: 0.5rem;">👑 Manager</span>
+                {% else %}
+                    <span style="opacity: 0.6; margin-left: 0.5rem;">Employee</span>
+                {% endif %}
+            </div>
+            <div style="opacity: 0.7; font-size: 0.9rem;">
+                Balance: <span style="color: #E7D454; font-weight: bold;">{{ "%.1f"|format(user.balance) }} ADG</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleUsers() {
+    const list = document.getElementById('usersList');
+    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endif %}
 {% endblock %}

@@ -795,9 +795,16 @@ def index():
 @login_required
 def stats():
     visits_data = load_visits()
+
+    # ⭐ Lista utenti per manager
+    all_users = []
+    if current_user.role == 'manager':
+        all_users = User.query.order_by(User.username).all()
+
     return render_template('stats.html',
                            visit_count=visits_data['count'],
                            recent_visitors=visits_data['visitors'][-10:],
+                           all_users=all_users,
                            current_user=current_user)
 
 
