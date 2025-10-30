@@ -1,0 +1,87 @@
+{% extends "base_app.html" %}
+
+{% block title %}Progetti - Adelchi Group{% endblock %}
+
+{% block content %}
+<h1 class="page-title">📁 Progetti</h1>
+<p class="page-subtitle">Organizza le tue note in contenitori collaborativi</p>
+
+<div style="display:flex; gap:1rem; margin-bottom: 2rem; justify-content:center;">
+  {% if current_user.can_create_projects() %}
+    <a href="{{ url_for('create_project') }}" class="action-btn" style="padding:.9rem 1.2rem; border-radius:12px;">
+      ➕ Nuovo Progetto
+    </a>
+  {% else %}
+    <span class="action-btn" style="padding:.9rem 1.2rem; border-radius:12px; opacity:.6; cursor:not-allowed;">
+      🔒 Solo i Manager possono creare progetti
+    </span>
+  {% endif %}
+</div>
+
+{% set has_owned = owned and owned|length > 0 %}
+{% set has_member = member_projects and member_projects|length > 0 %}
+
+{% if not has_owned and not has_member %}
+  <div class="glass-card" style="text-align:center; padding:3rem;">
+    <div style="font-size:4rem; opacity:.5;">📁</div>
+    <p>Nessun progetto disponibile.</p>
+    {% if current_user.can_create_projects() %}
+      <p style="margin-top:.5rem;">Crea il tuo primo progetto con “Nuovo Progetto”.</p>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% if has_owned %}
+  <h2 style="margin:1.5rem 0 .8rem;">👑 I miei progetti</h2>
+  <div class="dashboard-grid">
+    {% for project in owned %}
+      <a href="{{ url_for('project_detail', project_id=project.id) }}" class="dashboard-card" style="text-decoration:none; color:inherit;">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">📦</span>
+            {{ project.name }}
+          </div>
+          <div style="font-size:.85rem; opacity:.8;">#{{ project.id }}</div>
+        </div>
+
+        <div style="opacity:.85; margin-bottom:1rem;">
+          {{ (project.description or '—')[:140] }}{% if project.description and project.description|length > 140 %}…{% endif %}
+        </div>
+
+        <div style="display:flex; gap:1rem; font-size:.95rem; opacity:.9;">
+          <span>📝 {{ project.notes|length }} note</span>
+          <span>👥 {{ project.members|length }} membri</span>
+          <span>📅 {{ project.created_at.strftime('%d/%m/%Y') }}</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if has_member %}
+  <h2 style="margin:1.5rem 0 .8rem;">🤝 Progetti di cui sono membro</h2>
+  <div class="dashboard-grid">
+    {% for project in member_projects %}
+      <a href="{{ url_for('project_detail', project_id=project.id) }}" class="dashboard-card" style="text-decoration:none; color:inherit;">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="card-icon">📦</span>
+            {{ project.name }}
+          </div>
+          <div style="font-size:.85rem; opacity:.8;">Owner: {{ project.owner.username }}</div>
+        </div>
+
+        <div style="opacity:.85; margin-bottom:1rem;">
+          {{ (project.description or '—')[:140] }}{% if project.description and project.description|length > 140 %}…{% endif %}
+        </div>
+
+        <div style="display:flex; gap:1rem; font-size:.95rem; opacity:.9;">
+          <span>📝 {{ project.notes|length }} note</span>
+          <span>👥 {{ project.members|length }} membri_</span>
+          <span>📅 {{ project.created_at.strftime('%d/%m/%Y') }}</span>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

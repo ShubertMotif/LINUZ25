@@ -4,282 +4,488 @@
 
 {% block extra_css %}
 <style>
+    .project-header {
+        background: rgba(255,255,255,0.05);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .role-badge.owner { background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; }
+    .role-badge.manager { background: linear-gradient(45deg, #E7D454, #F4E869); color: #005B94; }
+    .role-badge.collaborator { background: linear-gradient(45deg, #4299E1, #63B3ED); color: white; }
+    .role-badge.viewer { background: rgba(255,255,255,0.2); color: white; }
+
+    .section {
+        background: rgba(255,255,255,0.05);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title {
+        color: #E7D454;
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
     .member-card {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
         padding: 1.5rem;
         border-radius: 15px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
     }
-    /* ... resto CSS specifico */
+
+    .member-card:hover {
+        background: rgba(255,255,255,0.07);
+        transform: translateX(5px);
+    }
+
+    .member-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .member-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #E7D454, #005B94);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    .member-details h4 {
+        margin: 0 0 0.3rem 0;
+        color: white;
+    }
+
+    .member-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .role-select {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(0,0,0,0.3);
+        color: white;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .btn {
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-success {
+        background: #48BB78;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #38A169;
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: #F56565;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #E53E3E;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        opacity: 0.6;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: linear-gradient(135deg, #1a365d, #2d3748);
+        margin: 10% auto;
+        padding: 2rem;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        border: 2px solid #E7D454;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-header h2 {
+        color: #E7D454;
+        margin: 0;
+    }
+
+    .close {
+        color: #E7D454;
+        font-size: 2rem;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .close:hover {
+        color: white;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #E7D454;
+        font-weight: 600;
+    }
+
+    .form-group select {
+        width: 100%;
+        padding: 0.8rem;
+        border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(0,0,0,0.3);
+        color: white;
+        font-size: 1rem;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">{{ project.name }}</h1>
-<p class="page-subtitle">{{ project.description or 'Nessuna descrizione' }}</p>
 
-<!-- MEMBRI -->
-<div class="glass-card">
-    <h2 style="color: #E7D454; margin-bottom: 1.5rem;">👥 Team</h2>
-    {% for member in members %}
-    <div class="member-card">
+<!-- HEADER PROGETTO -->
+<div class="project-header">
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
         <div>
-            <strong>{{ member.user.username }}</strong>
-            <div style="font-size: 0.9rem; opacity: 0.8;">{{ member.role }}</div>
+            <a href="{{ url_for('projects_list') }}" style="color: #E7D454; text-decoration: none; margin-bottom: 0.5rem; display: block;">
+                ← Torna ai progetti
+            </a>
+            <h1 style="color: white; font-size: 2.5rem; margin: 0.5rem 0;">{{ project.name }}</h1>
+        </div>
+        <span class="role-badge {{ user_role }}">
+            {% if user_role == 'owner' %}👑 Proprietario
+            {% elif user_role == 'manager' %}⚡ Manager Progetto
+            {% elif user_role == 'collaborator' %}🤝 Collaboratore
+            {% else %}👁️ Visualizzatore{% endif %}
+        </span>
+    </div>
+
+    <p style="opacity: 0.8; margin-bottom: 1rem;">{{ project.description or 'Nessuna descrizione' }}</p>
+
+    <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
+        <span>👤 Creato da: <strong>{{ project.owner.username }}</strong></span>
+        <span>📅 {{ project.created_at.strftime('%d/%m/%Y') }}</span>
+        <span>👥 {{ members|length + 1 }} membri totali</span>
+    </div>
+</div>
+
+<!-- SEZIONE MEMBRI -->
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">👥 Team del Progetto</h2>
+        {% if can_manage_members %}
+        <button class="btn btn-success" onclick="openAddMemberModal()">
+            + Aggiungi Membro
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- OWNER (sempre primo) -->
+    <div class="member-card" style="border: 2px solid #FFD700;">
+        <div class="member-info">
+            <div class="member-avatar" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                {{ project.owner.username[0].upper() }}
+            </div>
+            <div class="member-details">
+                <h4>{{ project.owner.username }}</h4>
+                <span class="role-badge owner">👑 Proprietario</span>
+                <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 0.3rem;">
+                    Ruolo globale: {{ project.owner.get_role_display() }}
+                </div>
+            </div>
         </div>
     </div>
-    {% endfor %}
+
+    <!-- MEMBRI -->
+    {% if members %}
+        {% for member in members %}
+        <div class="member-card">
+            <div class="member-info">
+                <div class="member-avatar">{{ member.user.username[0].upper() }}</div>
+                <div class="member-details">
+                    <h4>{{ member.user.username }}</h4>
+
+                    {% if can_manage_members %}
+                        <!-- Dropdown cambio ruolo -->
+                        <select class="role-select" onchange="changeRole({{ member.user.id }}, this.value, '{{ member.user.username }}')">
+                            <option value="manager" {% if member.role == 'manager' %}selected{% endif %}>⚡ Manager Progetto</option>
+                            <option value="collaborator" {% if member.role == 'collaborator' %}selected{% endif %}>🤝 Collaboratore</option>
+                            <option value="viewer" {% if member.role == 'viewer' %}selected{% endif %}>👁️ Visualizzatore</option>
+                        </select>
+                    {% else %}
+                        <!-- Mostra solo ruolo -->
+                        <span class="role-badge {{ member.role }}">
+                            {% if member.role == 'manager' %}⚡ Manager Progetto
+                            {% elif member.role == 'collaborator' %}🤝 Collaboratore
+                            {% else %}👁️ Visualizzatore{% endif %}
+                        </span>
+                    {% endif %}
+
+                    <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 0.3rem;">
+                        Aggiunto il {{ member.added_at.strftime('%d/%m/%Y') }} •
+                        Ruolo globale: {{ member.user.get_role_display() }}
+                    </div>
+                </div>
+            </div>
+
+            {% if can_manage_members %}
+            <div class="member-actions">
+                <button class="btn btn-danger btn-sm" onclick="removeMember({{ member.user.id }}, '{{ member.user.username }}')">
+                    🗑️ Rimuovi
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p>Nessun altro membro nel progetto</p>
+            {% if can_manage_members %}
+            <p style="opacity: 0.7;">Clicca su "Aggiungi Membro" per invitare collaboratori</p>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 
-<!-- FILES -->
-<div class="glass-card">
-    <h2 style="color: #E7D454; margin-bottom: 1.5rem;">📁 File ({{ project_files|length }})</h2>
-    {% for pf in project_files %}
-    <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px; margin-bottom: 0.5rem;">
-        {{ pf.file.original_filename }}
+<!-- SEZIONE NOTE -->
+<div class="section">
+    <div class="section-header">
+        <h2 class="section-title">📝 Note del Progetto ({{ project_notes|length }})</h2>
+        {% if user_role in ['owner', 'manager', 'collaborator'] %}
+        <a href="{{ url_for('create_note', project_id=project.id) }}" class="btn btn-success">+ Nuova Nota</a>
+        {% endif %}
     </div>
-    {% endfor %}
+
+    {% if project_notes %}
+        <div style="display: grid; gap: 1rem;">
+        {% for note in project_notes %}
+            <div class="member-card">
+                <div class="member-info">
+                    <div style="flex: 1;">
+                        <h4>{{ note.title }}</h4>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.3rem;">
+                            {{ note.content[:100] }}{% if note.content|length > 100 %}...{% endif %}
+                        </div>
+                        <div style="font-size: 0.85rem; opacity: 0.6; margin-top: 0.5rem;">
+                            Creato da {{ note.user.username }} • {{ note.created_at.strftime('%d/%m/%Y') }}
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('edit_note', note_id=note.id) }}" class="btn btn-success btn-sm">Visualizza</a>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>Nessuna nota nel progetto</p>
+        </div>
+    {% endif %}
 </div>
+
+<!-- MODAL AGGIUNGI MEMBRO -->
+{% if can_manage_members %}
+<div id="addMemberModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Aggiungi Membro al Progetto</h2>
+            <span class="close" onclick="closeAddMemberModal()">&times;</span>
+        </div>
+
+        <div class="form-group">
+            <label>Seleziona Utente</label>
+            <select id="userSelect">
+                <option value="">-- Scegli un utente --</option>
+                {% for user in available_users %}
+                <option value="{{ user.id }}">
+                    {{ user.username }} ({{ user.get_role_display() }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Ruolo nel Progetto</label>
+            <select id="roleSelect">
+                <option value="manager">⚡ Manager Progetto - Può gestire membri e modificare tutto</option>
+                <option value="collaborator" selected>🤝 Collaboratore - Può modificare note e file</option>
+                <option value="viewer">👁️ Visualizzatore - Solo lettura</option>
+            </select>
+        </div>
+
+        <button class="btn btn-success" style="width: 100%;" onclick="addMember()">
+            Aggiungi al Progetto
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    function openAddMemberModal() {
+        document.getElementById('addMemberModal').style.display = 'block';
+    }
+
+    function closeAddMemberModal() {
+        document.getElementById('addMemberModal').style.display = 'none';
+    }
+
+    async function addMember() {
+        const userId = document.getElementById('userSelect').value;
+        const role = document.getElementById('roleSelect').value;
+
+        if (!userId) {
+            alert('❌ Seleziona un utente');
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ url_for("add_project_member", project_id=project.id) }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, role: role })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ Errore: ' + data.message);
+            }
+        } catch (error) {
+            alert('❌ Errore di rete: ' + error);
+        }
+    }
+
+    async function changeRole(userId, newRole, username) {
+        if (!confirm(`Cambiare ruolo di ${username}?`)) {
+            location.reload(); // Reset select
+            return;
+        }
+
+        try {
+            const response = await fetch(`{{ url_for("change_member_role", project_id=project.id, user_id=0) }}`.replace('/0', `/${userId}`), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ Errore: ' + data.message);
+            }
+        } catch (error) {
+            alert('❌ Errore: ' + error);
+        }
+    }
+
+    async function removeMember(userId, username) {
+        if (!confirm(`⚠️ Rimuovere ${username} dal progetto?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`{{ url_for("remove_project_member", project_id=project.id, user_id=0) }}`.replace('/0', `/${userId}`), {
+                method: 'POST'
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ Errore: ' + data.message);
+            }
+        } catch (error) {
+            alert('❌ Errore: ' + error);
+        }
+    }
+
+    // Chiudi modal cliccando fuori
+    window.onclick = function(event) {
+        const modal = document.getElementById('addMemberModal');
+        if (event.target == modal) {
+            closeAddMemberModal();
+        }
+    }
+</script>
 
 {% endblock %}
-<body>
-    <div class="container">
-        <!-- HEADER PROGETTO -->
-        <div class="header">
-            <div class="header-top">
-                <div>
-                    <a href="{{ url_for('projects_list') }}" style="color: #718096; text-decoration: none; margin-bottom: 0.5rem; display: block;">← Torna ai progetti</a>
-                    <h1 class="project-title">{{ project.name }}</h1>
-                </div>
-                <span class="role-badge {{ user_role }}">
-                    {% if user_role == 'owner' %}👑 Proprietario
-                    {% elif user_role == 'collaborator' %}🤝 Collaboratore
-                    {% else %}👁️ Visualizzatore{% endif %}
-                </span>
-            </div>
-
-            <p class="project-description">{{ project.description or 'Nessuna descrizione' }}</p>
-
-            <div class="project-meta">
-                <span>👤 Creato da: <strong>{{ project.owner.username }}</strong></span>
-                <span>📅 {{ project.created_at.strftime('%d/%m/%Y') }}</span>
-                <span>🕐 Aggiornato: {{ project.updated_at.strftime('%d/%m/%Y %H:%M') }}</span>
-            </div>
-        </div>
-
-        <!-- SEZIONE MEMBRI -->
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">👥 Membri del Team ({{ members|length }})</h2>
-                {% if user_role == 'owner' %}
-                <button class="btn btn-success" onclick="openAddMemberModal()">+ Aggiungi Membro</button>
-                {% endif %}
-            </div>
-
-            {% if members %}
-            <div class="members-grid">
-                {% for member in members %}
-                <div class="member-card">
-                    <div class="member-info">
-                        <div class="member-avatar">{{ member.user.username[0].upper() }}</div>
-                        <div class="member-details">
-                            <h4>{{ member.user.username }}</h4>
-                            <div class="member-role">
-                                {% if member.role == 'owner' %}👑 Proprietario
-                                {% elif member.role == 'collaborator' %}🤝 Collaboratore
-                                {% else %}👁️ Visualizzatore{% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% if user_role == 'owner' and member.role != 'owner' %}
-                    <button class="btn btn-danger btn-sm" onclick="removeMember({{ member.user.id }}, '{{ member.user.username }}')">
-                        Rimuovi
-                    </button>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <p>Nessun membro ancora aggiunto</p>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- SEZIONE FILE -->
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">📁 File del Progetto ({{ project_files|length }})</h2>
-                {% if user_role in ['owner', 'collaborator'] %}
-                <a href="{{ url_for('files_dashboard') }}" class="btn btn-success">+ Carica File</a>
-                {% endif %}
-            </div>
-
-            {% if project_files %}
-            <div class="items-list">
-                {% for pf in project_files %}
-                <div class="item-card">
-                    <div class="item-info">
-                        <div class="item-title">📄 {{ pf.file.original_filename }}</div>
-                        <div class="item-meta">
-                            Caricato da {{ pf.file.user.username }} •
-                            {{ (pf.file.file_size / 1024)|round(1) }} KB •
-                            {{ pf.added_at.strftime('%d/%m/%Y') }}
-                        </div>
-                    </div>
-                    <a href="{{ url_for('download_file', file_id=pf.file.id) }}" class="btn btn-primary btn-sm">
-                        Scarica
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <p>Nessun file nel progetto</p>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- SEZIONE NOTE -->
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">📝 Note del Progetto ({{ project_notes|length }})</h2>
-                {% if user_role in ['owner', 'collaborator'] %}
-                <a href="{{ url_for('create_note') }}" class="btn btn-success">+ Nuova Nota</a>
-                {% endif %}
-            </div>
-
-            {% if project_notes %}
-            <div class="items-list">
-                {% for pn in project_notes %}
-                <div class="item-card">
-                    <div class="item-info">
-                        <div class="item-title">📝 {{ pn.note.title }}</div>
-                        <div class="item-meta">
-                            {{ pn.note.content[:100] }}...  •
-                            Creato da {{ pn.note.user.username }} •
-                            {{ pn.added_at.strftime('%d/%m/%Y') }}
-                        </div>
-                    </div>
-                    <a href="{{ url_for('edit_note', note_id=pn.note.id) }}" class="btn btn-primary btn-sm">
-                        Visualizza
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <p>Nessuna nota nel progetto</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- MODAL AGGIUNGI MEMBRO -->
-    {% if user_role == 'owner' %}
-    <div id="addMemberModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Aggiungi Membro al Progetto</h2>
-                <span class="close" onclick="closeAddMemberModal()">&times;</span>
-            </div>
-
-            <div class="form-group">
-                <label>Seleziona Utente</label>
-                <select id="userSelect">
-                    <option value="">-- Scegli utente --</option>
-                    {% for user in available_users %}
-                    <option value="{{ user.id }}">{{ user.username }} ({{ user.get_role_display() }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Ruolo nel Progetto</label>
-                <select id="roleSelect">
-                    <option value="viewer">👁️ Visualizzatore (solo lettura)</option>
-                    <option value="collaborator">🤝 Collaboratore (può modificare)</option>
-                </select>
-            </div>
-
-            <button class="btn btn-success" onclick="addMember()">Aggiungi</button>
-        </div>
-    </div>
-    {% endif %}
-
-    <script>
-        function openAddMemberModal() {
-            document.getElementById('addMemberModal').style.display = 'block';
-        }
-
-        function closeAddMemberModal() {
-            document.getElementById('addMemberModal').style.display = 'none';
-        }
-
-        async function addMember() {
-            const userId = document.getElementById('userSelect').value;
-            const role = document.getElementById('roleSelect').value;
-
-            if (!userId) {
-                alert('Seleziona un utente');
-                return;
-            }
-
-            try {
-                const response = await fetch('{{ url_for("add_project_member", project_id=project.id) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ user_id: userId, role: role })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Errore: ' + data.message);
-                }
-            } catch (error) {
-                alert('Errore di rete: ' + error);
-            }
-        }
-
-        async function removeMember(userId, username) {
-            if (!confirm(`Rimuovere ${username} dal progetto?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch('{{ url_for("remove_project_member", project_id=project.id, user_id=0) }}'.replace('/0', `/${userId}`), {
-                    method: 'POST'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Errore: ' + data.message);
-                }
-            } catch (error) {
-                alert('Errore di rete: ' + error);
-            }
-        }
-
-        // Chiudi modal cliccando fuori
-        window.onclick = function(event) {
-            const modal = document.getElementById('addMemberModal');
-            if (event.target == modal) {
-                closeAddMemberModal();
-            }
-        }
-    </script>
-</body>
-</html>
