@@ -445,39 +445,42 @@ def project_detail(project_id):
         flash('Accesso negato')
         return redirect(url_for('projects_list'))
 
-    # ⭐ Determina ruolo utente corrente
     if project.owner_id == current_user.id:
         user_role = 'owner'
     else:
         member = ProjectMember.query.filter_by(project_id=project_id, user_id=current_user.id).first()
         user_role = member.role if member else 'viewer'
 
-    # ⭐ Può gestire membri se è owner o manager
     can_manage_members = user_role in ['owner', 'manager']
 
     notes = UserNote.query.filter_by(project_id=project_id).order_by(UserNote.created_at.desc()).all()
     members = project.members
     is_owner = project.owner_id == current_user.id
 
-    project_files = []
-    project_notes = notes
+    # ⭐ AGGIUNGI FILE DEL PROGETTO
+    project_files_rel = ProjectFile.query.filter_by(project_id=project_id).order_by(ProjectFile.added_at.desc()).all()
+
+    # ⭐ FILE DISPONIBILI DA ALLEGARE (del current user, non già nel progetto)
+    attached_file_ids = [pf.file_id for pf in project_files_rel]
+    available_user_files = UserFile.query.filter_by(user_id=current_user.id).filter(
+        ~UserFile.id.in_(attached_file_ids) if attached_file_ids else True
+    ).all()
 
     available_users = []
-    if can_manage_members:  # ⭐ CAMBIATO da is_owner
+    if can_manage_members:
         member_ids = [m.user_id for m in members] + [project.owner_id]
         available_users = User.query.filter(~User.id.in_(member_ids)).all()
 
     return render_template('project_detail.html',
                            project=project,
-                           notes=notes,
-                           project_notes=project_notes,
+                           project_notes=notes,
                            members=members,
                            is_owner=is_owner,
-                           can_manage_members=can_manage_members,  # ⭐ NUOVO
-                           available_users=available_users,
+                           can_manage_members=can_manage_members,
                            user_role=user_role,
-                           project_files=project_files,
-                           current_user=current_user)
+                           available_users=available_users,
+                           project_files=project_files_rel,  # ⭐ NUOVO
+                           available_user_files=available_user_files)  # ⭐ NUOVO
 
 
 @app.route('/project/<int:project_id>/add_member', methods=['POST'])
@@ -557,6 +560,123 @@ def remove_project_member(project_id, user_id):
     db.session.commit()
 
     return jsonify({'success': True, 'message': 'Membro rimosso'})
+
+
+@app.route('/project/<int:project_id>/attach_file', methods=['POST'])
+@login_required
+def attach_file_to_project(project_id):
+    """Allega file esistente a progetto"""
+    project = Project.query.get_or_404(project_id)
+
+    if not project.has_access(current_user.id):
+        return jsonify({'success': False, 'message': 'Accesso negato'})
+
+    data = request.get_json()
+    file_id = data.get('file_id')
+
+    user_file = UserFile.query.filter_by(id=file_id, user_id=current_user.id).first()
+    if not user_file:
+        return jsonify({'success': False, 'message': 'File non trovato'})
+
+    # Verifica se già allegato
+    existing = ProjectFile.query.filter_by(project_id=project_id, file_id=file_id).first()
+    if existing:
+        return jsonify({'success': False, 'message': 'File già allegato al progetto'})
+
+    # Crea associazione
+    project_file = ProjectFile(
+        project_id=project_id,
+        file_id=file_id,
+        uploaded_by=current_user.id
+    )
+    db.session.add(project_file)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'File allegato al progetto'})
+
+
+@app.route('/project/<int:project_id>/remove_file/<int:project_file_id>', methods=['POST'])
+@login_required
+def remove_file_from_project(project_id, project_file_id):
+    """Rimuovi file da progetto"""
+    project = Project.query.get_or_404(project_id)
+
+    # Solo owner può rimuovere
+    if project.owner_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Solo il proprietario può rimuovere file'})
+
+    project_file = ProjectFile.query.filter_by(id=project_file_id, project_id=project_id).first()
+    if not project_file:
+        return jsonify({'success': False, 'message': 'File non trovato nel progetto'})
+
+    db.session.delete(project_file)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'File rimosso dal progetto'})
+
+
+@app.route('/project/<int:project_id>/upload_file', methods=['POST'])
+@login_required
+def upload_file_to_project(project_id):
+    """Upload file diretto a progetto"""
+    project = Project.query.get_or_404(project_id)
+
+    if not project.has_access(current_user.id):
+        return jsonify({'success': False, 'message': 'Accesso negato'})
+
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': 'Nessun file selezionato'})
+
+        file = request.files['file']
+
+        if file.filename == '' or not allowed_file(file.filename):
+            return jsonify({'success': False, 'message': 'File non valido'})
+
+        # Salva file (usa stessa logica di upload_file)
+        original_filename = file.filename
+        file_extension = original_filename.rsplit('.', 1)[1].lower()
+        safe_filename = f"{uuid.uuid4().hex}.{file_extension}"
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
+
+        file.save(file_path)
+
+        file_size = os.path.getsize(file_path)
+        file_type = get_file_type(original_filename)
+
+        # Crea UserFile
+        user_file = UserFile(
+            user_id=current_user.id,
+            filename=safe_filename,
+            original_filename=original_filename,
+            file_type=file_type,
+            file_size=file_size,
+            file_path=file_path,
+            mime_type=file.mimetype
+        )
+        db.session.add(user_file)
+        db.session.flush()
+
+        # Allega a progetto
+        project_file = ProjectFile(
+            project_id=project_id,
+            file_id=user_file.id,
+            uploaded_by=current_user.id
+        )
+        db.session.add(project_file)
+        db.session.commit()
+
+        # Ricompensa
+        blockchain.reward_user(current_user, blockchain.file_upload_reward, 'file_upload')
+
+        return jsonify({
+            'success': True,
+            'message': f'File caricato! +{blockchain.file_upload_reward} ADG',
+            'adg_earned': blockchain.file_upload_reward
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
 
 
 # =============================================================================
@@ -675,9 +795,16 @@ def index():
 @login_required
 def stats():
     visits_data = load_visits()
+
+    # ⭐ Lista utenti per manager
+    all_users = []
+    if current_user.role == 'manager':
+        all_users = User.query.order_by(User.username).all()
+
     return render_template('stats.html',
                            visit_count=visits_data['count'],
                            recent_visitors=visits_data['visitors'][-10:],
+                           all_users=all_users,
                            current_user=current_user)
 
 
@@ -1169,6 +1296,32 @@ def delete_note(note_id):
 
     except Exception as e:
         return jsonify({'success': False, 'message': f'Errore: {str(e)}'})
+
+
+##========================================================
+#############UPLOAD IMMAGINI
+@app.route('/uploads/<filename>')
+@login_required
+def serve_upload(filename):
+    """Serve file caricati"""
+    file_record = UserFile.query.filter_by(filename=filename, user_id=current_user.id).first()
+    if file_record and os.path.exists(file_record.file_path):
+        return send_file(file_record.file_path)
+    return "File non trovato", 404
+
+
+@app.route('/note/<int:note_id>/attach_image', methods=['POST'])
+@login_required
+def attach_image_to_note(note_id):
+    note = UserNote.query.filter_by(id=note_id, user_id=current_user.id).first()
+    if not note or 'image' not in request.files:
+        return jsonify({'success': False})
+
+    file = request.files['image']
+    # Usa stessa logica upload_file
+    # Crea UserFile + NoteFile con attachment_type='inline_image'
+    return jsonify({'success': True, 'image_url': url})
+
 
 # =============================================================================
 # ADMIN/API ROUTES

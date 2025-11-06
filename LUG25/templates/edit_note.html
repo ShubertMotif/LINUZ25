@@ -36,6 +36,32 @@
                       style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem; resize: vertical;">{{ note.content }}</textarea>
         </div>
 
+        <!-- UPLOAD IMMAGINI -->
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">📎 Allega Immagini</label>
+            <input type="file" id="noteImages" multiple accept="image/*"
+                   style="width: 100%; padding: 0.8rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white;">
+            <div id="imagePreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; margin-top: 1rem;"></div>
+            <small style="opacity: 0.7; display: block; margin-top: 0.5rem;">💡 Puoi anche incollare immagini con Ctrl+V</small>
+        </div>
+
+        <!-- Immagini già allegate -->
+        {% if note.attached_files %}
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">🖼️ Immagini Allegate</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.5rem;">
+                {% for note_file in note.attached_files %}
+                <div style="position: relative;">
+                    <img src="/uploads/{{ note_file.file.filename }}"
+                         style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
+                    <button type="button" onclick="removeAttachment({{ note_file.id }})"
+                            style="position: absolute; top: 5px; right: 5px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 0.7rem;">✕</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
             <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Tipo Nota</label>
@@ -64,7 +90,6 @@
                    style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
         </div>
 
-        <!-- ⭐ DROPDOWN PROGETTO -->
         <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">📁 Assegna a Progetto</label>
             <select name="project_id" style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
@@ -75,47 +100,37 @@
                 </option>
                 {% endfor %}
             </select>
-            <small style="opacity: 0.7; font-size: 0.85rem; display: block; margin-top: 0.5rem;">
-                {% if note.project_id %}
-                Attualmente in: <strong>{{ note.project.name }}</strong>
-                {% else %}
-                Nota personale - seleziona un progetto per condividerla
-                {% endif %}
-            </small>
         </div>
 
-        <!-- URL esterno (solo per link) -->
         <div id="urlGroup" style="{% if note.note_type != 'link' %}display: none;{% endif %} margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">URL Esterno</label>
             <input type="url" name="external_url" value="{{ note.external_url or '' }}" placeholder="https://..."
                    style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
         </div>
 
-        <!-- Scadenza (solo per task) -->
         <div id="dueDateGroup" style="{% if note.note_type != 'task' %}display: none;{% endif %} margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Scadenza</label>
             <input type="date" name="due_date" value="{{ note.due_date.strftime('%Y-%m-%d') if note.due_date else '' }}"
                    style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 1rem;">
         </div>
 
-        <!-- Completamento task -->
         {% if note.note_type == 'task' %}
         <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3);">
-                <input type="checkbox" id="completed" name="completed" {% if note.completed %}checked{% endif %} style="width: 20px; height: 20px; cursor: pointer;">
-                <label for="completed" style="margin: 0; cursor: pointer; flex: 1;">✅ Segna come completata</label>
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px;">
+                <input type="checkbox" id="completed" name="completed" {% if note.completed %}checked{% endif %} style="width: 20px; height: 20px;">
+                <label for="completed" style="margin: 0; cursor: pointer;">✅ Segna come completata</label>
             </div>
         </div>
         {% endif %}
 
         <div style="display: flex; gap: 1rem; justify-content: center;">
-            <button type="submit" style="background: linear-gradient(45deg, #E7D454, #F4E869); color: #005B94; padding: 1rem 2rem; border: none; border-radius: 25px; font-weight: 700; cursor: pointer; font-size: 1rem;">
-                💾 Salva Modifiche
+            <button type="submit" style="background: linear-gradient(45deg, #E7D454, #F4E869); color: #005B94; padding: 1rem 2rem; border: none; border-radius: 25px; font-weight: 700; cursor: pointer;">
+                💾 Salva
             </button>
             <a href="/notes" style="background: rgba(255,255,255,0.2); color: white; padding: 1rem 2rem; border-radius: 25px; font-weight: 700; text-decoration: none; display: inline-block;">
                 ❌ Annulla
             </a>
-            <button type="button" onclick="deleteNote()" style="background: #EF4444; color: white; padding: 1rem 2rem; border: none; border-radius: 25px; font-weight: 700; cursor: pointer; font-size: 1rem;">
+            <button type="button" onclick="deleteNote()" style="background: #EF4444; color: white; padding: 1rem 2rem; border: none; border-radius: 25px; font-weight: 700; cursor: pointer;">
                 🗑️ Elimina
             </button>
         </div>
@@ -123,40 +138,98 @@
 </div>
 
 <script>
-    // Mostra/nascondi campi in base al tipo
-    document.getElementById('note_type').addEventListener('change', function() {
-        const urlGroup = document.getElementById('urlGroup');
-        const dueDateGroup = document.getElementById('dueDateGroup');
+// Tipo nota dinamico
+document.getElementById('note_type').addEventListener('change', function() {
+    document.getElementById('urlGroup').style.display = this.value === 'link' ? 'block' : 'none';
+    document.getElementById('dueDateGroup').style.display = this.value === 'task' ? 'block' : 'none';
+});
 
-        urlGroup.style.display = 'none';
-        dueDateGroup.style.display = 'none';
+// Preview immagini selezionate
+document.getElementById('noteImages').addEventListener('change', function(e) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    Array.from(e.target.files).forEach(file => {
+        const div = document.createElement('div');
+        div.style = 'position: relative;';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style = 'width: 100%; height: 100px; object-fit: cover; border-radius: 8px;';
+        div.appendChild(img);
+        preview.appendChild(div);
 
-        if (this.value === 'link') {
-            urlGroup.style.display = 'block';
-        } else if (this.value === 'task') {
-            dueDateGroup.style.display = 'block';
-        }
+        // Upload automatico
+        uploadImageToNote(file);
     });
+});
 
-    // Funzione elimina nota
-    function deleteNote() {
-        if (confirm('⚠️ Sei sicuro di voler eliminare questa nota? Questa azione non può essere annullata.')) {
-            fetch('/delete_note/{{ note.id }}', {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('✅ Nota eliminata');
-                    window.location.href = '/notes';
-                } else {
-                    alert('❌ Errore: ' + data.message);
-                }
-            })
-            .catch(error => {
-                alert('❌ Errore di rete');
-            });
+// Paste da clipboard
+document.addEventListener('paste', function(e) {
+    const items = e.clipboardData.items;
+    for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            uploadImageToNote(file);
+            showAlert('📎 Immagine incollata e caricata!', 'success');
         }
     }
+});
+
+// Upload immagine
+function uploadImageToNote(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    fetch('/note/{{ note.id }}/attach_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('✅ Immagine allegata!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    })
+    .catch(() => showAlert('❌ Errore upload', 'error'));
+}
+
+// Rimuovi allegato
+function removeAttachment(attachmentId) {
+    if (!confirm('Rimuovere questa immagine?')) return;
+
+    fetch(`/note/attachment/${attachmentId}`, {
+        method: 'DELETE'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('✅ Immagine rimossa', 'success');
+            setTimeout(() => location.reload(), 800);
+        }
+    });
+}
+
+// Elimina nota
+function deleteNote() {
+    if (confirm('⚠️ Eliminare questa nota?')) {
+        fetch('/delete_note/{{ note.id }}', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showAlert('✅ Nota eliminata', 'success');
+                setTimeout(() => window.location.href = '/notes', 800);
+            }
+        });
+    }
+}
+
+// Alert helper
+function showAlert(msg, type) {
+    const alert = document.createElement('div');
+    alert.textContent = msg;
+    alert.style = `position: fixed; top: 2rem; right: 2rem; background: ${type === 'success' ? '#10B981' : '#EF4444'}; color: white; padding: 1rem 1.5rem; border-radius: 10px; font-weight: 600; z-index: 9999; animation: slideIn 0.3s;`;
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), 3000);
+}
 </script>
 {% endblock %}
