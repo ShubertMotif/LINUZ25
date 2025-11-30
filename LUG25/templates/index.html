@@ -29,7 +29,7 @@
         .header {
             text-align: center;
             padding: 3rem 0;
-            margin-bottom: 4rem;
+            margin-bottom: 3rem;
         }
 
         .logo {
@@ -70,80 +70,113 @@
             font-weight: 300;
         }
 
+        /* ADG Counter */
+        .adg-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #E7D454, #FFD700);
+            color: #005B94;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            box-shadow: 0 10px 30px rgba(231, 212, 84, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .adg-counter.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .adg-counter.pulse {
+            animation: adgPulse 0.5s ease;
+        }
+
+        @keyframes adgPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Visit counter */
         .visit-counter {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 25px;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .visit-counter:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .visit-counter h3 {
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
+            text-align: center;
         }
 
         .visit-number {
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 800;
             color: #E7D454;
-        }
-
-        .login-btn {
-            background: linear-gradient(45deg, #E7D454, #F4E869);
-            color: #005B94;
-            padding: 1.2rem 2.5rem;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            display: inline-block;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-3px);
-            background: linear-gradient(45deg, #F4E869, white);
-            text-decoration: none;
-            color: #005B94;
         }
 
         /* Services */
         .services-container {
             display: flex;
             flex-direction: column;
-            gap: 3rem;
+            gap: 2rem;
+            margin-bottom: 2rem;
         }
 
         .service-block {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             border-radius: 30px;
-            padding: 3rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-block::before {
+            content: '👆 Clicca per scoprire';
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background: rgba(231, 212, 84, 0.9);
+            color: #005B94;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            opacity: 0.8;
+        }
+
+        .service-block.clicked::before {
+            content: '✅ +1 ADG';
+            background: #10B981;
+            color: white;
         }
 
         .service-block:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.15);
+            border-color: #E7D454;
+        }
+
+        .service-block.clicked {
+            border-color: #10B981;
         }
 
         .service-content {
             display: flex;
-            align-items: center;
-            gap: 3rem;
+            align-items: flex-start;
+            gap: 2rem;
         }
 
         .service-icon {
-            font-size: 4rem;
+            font-size: 3.5rem;
             min-width: 80px;
             text-align: center;
         }
@@ -153,65 +186,281 @@
         }
 
         .service-title {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .service-description {
             color: rgba(255, 255, 255, 0.9);
-            line-height: 1.6;
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+            line-height: 1.5;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            display: none;
         }
 
-        .service-btn {
-            background: linear-gradient(45deg, #E7D454, #F4E869);
-            color: #005B94;
+        .service-block.clicked .service-description {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Sub-features grid */
+        .sub-features {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .service-block.clicked .sub-features {
+            display: grid;
+            animation: fadeIn 0.5s ease 0.2s backwards;
+        }
+
+        .sub-feature {
+            background: rgba(0, 91, 148, 0.3);
+            padding: 1rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sub-feature:hover {
+            background: rgba(0, 91, 148, 0.5);
+            transform: scale(1.05);
+        }
+
+        .sub-feature.clicked {
+            border: 2px solid #10B981;
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .sub-feature.clicked::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            color: #10B981;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .sub-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .sub-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #005B94, #2980B9);
+            padding: 3rem;
+            border-radius: 30px;
+            border: 3px solid #E7D454;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalSlide 0.5s ease;
+        }
+
+        @keyframes modalSlide {
+            from { transform: scale(0.8) translateY(-50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #E7D454;
+        }
+
+        .modal p {
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .adg-reward {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #E7D454;
+            margin: 1rem 0;
+            text-shadow: 0 0 20px rgba(231, 212, 84, 0.5);
+        }
+
+        .adg-breakdown {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        .adg-breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .adg-breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            padding-top: 0.5rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
             padding: 1rem 2rem;
-            text-decoration: none;
+            border: none;
             border-radius: 25px;
             font-weight: 700;
+            cursor: pointer;
             transition: all 0.3s ease;
+            text-decoration: none;
             display: inline-block;
         }
 
-        .service-btn:hover {
-            transform: translateY(-3px);
-            background: linear-gradient(45deg, #F4E869, white);
-            text-decoration: none;
+        .btn-primary {
+            background: linear-gradient(45deg, #E7D454, #F4E869);
             color: #005B94;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(231, 212, 84, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         /* Mobile */
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
             .service-content {
                 flex-direction: column;
                 text-align: center;
-                gap: 2rem;
             }
 
-            .service-icon {
-                font-size: 3rem;
+            .adg-counter {
+                top: 10px;
+                right: 10px;
+                font-size: 1rem;
+                padding: 0.8rem 1.2rem;
             }
 
-            .logo {
-                width: 120px;
-                height: 120px;
-            }
-
-            .logo-text {
-                font-size: 2rem;
+            .sub-features {
+                grid-template-columns: 1fr;
             }
         }
+/* Pulsante Area Riservata */
+.reserved-area-btn {
+    display: inline-block;
+    position: relative;
+    background: linear-gradient(135deg, #005B94, #003D6B);
+    color: white;
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+    overflow: hidden;
+    border: 2px solid rgba(231, 212, 84, 0.5);
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0, 91, 148, 0.4);
+}
+
+.reserved-area-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(231, 212, 84, 0.1) 10px,
+        rgba(231, 212, 84, 0.1) 20px
+    );
+    animation: techFlow 3s linear infinite;
+}
+
+@keyframes techFlow {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.reserved-area-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(231, 212, 84, 0.6);
+    border-color: #E7D454;
+}
+
+.reserved-area-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+
+
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- ADG Counter -->
+        <div class="adg-counter" id="adgCounter">
+            💰 <span id="adgAmount">0</span> ADG
+        </div>
+
         <!-- Header -->
         <header class="header">
             <div class="logo">
@@ -222,21 +471,27 @@
             <p class="welcome-text">Innovazione e Eccellenza Tecnologica</p>
 
             <div class="visit-counter">
-                <h3>Visitatori Totali</h3>
+                <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">Visitatori</div>
                 <div class="visit-number">{{ visit_count }}</div>
             </div>
 
-            {% if current_user.is_authenticated %}
-            <a href="/stats" class="login-btn">🔐 Area riservata</a>
-            {% else %}
-            <a href="/login" class="login-btn">🔐 Area riservata</a>
-            {% endif %}
+
+<!-- ⭐ PULSANTE AREA RISERVATA -->
+{% if current_user.is_authenticated %}
+<a href="/stats" class="reserved-area-btn">
+    <span>🔐 Vai alla Dashboard</span>
+</a>
+{% else %}
+<a href="/login" class="reserved-area-btn">
+    <span>🔐 Area Riservata</span>
+</a>
+{% endif %}
         </header>
 
         <!-- Services -->
         <main class="services-container">
             <!-- Life Science -->
-            <section class="service-block">
+            <section class="service-block" data-service="biotech">
                 <div class="service-content">
                     <div class="service-icon">🧬</div>
                     <div class="service-info">
@@ -245,13 +500,35 @@
                             Soluzioni avanzate per ricerca biomedica, sviluppo farmaceutico e biotecnologie.
                             Acceleriamo l'innovazione nella scoperta di nuovi trattamenti.
                         </p>
-                        <a href="/life-science" class="service-btn">Esplora Life Science</a>
+
+                        <div class="sub-features">
+                            <div class="sub-feature" data-feature="biotech-pharma">
+                                <div class="sub-icon">🔬</div>
+                                <div class="sub-title">Ricerca Farmaceutica</div>
+                                <div class="sub-desc">Sviluppo nuovi farmaci</div>
+                            </div>
+                            <div class="sub-feature" data-feature="biotech-bio">
+                                <div class="sub-icon">🧪</div>
+                                <div class="sub-title">Biotecnologie</div>
+                                <div class="sub-desc">Medicina personalizzata</div>
+                            </div>
+                            <div class="sub-feature" data-feature="biotech-devices">
+                                <div class="sub-icon">🏥</div>
+                                <div class="sub-title">Dispositivi Medici</div>
+                                <div class="sub-desc">Design e certificazione</div>
+                            </div>
+                            <div class="sub-feature" data-feature="biotech-data">
+                                <div class="sub-icon">📊</div>
+                                <div class="sub-title">Analisi Dati</div>
+                                <div class="sub-desc">AI e machine learning</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- IT Services -->
-            <section class="service-block">
+            <section class="service-block" data-service="it">
                 <div class="service-content">
                     <div class="service-icon">💻</div>
                     <div class="service-info">
@@ -260,13 +537,35 @@
                             Trasformazione digitale completa con soluzioni cloud, cybersecurity avanzata e
                             sviluppo software su misura per il futuro digitale.
                         </p>
-                        <a href="/servizi-informatici" class="service-btn">Scopri IT Services</a>
+
+                        <div class="sub-features">
+                            <div class="sub-feature" data-feature="it-dev">
+                                <div class="sub-icon">🚀</div>
+                                <div class="sub-title">Sviluppo Software</div>
+                                <div class="sub-desc">Web, mobile, desktop</div>
+                            </div>
+                            <div class="sub-feature" data-feature="it-cloud">
+                                <div class="sub-icon">☁️</div>
+                                <div class="sub-title">Cloud & Infrastructure</div>
+                                <div class="sub-desc">AWS, Azure, Google Cloud</div>
+                            </div>
+                            <div class="sub-feature" data-feature="it-cyber">
+                                <div class="sub-icon">🔒</div>
+                                <div class="sub-title">Cybersecurity</div>
+                                <div class="sub-desc">Protezione totale</div>
+                            </div>
+                            <div class="sub-feature" data-feature="it-ai">
+                                <div class="sub-icon">🤖</div>
+                                <div class="sub-title">AI & ML</div>
+                                <div class="sub-desc">Intelligenza artificiale</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- Defense -->
-            <section class="service-block">
+            <section class="service-block" data-service="defense">
                 <div class="service-content">
                     <div class="service-icon">🛡️</div>
                     <div class="service-info">
@@ -275,26 +574,241 @@
                             Tecnologie strategiche per difesa nazionale, sistemi di sorveglianza avanzati e
                             soluzioni di sicurezza per infrastrutture critiche.
                         </p>
-                        <a href="/difesa" class="service-btn">Entra in Difesa</a>
+
+                        <div class="sub-features">
+                            <div class="sub-feature" data-feature="defense-systems">
+                                <div class="sub-icon">🎯</div>
+                                <div class="sub-title">Sistemi di Difesa</div>
+                                <div class="sub-desc">Radar e controllo</div>
+                            </div>
+                            <div class="sub-feature" data-feature="defense-cyber">
+                                <div class="sub-icon">🔐</div>
+                                <div class="sub-title">Cyber Warfare</div>
+                                <div class="sub-desc">Difesa informatica</div>
+                            </div>
+                            <div class="sub-feature" data-feature="defense-comms">
+                                <div class="sub-icon">🛰️</div>
+                                <div class="sub-title">Comunicazioni</div>
+                                <div class="sub-desc">Reti criptate</div>
+                            </div>
+                            <div class="sub-feature" data-feature="defense-intel">
+                                <div class="sub-icon">🔍</div>
+                                <div class="sub-title">Intelligence</div>
+                                <div class="sub-desc">Analisi strategica</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Crypto & Blockchain -->
-            <section class="service-block">
+            <!-- Fintech -->
+            <section class="service-block" data-service="fintech">
                 <div class="service-content">
                     <div class="service-icon">₿</div>
                     <div class="service-info">
                         <h2 class="service-title">Fintech & Blockchain</h2>
                         <p class="service-description">
                             Soluzioni innovative per trading, DeFi, NFT e tecnologie blockchain.
-                            Il futuro della finanza digitale decentralizzata.
+                            Token ADG, mining pool RTX3060 e finanza decentralizzata.
                         </p>
-                        <a href="/finanza" class="service-btn">Esplora Fintech</a>
+
+                        <div class="sub-features">
+                            <div class="sub-feature" data-feature="fintech-token">
+                                <div class="sub-icon">💰</div>
+                                <div class="sub-title">Token ADG</div>
+                                <div class="sub-desc">Blockchain nativa</div>
+                            </div>
+                            <div class="sub-feature" data-feature="fintech-mining">
+                                <div class="sub-icon">⛏️</div>
+                                <div class="sub-title">Mining Pool</div>
+                                <div class="sub-desc">RTX3060 powered</div>
+                            </div>
+                            <div class="sub-feature" data-feature="fintech-trading">
+                                <div class="sub-icon">📈</div>
+                                <div class="sub-title">Trading</div>
+                                <div class="sub-desc">DeFi e crypto</div>
+                            </div>
+                            <div class="sub-feature" data-feature="fintech-corporate">
+                                <div class="sub-icon">🏦</div>
+                                <div class="sub-title">Corporate Finance</div>
+                                <div class="sub-desc">M&A e IPO</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
         </main>
     </div>
+
+    <!-- Modal Registrazione -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <h2>🎉 Ottimo Lavoro!</h2>
+            <p>Hai esplorato i nostri servizi e guadagnato:</p>
+            <div class="adg-reward"><span id="modalAdg">0</span> ADG</div>
+
+            <div class="adg-breakdown" id="adgBreakdown"></div>
+
+            <p>Registrati GRATIS per salvare i tuoi token e accedere alla piattaforma completa!</p>
+            <div class="modal-buttons">
+                <a href="/register" class="btn btn-primary" id="registerBtn">🚀 Registrati Ora</a>
+                <button class="btn btn-secondary" onclick="closeModal()">Continua a esplorare</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adgEarned = 0;
+        let clickedServices = new Set();
+        let clickedFeatures = new Set();
+        let adgHistory = [];
+
+        const serviceBlocks = document.querySelectorAll('.service-block');
+        const adgCounter = document.getElementById('adgCounter');
+        const adgAmount = document.getElementById('adgAmount');
+        const modal = document.getElementById('registerModal');
+        const modalAdg = document.getElementById('modalAdg');
+        const adgBreakdown = document.getElementById('adgBreakdown');
+
+        // Click servizio principale
+        serviceBlocks.forEach(block => {
+            block.addEventListener('click', function(e) {
+                // Evita doppio trigger se clicco su sub-feature
+                if (e.target.closest('.sub-feature')) return;
+
+                const serviceName = this.dataset.service;
+
+                if (!clickedServices.has(serviceName)) {
+                    clickedServices.add(serviceName);
+                    this.classList.add('clicked');
+
+                    addADG(1, `Servizio: ${serviceName}`);
+                    checkModalTrigger();
+                }
+            });
+        });
+
+        // Click sub-features
+        document.addEventListener('click', function(e) {
+            const subFeature = e.target.closest('.sub-feature');
+            if (!subFeature) return;
+
+            e.stopPropagation();
+            const featureName = subFeature.dataset.feature;
+
+            if (!clickedFeatures.has(featureName)) {
+                clickedFeatures.add(featureName);
+                subFeature.classList.add('clicked');
+
+                addADG(0.5, `Feature: ${featureName}`);
+                checkModalTrigger();
+            }
+        });
+
+        function addADG(amount, source) {
+            adgEarned += amount;
+            adgAmount.textContent = adgEarned.toFixed(1);
+
+            // Salva storia
+            adgHistory.push({
+                amount: amount,
+                source: source,
+                timestamp: new Date().toISOString()
+            });
+
+            // Salva in localStorage
+            saveADGData();
+
+            // Mostra counter
+            adgCounter.classList.add('show');
+            adgCounter.classList.add('pulse');
+            setTimeout(() => adgCounter.classList.remove('pulse'), 500);
+        }
+
+        function checkModalTrigger() {
+            const totalClicks = clickedServices.size + clickedFeatures.size;
+
+            if (totalClicks >= 5 && !modal.classList.contains('show')) {
+                setTimeout(() => {
+                    showModal();
+                }, 1000);
+            }
+        }
+
+        function showModal() {
+            modalAdg.textContent = adgEarned.toFixed(1);
+
+            // Genera breakdown
+            let breakdownHTML = '';
+            adgHistory.forEach(item => {
+                breakdownHTML += `
+                    <div class="adg-breakdown-item">
+                        <span>${item.source}</span>
+                        <span>+${item.amount} ADG</span>
+                    </div>
+                `;
+            });
+            breakdownHTML += `
+                <div class="adg-breakdown-item">
+                    <span>TOTALE</span>
+                    <span>${adgEarned.toFixed(1)} ADG</span>
+                </div>
+            `;
+            adgBreakdown.innerHTML = breakdownHTML;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        function saveADGData() {
+            const data = {
+                total: adgEarned,
+                history: adgHistory,
+                clickedServices: Array.from(clickedServices),
+                clickedFeatures: Array.from(clickedFeatures)
+            };
+            localStorage.setItem('adelchi_adg_data', JSON.stringify(data));
+        }
+
+        function loadADGData() {
+            const saved = localStorage.getItem('adelchi_adg_data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                adgEarned = data.total || 0;
+                adgHistory = data.history || [];
+                clickedServices = new Set(data.clickedServices || []);
+                clickedFeatures = new Set(data.clickedFeatures || []);
+
+                adgAmount.textContent = adgEarned.toFixed(1);
+                if (adgEarned > 0) adgCounter.classList.add('show');
+
+                // Ripristina stato visivo
+                clickedServices.forEach(service => {
+                    const block = document.querySelector(`[data-service="${service}"]`);
+                    if (block) block.classList.add('clicked');
+                });
+
+                clickedFeatures.forEach(feature => {
+                    const feat = document.querySelector(`[data-feature="${feature}"]`);
+                    if (feat) feat.classList.add('clicked');
+                });
+            }
+        }
+
+        // Passa dati ADG a registrazione
+        document.getElementById('registerBtn').addEventListener('click', function(e) {
+            const adgData = localStorage.getItem('adelchi_adg_data');
+            if (adgData) {
+                // Aggiungi a URL come parametro
+                this.href = '/register?adg_data=' + encodeURIComponent(adgData);
+            }
+        });
+
+        // Carica dati salvati all'avvio
+        loadADGData();
+    </script>
 </body>
 </html>
