@@ -640,10 +640,10 @@
         <!-- Header -->
         <header class="header">
             <!-- Logo Canvas Animato Cliccabile -->
-            <div class="logo" id="logoCanvas" onclick="window.location.href='{% if current_user.is_authenticated %}/stats{% else %}/login{% endif %}'">
+            <div class="logo" onclick="window.location.href='{% if current_user.is_authenticated %}/stats{% else %}/login{% endif %}'">
                 <canvas id="canvas3d" width="450" height="450"></canvas>
             </div>
-            <div class="construction-note" data-lang-key="construction">Site under Construction</div>
+
             <h1 class="logo-text">ADELCHI GROUP</h1>
             <p class="welcome-text" data-lang-key="welcome">Innovazione e Eccellenza Tecnologica</p>
 
@@ -662,6 +662,7 @@
             </a>
             {% endif %}
 
+            <div class="construction-note" data-lang-key="construction">Site under Construction</div>
         </header>
 
         <!-- Services Grid 2x2 -->
@@ -970,7 +971,7 @@
         document.getElementById('langSelect').value = savedLang;
         if (savedLang !== 'it') switchLanguage(savedLang);
 
-        // ===== LOGO 3D ANIMATION (4 FASI ARMONICHE) =====
+        // ===== LOGO 3D ANIMATION (3 PHASES) =====
         function initLogoAnimation() {
             const canvas = document.getElementById('canvas3d');
             const ctx = canvas.getContext('2d');
@@ -987,7 +988,6 @@
             let time = 0;
             let phase = 0;
             let phaseTime = 0;
-            const phaseDuration = 4; // secondi per fase
 
             class Arm {
                 constructor(baseAngle) {
@@ -1007,7 +1007,6 @@
                     ctx.translate(offsetX, offsetY);
                     ctx.rotate(this.angle + this.rotation);
 
-                    // 3D flip effect
                     const scaleY = Math.cos(this.flipZ);
                     const scaleX = 1;
 
@@ -1088,24 +1087,16 @@
                 new Arm(Math.PI * 4/3)
             ];
 
-            function easeInOutCubic(t) {
-                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-            }
-
             function animate() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 time += 0.016;
                 phaseTime += 0.016;
 
-                // 4 FASI ARMONICHE
-                if (phaseTime > phaseDuration) {
+                if (phaseTime > 4) {
                     phaseTime = 0;
-                    phase = (phase + 1) % 4;
+                    phase = (phase + 1) % 3;
                 }
-
-                const progress = phaseTime / phaseDuration;
-                const eased = easeInOutCubic(progress);
 
                 // FASE 0: Chiuso, rotazione base
                 if (phase === 0) {
@@ -1117,33 +1108,33 @@
                     });
                 }
 
-                // FASE 1: Apertura + rotazione aperto
+                // FASE 1: Apertura + rotazione
                 else if (phase === 1) {
+                    const progress = Math.min(phaseTime / 2, 1);
+                    const eased = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
                     arms.forEach((arm, i) => {
                         arm.angle = arm.baseAngle + time * 0.3;
                         arm.distance = eased * 70;
-                        arm.rotation = eased * Math.PI * 0.5 * (i % 2 === 0 ? 1 : -1);
+                        arm.rotation = eased * Math.PI * 2 * (i % 2 === 0 ? 1 : -1);
                         arm.flipZ = 0;
                     });
                 }
 
-                // FASE 2: Rotazione 3D in profondità (aperto)
+                // FASE 2: FLIP 3D
                 else if (phase === 2) {
-                    arms.forEach((arm, i) => {
+                    const progress = Math.min(phaseTime / 2, 1);
+                    const eased = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                    arms.forEach((arm) => {
                         arm.angle = arm.baseAngle + time * 0.3;
                         arm.distance = 70;
-                        arm.rotation = Math.PI * 0.5 * (i % 2 === 0 ? 1 : -1);
+                        arm.rotation = 0;
                         arm.flipZ = eased * Math.PI * 2;
-                    });
-                }
-
-                // FASE 3: Richiusura
-                else if (phase === 3) {
-                    arms.forEach((arm, i) => {
-                        arm.angle = arm.baseAngle + time * 0.3;
-                        arm.distance = (1 - eased) * 70;
-                        arm.rotation = (1 - eased) * Math.PI * 0.5 * (i % 2 === 0 ? 1 : -1);
-                        arm.flipZ = 0;
                     });
                 }
 
@@ -1167,6 +1158,7 @@
                 ctx.arc(centerX - 5, centerY - 5, 8, 0, Math.PI * 2);
                 ctx.fill();
 
+                // Disegna braccia
                 arms.forEach(arm => arm.draw());
 
                 requestAnimationFrame(animate);
@@ -1306,6 +1298,7 @@
             }
         });
 
+        // ===== INIT =====
         initLogoAnimation();
         loadADGData();
     </script>
