@@ -812,8 +812,20 @@ def stats():
 # AUTHENTICATION ROUTES
 # =============================================================================
 
+import urllib.parse
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    # Recupera dati ADG dalla query string
+    adg_data_param = request.args.get('adg_data')
+    adg_exploration_data = None
+
+    if adg_data_param:
+        try:
+            adg_exploration_data = json.loads(urllib.parse.unquote(adg_data_param))
+        except:
+            adg_exploration_data = None
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -834,18 +846,54 @@ def register():
         # Genera wallet address
         new_user.wallet_address = blockchain.generate_wallet_address(new_user.id)
 
-        # Bonus registrazione: 5 ADG
-        blockchain.reward_user(new_user, blockchain.registration_reward, 'registration')
+        # Bonus registrazione base: 10 ADG
+        total_bonus = blockchain.registration_reward
+        blockchain.reward_user(new_user, total_bonus, 'registration')
+
+        # ⭐ BONUS ESPLORAZIONE SITO
+        if adg_exploration_data:
+            exploration_bonus = adg_exploration_data.get('total', 0)
+
+            if exploration_bonus > 0:
+                # Aggiungi bonus esplorazione
+                blockchain.reward_user(new_user, exploration_bonus, 'site_exploration')
+                total_bonus += exploration_bonus
+
+                # Crea nota riepilogo esplorazione
+                history_text = "\n".join([
+                    f"• {h['source']}: +{h['amount']} ADG"
+                    for h in adg_exploration_data.get('history', [])
+                ])
+
+                welcome_note = UserNote(
+                    user_id=new_user.id,
+                    title="🎉 Bonus Esplorazione Sito",
+                    content=f"Complimenti! Hai esplorato i nostri servizi prima di registrarti.\n\n"
+                            f"Totale guadagnato: {exploration_bonus} ADG\n\n"
+                            f"Dettaglio:\n{history_text}\n\n"
+                            f"Questi token sono stati aggiunti automaticamente al tuo wallet!",
+                    note_type='text',
+                    priority='high',
+                    tags='bonus,welcome,exploration'
+                )
+                db.session.add(welcome_note)
+
+        db.session.commit()
 
         # ⭐ Messaggio diverso per manager
         if role == 'manager':
-            flash(f"🎉 Benvenuto Manager! Ricevuti {blockchain.registration_reward} ADG. Puoi creare progetti!")
+            flash(f"🎉 Benvenuto Manager! Ricevuti {total_bonus} ADG totali. Puoi creare progetti!")
         else:
-            flash(f"Registrazione completata! Ricevuti {blockchain.registration_reward} ADG di benvenuto!")
+            if adg_exploration_data and exploration_bonus > 0:
+                flash(f"🎊 Registrazione completata! Ricevuti {total_bonus} ADG "
+                      f"({blockchain.registration_reward} registrazione + {exploration_bonus} esplorazione)!")
+            else:
+                flash(f"Registrazione completata! Ricevuti {blockchain.registration_reward} ADG di benvenuto!")
 
         return redirect(url_for('login'))
 
-    return render_template('register.html')
+    return render_template('register.html',
+                           adg_preview=adg_exploration_data.get('total', 0) if adg_exploration_data else 0)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

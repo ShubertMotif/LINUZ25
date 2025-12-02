@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocollo Test Gel Polydecene-Styrene</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .page-break { page-break-after: always; }
+            @page { size: A4; margin: 15mm; }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 15mm;
+            background: white;
+            color: #000;
+        }
+
+        h1 {
+            color: #1e40af;
+            font-size: 20pt;
+            text-align: center;
+            border-bottom: 3px solid #1e40af;
+            padding-bottom: 8px;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            color: #1e40af;
+            font-size: 16pt;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            color: #1e40af;
+            font-size: 13pt;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 3px;
+        }
+
+        h4 {
+            color: #374151;
+            font-size: 11pt;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .doc-info {
+            text-align: center;
+            font-size: 9pt;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 15px;
+        }
+
+        .blue-box {
+            background-color: #dbeafe;
+            border-left: 4px solid #1e40af;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .red-box {
+            background-color: #fee2e2;
+            border-left: 4px solid #dc2626;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .yellow-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .gray-box {
+            background-color: #f3f4f6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .green-box {
+            background-color: #d1fae5;
+            border: 2px solid #10b981;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .blue-test-box {
+            background-color: #dbeafe;
+            border: 2px solid #3b82f6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 9pt;
+        }
+
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 5px 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+
+        td.center {
+            text-align: center;
+        }
+
+        ul, ol {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+
+        li {
+            margin: 3px 0;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 9pt;
+            color: #6b7280;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        strong {
+            font-weight: bold;
+        }
+
+        /* Grafico semplificato */
+        .chart-container {
+            background: #f9fafb;
+            border: 2px solid #9333ea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .chart-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 11pt;
+        }
+
+        .chart-row {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 9pt;
+        }
+
+        .chart-label {
+            width: 80px;
+            text-align: right;
+            padding-right: 10px;
+            font-weight: bold;
+        }
+
+        .chart-bar {
+            flex: 1;
+            height: 25px;
+            position: relative;
+            border: 1px solid #d1d5db;
+            background: white;
+        }
+
+        .zone-critical {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 15%;
+            background: #fee2e2;
+            border-left: 2px solid #dc2626;
+        }
+
+        .zone-target {
+            position: absolute;
+            right: 15%;
+            top: 0;
+            height: 100%;
+            width: 20%;
+            background: #fef3c7;
+            border-left: 2px dashed #f59e0b;
+        }
+
+        .curve-fast {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 60%;
+            background: linear-gradient(to right, #d1fae5, #10b981);
+            opacity: 0.6;
+        }
+
+        .curve-slow {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 85%;
+            background: linear-gradient(to right, #e5e7eb, #9ca3af);
+            opacity: 0.4;
+        }
+
+        .marker {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .marker-start {
+            left: 2%;
+            background: #10b981;
+        }
+
+        .marker-stop {
+            right: 17%;
+            background: #dc2626;
+        }
+
+        .chart-timeline {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-left: 90px;
+            font-size: 8pt;
+        }
+
+        .timeline-point {
+            text-align: center;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            padding: 8px;
+            font-size: 8pt;
+            border-radius: 4px;
+        }
+
+        .legend-green {
+            background: #d1fae5;
+            border-left: 3px solid #10b981;
+        }
+
+        .legend-red {
+            background: #fee2e2;
+            border-left: 3px solid #dc2626;
+        }
+    </style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="header">
+    <h1>PROTOCOLLO SPERIMENTALE</h1>
+    <h2>Test Gel Polydecene-Styrene per Applicazioni Cosmetiche</h2>
+    <div class="doc-info">
+        Documento tecnico interno - EICO Novachem<br>
+        Data: Novembre 2025 | Operatore: Mattia Selmi
+    </div>
+</div>
+
+<div class="blue-box">
+    <h4>🔬 Obiettivo del Test</h4>
+    <p>Verificare se lo <strong>styrene monomer</strong> può polimerizzare in situ nell'hydrogenated polydecene utilizzando solo il calore, per ottenere un gel cosmetico stabile simile al GEL ART (viscosità target: ~380.000 mPa·s).</p>
+</div>
+
+<div class="section">
+    <h3>Materiali e Strumentazione</h3>
+    <div class="two-col">
+        <div>
+            <h4>Reagenti:</h4>
+            <ul>
+                <li>Hydrogenated Polydecene (CAS: 68037-01-4)</li>
+                <li>Styrene monomer (CAS: 100-42-5)</li>
+            </ul>
+        </div>
+        <div>
+            <h4>Strumentazione:</h4>
+            <ul>
+                <li>Micropipetta 1000 µL</li>
+                <li>Beaker da 100 ml</li>
+                <li>Agitatore magnetico con riscaldamento</li>
+                <li>Termometro</li>
+                <li>Ancoretta magnetica</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="red-box">
+    <h4>⚠️ NORME DI SICUREZZA - STYRENE MONOMER</h4>
+    <div class="two-col">
+        <div>
+            <strong>Pericoli:</strong>
+            <ul>
+                <li>Infiammabile (H226)</li>
+                <li>Possibile cancerogeno (Cat. 2B)</li>
+                <li>Vapori irritanti</li>
+                <li>Polimerizza spontaneamente</li>
+            </ul>
+        </div>
+        <div>
+            <strong>Protezioni obbligatorie:</strong>
+            <ul>
+                <li>Cappa aspirante SEMPRE accesa</li>
+                <li>Guanti nitrile resistenti</li>
+                <li>Occhiali di protezione</li>
+                <li>Camice da laboratorio</li>
+                <li>NO fiamme libere</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PAGE 2 -->
+<h3>FORMULAZIONI E PROCEDURE</h3>
+
+<div class="blue-test-box">
+    <h4>TEST A - Styrene 1%</h4>
+    <p><strong>Composizione (50 ml totali):</strong></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Ingrediente</th>
+                <th class="center">Quantità</th>
+                <th class="center">%</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hydrogenated Polydecene</td>
+                <td class="center">49.5 ml</td>
+                <td class="center">99%</td>
+            </tr>
+            <tr>
+                <td>Styrene monomer</td>
+                <td class="center">0.5 ml (500 µL)</td>
+                <td class="center">1%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>Procedura:</strong></p>
+    <ol>
+        <li><strong>Fase 1 - Riscaldamento:</strong> Versare 49.5 ml polydecene in beaker, riscaldare a 80-90°C con agitazione moderata per 10-15 min</li>
+        <li><strong>Fase 2 - Aggiunta styrene:</strong> Prelevare 500 µL styrene con micropipetta, aggiungere goccia a goccia sotto agitazione medio-alta</li>
+        <li><strong>Fase 3 - Polimerizzazione:</strong> Mantenere 80-90°C per 30-60 min con agitazione continua</li>
+        <li><strong>Fase 4 - Raffredamento:</strong> Raffreddare lentamente a temperatura ambiente (20-30 min) mantenendo agitazione</li>
+    </ol>
+</div>
+
+<div class="green-box">
+    <h4>TEST B - Styrene 2%</h4>
+    <p><strong>Composizione (50 ml totali):</strong></p>
+    <table>
+        <thead>
+            <tr>
+                <th>Ingrediente</th>
+                <th class="center">Quantità</th>
+                <th class="center">%</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Hydrogenated Polydecene</td>
+                <td class="center">49.0 ml</td>
+                <td class="center">98%</td>
+            </tr>
+            <tr>
+                <td>Styrene monomer</td>
+                <td class="center">1.0 ml (1000 µL)</td>
+                <td class="center">2%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>Procedura:</strong></p>
+    <p><em>Identica al TEST A, utilizzando 1000 µL (1.0 ml) di styrene monomer</em></p>
+</div>
+
+<div class="page-break"></div>
+
+<!-- PAGE 3 -->
+<h3>INIZIATORI E INIBITORI</h3>
+
+<h4>Iniziatori Radicalici (accelerano polimerizzazione)</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Iniziatore</th>
+            <th>CAS</th>
+            <th>T decomp.</th>
+            <th>Dosaggio</th>
+            <th>Note</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Perossido di Lauroile</strong></td>
+            <td>105-74-8</td>
+            <td>60-65°C</td>
+            <td>0.1-0.3%</td>
+            <td>✅ Consigliato per cosmesi</td>
+        </tr>
+        <tr>
+            <td><strong>Perossido di Benzoile</strong></td>
+            <td>94-36-0</td>
+            <td>70-80°C</td>
+            <td>0.1-0.5%</td>
+            <td>Efficace, economico</td>
+        </tr>
+        <tr>
+            <td><strong>AIBN</strong></td>
+            <td>78-67-1</td>
+            <td>60-70°C</td>
+            <td>0.05-0.2%</td>
+            <td>❌ Residui nitrile</td>
+        </tr>
+        <tr>
+            <td><strong>TBPB</strong></td>
+            <td>614-45-9</td>
+            <td>100-110°C</td>
+            <td>0.2-0.5%</td>
+            <td>Per T elevate</td>
+        </tr>
+    </tbody>
+</table>
+
+<h4>Inibitori/Stoppatori (bloccano polimerizzazione)</h4>
+<table>
+    <thead>
+        <tr>
+            <th>Inibitore</th>
+            <th>CAS</th>
+            <th>Dosaggio</th>
+            <th>Efficacia</th>
+            <th>Note</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>MEHQ</strong></td>
+            <td>150-76-5</td>
+            <td>10-100 ppm</td>
+            <td>⭐⭐⭐⭐</td>
+            <td>✅ Standard industria</td>
+        </tr>
+        <tr>
+            <td><strong>Idrochinone</strong></td>
+            <td>123-31-9</td>
+            <td>10-200 ppm</td>
+            <td>⭐⭐⭐</td>
+            <td>Già nello styrene commerciale</td>
+        </tr>
+        <tr>
+            <td><strong>4-tert-Butilcatecolo</strong></td>
+            <td>98-29-3</td>
+            <td>50-200 ppm</td>
+            <td>⭐⭐⭐⭐⭐</td>
+            <td>Efficace ad alta T</td>
+        </tr>
+        <tr>
+            <td><strong>Tocoferolo (Vit. E)</strong></td>
+            <td>10191-41-0</td>
+            <td>0.01-0.1%</td>
+            <td>⭐⭐⭐</td>
+            <td>✅ Grado cosmetico</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="chart-container">
+    <div class="chart-title">DIAGRAMMA PROCESSO: Viscosità vs Tempo/Temperatura</div>
+
+    <div class="chart-row">
+        <div class="chart-label">380.000</div>
+        <div class="chart-bar">
+            <div class="zone-critical"></div>
+            <div style="position: absolute; right: 5px; top: 3px; font-size: 8pt; color: #dc2626; font-weight: bold;">🛑 ZONA CRITICA</div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div class="chart-label">300.000</div>
+        <div class="chart-bar">
+            <div class="zone-target"></div>
+            <div style="position: absolute; right: 20%; top: 3px; font-size: 8pt; color: #f59e0b; font-weight: bold;">⚠️ Target</div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div class="chart-label">150.000</div>
+        <div class="chart-bar"></div>
+    </div>
+
+    <div class="chart-row">
+        <div class="chart-label">50.000</div>
+        <div class="chart-bar">
+            <div class="curve-slow"></div>
+            <div class="curve-fast"></div>
+            <div class="marker marker-start" title="Aggiungi iniziatore"></div>
+            <div class="marker marker-stop" title="Aggiungi inibitore"></div>
+            <div style="position: absolute; left: 5px; top: 3px; font-size: 7pt; color: #10b981; font-weight: bold;">↑ CON iniziatore</div>
+            <div style="position: absolute; left: 5px; bottom: 3px; font-size: 7pt; color: #6b7280;">Senza iniziatore</div>
+        </div>
+    </div>
+
+    <div class="chart-row">
+        <div class="chart-label">1.000</div>
+        <div class="chart-bar">
+            <div style="position: absolute; left: 5px; top: 3px; font-size: 8pt; color: #1e40af; font-weight: bold;">✅ START: Polydecene liquido</div>
+        </div>
+    </div>
+
+    <div class="chart-timeline">
+        <div class="timeline-point"><strong>0 min</strong><br>T ambiente</div>
+        <div class="timeline-point"><strong>15 min</strong><br>80°C</div>
+        <div class="timeline-point"><strong>45 min</strong><br>80-90°C</div>
+        <div class="timeline-point"><strong>60 min</strong><br>Raffreddamento</div>
+    </div>
+
+    <div class="legend-grid">
+        <div class="legend-item legend-green">
+            <strong>✅ Quando aggiungere INIZIATORE:</strong>
+            <ul style="margin: 3px 0; padding-left: 15px;">
+                <li>All'inizio, con lo styrene</li>
+                <li>A temperatura ambiente</li>
+                <li>Prima della polimerizzazione</li>
+            </ul>
+        </div>
+        <div class="legend-item legend-red">
+            <strong>🛑 Quando aggiungere INIBITORE:</strong>
+            <ul style="margin: 3px 0; padding-left: 15px;">
+                <li>Viscosità vicina al target</li>
+                <li>Reazione troppo veloce</li>
+                <li>Per bloccare e stabilizzare</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h3>Parametri da Monitorare</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Parametro</th>
+            <th class="center">Test A (1%)</th>
+            <th class="center">Test B (2%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Temperatura polimerizzazione</td>
+            <td class="center">80-90°C</td>
+            <td class="center">80-90°C</td>
+        </tr>
+        <tr>
+            <td>Tempo a temperatura</td>
+            <td class="center">30-60 min</td>
+            <td class="center">30-60 min</td>
+        </tr>
+        <tr>
+            <td>Viscosità apparente (durante)</td>
+            <td class="center">Annotare</td>
+            <td class="center">Annotare</td>
+        </tr>
+        <tr>
+            <td>Viscosità finale (Brookfield)</td>
+            <td class="center">Misurare</td>
+            <td class="center">Misurare</td>
+        </tr>
+        <tr>
+            <td>Aspetto (trasparenza)</td>
+            <td class="center">Osservare</td>
+            <td class="center">Osservare</td>
+        </tr>
+        <tr>
+            <td>Sensorialità (sticky/flowing)</td>
+            <td class="center">Testare</td>
+            <td class="center">Testare</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Valutazione Risultati</h3>
+
+<div class="gray-box">
+    <strong>Caratteristiche target:</strong>
+    <ul>
+        <li>Gel trasparente</li>
+        <li>Viscosità ~380.000 mPa·s (Brookfield, 20°C)</li>
+        <li>Sensorialità non eccessivamente sticky</li>
+        <li>Buon flowing (capacità di scorrimento)</li>
+    </ul>
+</div>
+
+<div class="gray-box">
+    <strong>Test di stabilità:</strong>
+    <ul>
+        <li>Mescolare 50% gel ottenuto + oli vegetali leggeri + 1% pigmenti</li>
+        <li>Verificare mantenimento viscosità dopo 24-48h</li>
+        <li>Confrontare sensorialità con GEL ART originale</li>
+    </ul>
+</div>
+
+<div class="yellow-box">
+    <strong>Possibili scenari:</strong>
+    <ul>
+        <li><strong>Scenario 1:</strong> Si forma gel stabile con viscosità adeguata → Processo industrializzabile</li>
+        <li><strong>Scenario 2:</strong> Viscosità troppo bassa → Serve iniziatore radicalico o T più alta</li>
+        <li><strong>Scenario 3:</strong> Gel instabile (degrada nel tempo) → Come caso ART Cosmetics</li>
+    </ul>
+</div>
+
+<div class="gray-box">
+    <strong>Note Tecniche:</strong>
+    <ul>
+        <li>Styrene polimerizza spontaneamente a caldo, ma il processo è lento senza iniziatore</li>
+        <li>Temperatura 80-90°C dovrebbe iniziare polimerizzazione radicalica termica</li>
+        <li>Polydecene agisce da carrier/diluente ma non è un vero co-reattivo</li>
+        <li>Se non funziona, considerare: T più alta (100-120°C), iniziatore (AIBN, perossidi), tempo più lungo (2-4h)</li>
+    </ul>
+</div>
+
+<div class="footer">
+    EICO Novachem - Documento Tecnico Interno<br>
+    Data: Novembre 2025 | Operatore: Mattia Selmi<br>
+    <em>Questo documento è riservato e confidenziale</em>
+</div>
+
+</body>
+</html>
