@@ -19,6 +19,34 @@
             overflow-x: hidden;
         }
 
+        /* Language Switcher */
+        .lang-switcher {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .lang-switcher select {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .lang-switcher select option {
+            background: #005B94;
+            color: white;
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -32,24 +60,24 @@
             margin-bottom: 3rem;
         }
 
+        /* Logo Canvas Animato */
         .logo {
-            width: 180px;
-            height: 180px;
+            width: 450px;
+            height: 450px;
             margin: 0 auto 2rem;
-            animation: logoBounce 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
         }
 
-        .logo img {
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo canvas {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            border-radius: 50%;
-            border: 3px solid rgba(255, 255, 255, 0.4);
-        }
-
-        @keyframes logoBounce {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
         }
 
         .logo-text {
@@ -70,7 +98,7 @@
             font-weight: 300;
         }
 
-        /* ADG Counter */
+        /* ADG Counter Espandibile */
         .adg-counter {
             position: fixed;
             top: 20px;
@@ -86,6 +114,8 @@
             opacity: 0;
             transform: scale(0);
             transition: all 0.3s ease;
+            cursor: pointer;
+            max-width: 90vw;
         }
 
         .adg-counter.show {
@@ -97,9 +127,79 @@
             animation: adgPulse 0.5s ease;
         }
 
+        .adg-counter.expanded {
+            border-radius: 25px;
+            padding: 1.5rem;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
         @keyframes adgPulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
+            50% { transform: scale(1.15); }
+        }
+
+        .adg-counter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .adg-counter-body {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid rgba(0, 91, 148, 0.3);
+        }
+
+        .adg-counter.expanded .adg-counter-body {
+            display: block;
+        }
+
+        .adg-tag {
+            background: rgba(0, 91, 148, 0.2);
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            margin: 0.3rem;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+
+        .dashboard-preview {
+            background: rgba(0, 91, 148, 0.15);
+            padding: 1rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+        }
+
+        .dashboard-preview h4 {
+            margin-bottom: 0.8rem;
+            font-size: 1rem;
+        }
+
+        .dashboard-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+        }
+
+        .btn-dashboard {
+            background: #005B94;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .btn-dashboard:hover {
+            background: #003D6B;
+            transform: translateY(-2px);
         }
 
         /* Visit counter */
@@ -119,10 +219,68 @@
             color: #E7D454;
         }
 
+        /* Pulsante Area Riservata */
+        .reserved-area-btn {
+            display: inline-block;
+            position: relative;
+            background: linear-gradient(135deg, #005B94, #003D6B);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            overflow: hidden;
+            border: 2px solid rgba(231, 212, 84, 0.5);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 91, 148, 0.4);
+            margin-bottom: 0.5rem;
+        }
+
+        .reserved-area-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 10px,
+                rgba(231, 212, 84, 0.1) 10px,
+                rgba(231, 212, 84, 0.1) 20px
+            );
+            animation: techFlow 3s linear infinite;
+        }
+
+        @keyframes techFlow {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .reserved-area-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(231, 212, 84, 0.6);
+            border-color: #E7D454;
+        }
+
+        .reserved-area-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .construction-note {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
         /* Services */
         .services-container {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
             margin-bottom: 2rem;
         }
@@ -140,7 +298,7 @@
         }
 
         .service-block::before {
-            content: '👆 Clicca per scoprire';
+            content: '👆';
             position: absolute;
             top: 10px;
             right: 20px;
@@ -172,21 +330,23 @@
         .service-content {
             display: flex;
             align-items: flex-start;
-            gap: 2rem;
+            gap: 1.5rem;
+            flex-direction: column;
+            text-align: center;
         }
 
         .service-icon {
             font-size: 3.5rem;
-            min-width: 80px;
-            text-align: center;
+            width: 100%;
         }
 
         .service-info {
             flex: 1;
+            width: 100%;
         }
 
         .service-title {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
         }
@@ -194,7 +354,7 @@
         .service-description {
             color: rgba(255, 255, 255, 0.9);
             line-height: 1.5;
-            font-size: 1rem;
+            font-size: 0.95rem;
             margin-bottom: 1.5rem;
             display: none;
         }
@@ -207,9 +367,9 @@
         /* Sub-features grid */
         .sub-features {
             display: none;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
         }
 
         .service-block.clicked .sub-features {
@@ -219,8 +379,8 @@
 
         .sub-feature {
             background: rgba(0, 91, 148, 0.3);
-            padding: 1rem;
-            border-radius: 15px;
+            padding: 0.8rem;
+            border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center;
             transition: all 0.3s ease;
@@ -249,18 +409,18 @@
         }
 
         .sub-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            margin-bottom: 0.3rem;
         }
 
         .sub-title {
             font-weight: 700;
-            font-size: 0.95rem;
-            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.2rem;
         }
 
         .sub-desc {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             opacity: 0.8;
         }
 
@@ -330,6 +490,8 @@
             margin: 1rem 0;
             font-size: 0.9rem;
             text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         .adg-breakdown-item {
@@ -384,9 +546,39 @@
 
         /* Mobile */
         @media (max-width: 768px) {
-            .service-content {
-                flex-direction: column;
-                text-align: center;
+            .container {
+                padding: 1rem;
+            }
+
+            .lang-switcher {
+                top: 10px;
+                left: 10px;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .logo {
+                width: 280px;
+                height: 280px;
+            }
+
+            .logo-text {
+                font-size: 1.8rem;
+            }
+
+            .welcome-text {
+                font-size: 1.1rem;
+            }
+
+            .services-container {
+                grid-template-columns: 1fr;
+            }
+
+            .service-icon {
+                font-size: 3rem;
+            }
+
+            .service-title {
+                font-size: 1.3rem;
             }
 
             .adg-counter {
@@ -400,127 +592,110 @@
                 grid-template-columns: 1fr;
             }
         }
-/* Pulsante Area Riservata */
-.reserved-area-btn {
-    display: inline-block;
-    position: relative;
-    background: linear-gradient(135deg, #005B94, #003D6B);
-    color: white;
-    padding: 1rem 2.5rem;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    text-decoration: none;
-    overflow: hidden;
-    border: 2px solid rgba(231, 212, 84, 0.5);
-    transition: all 0.3s ease;
-    box-shadow: 0 5px 20px rgba(0, 91, 148, 0.4);
-}
-
-.reserved-area-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 10px,
-        rgba(231, 212, 84, 0.1) 10px,
-        rgba(231, 212, 84, 0.1) 20px
-    );
-    animation: techFlow 3s linear infinite;
-}
-
-@keyframes techFlow {
-    0% { left: -100%; }
-    100% { left: 100%; }
-}
-
-.reserved-area-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(231, 212, 84, 0.6);
-    border-color: #E7D454;
-}
-
-.reserved-area-btn span {
-    position: relative;
-    z-index: 1;
-}
-
-
-
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- ADG Counter -->
+        <!-- Language Switcher -->
+        <div class="lang-switcher">
+            <select id="langSelect" onchange="switchLanguage(this.value)">
+                <option value="it">🇮🇹 IT</option>
+                <option value="en">🇬🇧 EN</option>
+            </select>
+        </div>
+
+        <!-- ADG Counter Espandibile -->
         <div class="adg-counter" id="adgCounter">
-            💰 <span id="adgAmount">0</span> ADG
+            <div class="adg-counter-header">
+                <span>💰 <span id="adgAmount">0</span> ADG</span>
+                <span style="font-size: 0.8rem; opacity: 0.7;">▼</span>
+            </div>
+            <div class="adg-counter-body">
+                <div style="font-size: 0.9rem; margin-bottom: 0.5rem; opacity: 0.8;" data-lang-key="tokens-earned">Token guadagnati:</div>
+                <div id="adgTags"></div>
+
+                <div class="dashboard-preview">
+                    <h4 data-lang-key="dashboard-preview">📊 Anteprima Dashboard</h4>
+                    <div class="dashboard-stat">
+                        <span data-lang-key="total-tokens">Token totali:</span>
+                        <span id="previewTotal">0 ADG</span>
+                    </div>
+                    <div class="dashboard-stat">
+                        <span data-lang-key="services-explored">Servizi esplorati:</span>
+                        <span id="previewServices">0/4</span>
+                    </div>
+                    <div class="dashboard-stat">
+                        <span data-lang-key="features-discovered">Features scoperte:</span>
+                        <span id="previewFeatures">0</span>
+                    </div>
+                    {% if current_user.is_authenticated %}
+                    <a href="/stats" class="btn-dashboard" data-lang-key="go-dashboard">🚀 Vai alla Dashboard</a>
+                    {% else %}
+                    <a href="/login" class="btn-dashboard" data-lang-key="login-save">🔐 Accedi per salvare</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <!-- Header -->
         <header class="header">
-            <div class="logo">
-                <img src="{{ url_for('static', filename='logo.gif') }}" alt="Adelchi Group Logo">
+            <!-- Logo Canvas Animato Cliccabile -->
+            <div class="logo" id="logoCanvas" onclick="window.location.href='{% if current_user.is_authenticated %}/stats{% else %}/login{% endif %}'">
+                <canvas id="canvas3d" width="450" height="450"></canvas>
             </div>
-
+            <div class="construction-note" data-lang-key="construction">Site under Construction</div>
             <h1 class="logo-text">ADELCHI GROUP</h1>
-            <p class="welcome-text">Innovazione e Eccellenza Tecnologica</p>
+            <p class="welcome-text" data-lang-key="welcome">Innovazione e Eccellenza Tecnologica</p>
 
             <div class="visit-counter">
-                <div style="font-size: 0.9rem; margin-bottom: 0.5rem;">Visitatori</div>
+                <div style="font-size: 0.9rem; margin-bottom: 0.5rem;" data-lang-key="visitors">Visitatori</div>
                 <div class="visit-number">{{ visit_count }}</div>
             </div>
 
+            {% if current_user.is_authenticated %}
+            <a href="/stats" class="reserved-area-btn">
+                <span data-lang-key="go-dashboard-btn">🔐 Vai alla Dashboard</span>
+            </a>
+            {% else %}
+            <a href="/login" class="reserved-area-btn">
+                <span data-lang-key="reserved-area">🔐 Area Riservata</span>
+            </a>
+            {% endif %}
 
-<!-- ⭐ PULSANTE AREA RISERVATA -->
-{% if current_user.is_authenticated %}
-<a href="/stats" class="reserved-area-btn">
-    <span>🔐 Vai alla Dashboard</span>
-</a>
-{% else %}
-<a href="/login" class="reserved-area-btn">
-    <span>🔐 Area Riservata</span>
-</a>
-{% endif %}
         </header>
 
-        <!-- Services -->
+        <!-- Services Grid 2x2 -->
         <main class="services-container">
-            <!-- Life Science -->
+            <!-- Biotech -->
             <section class="service-block" data-service="biotech">
                 <div class="service-content">
                     <div class="service-icon">🧬</div>
                     <div class="service-info">
-                        <h2 class="service-title">Life Science & Biotecnologie</h2>
-                        <p class="service-description">
-                            Soluzioni avanzate per ricerca biomedica, sviluppo farmaceutico e biotecnologie.
-                            Acceleriamo l'innovazione nella scoperta di nuovi trattamenti.
+                        <h2 class="service-title" data-lang-key="service-biotech">Biotech</h2>
+                        <p class="service-description" data-lang-key="biotech-desc">
+                            Ricerca biomedica, sviluppo farmaceutico e biotecnologie avanzate
                         </p>
 
                         <div class="sub-features">
                             <div class="sub-feature" data-feature="biotech-pharma">
                                 <div class="sub-icon">🔬</div>
-                                <div class="sub-title">Ricerca Farmaceutica</div>
-                                <div class="sub-desc">Sviluppo nuovi farmaci</div>
+                                <div class="sub-title" data-lang-key="biotech-pharma">Ricerca Pharma</div>
+                                <div class="sub-desc" data-lang-key="biotech-pharma-desc">Nuovi farmaci</div>
                             </div>
                             <div class="sub-feature" data-feature="biotech-bio">
                                 <div class="sub-icon">🧪</div>
-                                <div class="sub-title">Biotecnologie</div>
-                                <div class="sub-desc">Medicina personalizzata</div>
+                                <div class="sub-title" data-lang-key="biotech-bio">Biotecnologie</div>
+                                <div class="sub-desc" data-lang-key="biotech-bio-desc">Medicina personalizzata</div>
                             </div>
                             <div class="sub-feature" data-feature="biotech-devices">
                                 <div class="sub-icon">🏥</div>
-                                <div class="sub-title">Dispositivi Medici</div>
-                                <div class="sub-desc">Design e certificazione</div>
+                                <div class="sub-title" data-lang-key="biotech-devices">Dispositivi</div>
+                                <div class="sub-desc" data-lang-key="biotech-devices-desc">Design medicale</div>
                             </div>
                             <div class="sub-feature" data-feature="biotech-data">
                                 <div class="sub-icon">📊</div>
-                                <div class="sub-title">Analisi Dati</div>
-                                <div class="sub-desc">AI e machine learning</div>
+                                <div class="sub-title" data-lang-key="biotech-data">Data Analysis</div>
+                                <div class="sub-desc" data-lang-key="biotech-data-desc">AI per clinica</div>
                             </div>
                         </div>
                     </div>
@@ -532,32 +707,31 @@
                 <div class="service-content">
                     <div class="service-icon">💻</div>
                     <div class="service-info">
-                        <h2 class="service-title">Servizi Informatici</h2>
-                        <p class="service-description">
-                            Trasformazione digitale completa con soluzioni cloud, cybersecurity avanzata e
-                            sviluppo software su misura per il futuro digitale.
+                        <h2 class="service-title" data-lang-key="service-it">IT Services</h2>
+                        <p class="service-description" data-lang-key="it-desc">
+                            Cloud, cybersecurity e sviluppo software avanzato
                         </p>
 
                         <div class="sub-features">
                             <div class="sub-feature" data-feature="it-dev">
                                 <div class="sub-icon">🚀</div>
-                                <div class="sub-title">Sviluppo Software</div>
-                                <div class="sub-desc">Web, mobile, desktop</div>
+                                <div class="sub-title" data-lang-key="it-dev">Development</div>
+                                <div class="sub-desc" data-lang-key="it-dev-desc">Web & Mobile</div>
                             </div>
                             <div class="sub-feature" data-feature="it-cloud">
                                 <div class="sub-icon">☁️</div>
-                                <div class="sub-title">Cloud & Infrastructure</div>
-                                <div class="sub-desc">AWS, Azure, Google Cloud</div>
+                                <div class="sub-title" data-lang-key="it-cloud">Cloud</div>
+                                <div class="sub-desc" data-lang-key="it-cloud-desc">AWS, Azure</div>
                             </div>
                             <div class="sub-feature" data-feature="it-cyber">
                                 <div class="sub-icon">🔒</div>
-                                <div class="sub-title">Cybersecurity</div>
-                                <div class="sub-desc">Protezione totale</div>
+                                <div class="sub-title" data-lang-key="it-cyber">Cybersecurity</div>
+                                <div class="sub-desc" data-lang-key="it-cyber-desc">Protezione totale</div>
                             </div>
                             <div class="sub-feature" data-feature="it-ai">
                                 <div class="sub-icon">🤖</div>
-                                <div class="sub-title">AI & ML</div>
-                                <div class="sub-desc">Intelligenza artificiale</div>
+                                <div class="sub-title" data-lang-key="it-ai">AI & ML</div>
+                                <div class="sub-desc" data-lang-key="it-ai-desc">Intelligenza artificiale</div>
                             </div>
                         </div>
                     </div>
@@ -569,32 +743,31 @@
                 <div class="service-content">
                     <div class="service-icon">🛡️</div>
                     <div class="service-info">
-                        <h2 class="service-title">Servizi Difesa</h2>
-                        <p class="service-description">
-                            Tecnologie strategiche per difesa nazionale, sistemi di sorveglianza avanzati e
-                            soluzioni di sicurezza per infrastrutture critiche.
+                        <h2 class="service-title" data-lang-key="service-defense">Difesa</h2>
+                        <p class="service-description" data-lang-key="defense-desc">
+                            Sistemi strategici e infrastrutture critiche
                         </p>
 
                         <div class="sub-features">
                             <div class="sub-feature" data-feature="defense-systems">
                                 <div class="sub-icon">🎯</div>
-                                <div class="sub-title">Sistemi di Difesa</div>
-                                <div class="sub-desc">Radar e controllo</div>
+                                <div class="sub-title" data-lang-key="defense-systems">Sistemi</div>
+                                <div class="sub-desc" data-lang-key="defense-systems-desc">Radar & controllo</div>
                             </div>
                             <div class="sub-feature" data-feature="defense-cyber">
                                 <div class="sub-icon">🔐</div>
-                                <div class="sub-title">Cyber Warfare</div>
-                                <div class="sub-desc">Difesa informatica</div>
+                                <div class="sub-title" data-lang-key="defense-cyber">Cyber Warfare</div>
+                                <div class="sub-desc" data-lang-key="defense-cyber-desc">Difesa informatica</div>
                             </div>
                             <div class="sub-feature" data-feature="defense-comms">
                                 <div class="sub-icon">🛰️</div>
-                                <div class="sub-title">Comunicazioni</div>
-                                <div class="sub-desc">Reti criptate</div>
+                                <div class="sub-title" data-lang-key="defense-comms">Comunicazioni</div>
+                                <div class="sub-desc" data-lang-key="defense-comms-desc">Reti criptate</div>
                             </div>
                             <div class="sub-feature" data-feature="defense-intel">
                                 <div class="sub-icon">🔍</div>
-                                <div class="sub-title">Intelligence</div>
-                                <div class="sub-desc">Analisi strategica</div>
+                                <div class="sub-title" data-lang-key="defense-intel">Intelligence</div>
+                                <div class="sub-desc" data-lang-key="defense-intel-desc">Analisi strategica</div>
                             </div>
                         </div>
                     </div>
@@ -606,32 +779,31 @@
                 <div class="service-content">
                     <div class="service-icon">₿</div>
                     <div class="service-info">
-                        <h2 class="service-title">Fintech & Blockchain</h2>
-                        <p class="service-description">
-                            Soluzioni innovative per trading, DeFi, NFT e tecnologie blockchain.
-                            Token ADG, mining pool RTX3060 e finanza decentralizzata.
+                        <h2 class="service-title" data-lang-key="service-fintech">Fintech</h2>
+                        <p class="service-description" data-lang-key="fintech-desc">
+                            Token ADG, blockchain e finanza decentralizzata
                         </p>
 
                         <div class="sub-features">
                             <div class="sub-feature" data-feature="fintech-token">
                                 <div class="sub-icon">💰</div>
-                                <div class="sub-title">Token ADG</div>
-                                <div class="sub-desc">Blockchain nativa</div>
+                                <div class="sub-title" data-lang-key="fintech-token">Token ADG</div>
+                                <div class="sub-desc" data-lang-key="fintech-token-desc">Blockchain nativa</div>
                             </div>
                             <div class="sub-feature" data-feature="fintech-mining">
                                 <div class="sub-icon">⛏️</div>
-                                <div class="sub-title">Mining Pool</div>
-                                <div class="sub-desc">RTX3060 powered</div>
+                                <div class="sub-title" data-lang-key="fintech-mining">Mining</div>
+                                <div class="sub-desc" data-lang-key="fintech-mining-desc">RTX3060</div>
                             </div>
                             <div class="sub-feature" data-feature="fintech-trading">
                                 <div class="sub-icon">📈</div>
-                                <div class="sub-title">Trading</div>
-                                <div class="sub-desc">DeFi e crypto</div>
+                                <div class="sub-title" data-lang-key="fintech-trading">Trading</div>
+                                <div class="sub-desc" data-lang-key="fintech-trading-desc">DeFi & crypto</div>
                             </div>
                             <div class="sub-feature" data-feature="fintech-corporate">
                                 <div class="sub-icon">🏦</div>
-                                <div class="sub-title">Corporate Finance</div>
-                                <div class="sub-desc">M&A e IPO</div>
+                                <div class="sub-title" data-lang-key="fintech-corporate">Corporate</div>
+                                <div class="sub-desc" data-lang-key="fintech-corporate-desc">M&A & IPO</div>
                             </div>
                         </div>
                     </div>
@@ -643,21 +815,367 @@
     <!-- Modal Registrazione -->
     <div class="modal" id="registerModal">
         <div class="modal-content">
-            <h2>🎉 Ottimo Lavoro!</h2>
-            <p>Hai esplorato i nostri servizi e guadagnato:</p>
+            <h2 data-lang-key="modal-title">🎉 Ottimo!</h2>
+            <p data-lang-key="modal-subtitle">Hai esplorato i servizi e guadagnato:</p>
             <div class="adg-reward"><span id="modalAdg">0</span> ADG</div>
 
             <div class="adg-breakdown" id="adgBreakdown"></div>
 
-            <p>Registrati GRATIS per salvare i tuoi token e accedere alla piattaforma completa!</p>
+            <p data-lang-key="modal-cta">Registrati GRATIS per salvare i tuoi token!</p>
             <div class="modal-buttons">
-                <a href="/register" class="btn btn-primary" id="registerBtn">🚀 Registrati Ora</a>
-                <button class="btn btn-secondary" onclick="closeModal()">Continua a esplorare</button>
+                <a href="/register" class="btn btn-primary" id="registerBtn" data-lang-key="register-btn">🚀 Registrati</a>
+                <button class="btn btn-secondary" onclick="closeModal()" data-lang-key="continue-btn">Continua</button>
             </div>
         </div>
     </div>
 
     <script>
+        // ===== TRANSLATIONS =====
+        const translations = {
+            it: {
+                'welcome': 'Innovazione e Eccellenza Tecnologica',
+                'visitors': 'Visitatori',
+                'reserved-area': '🔐 Area Riservata',
+                'go-dashboard-btn': '🔐 Vai alla Dashboard',
+                'construction': 'Site under Construction',
+                'tokens-earned': 'Token guadagnati:',
+                'dashboard-preview': '📊 Anteprima Dashboard',
+                'total-tokens': 'Token totali:',
+                'services-explored': 'Servizi esplorati:',
+                'features-discovered': 'Features scoperte:',
+                'go-dashboard': '🚀 Vai alla Dashboard',
+                'login-save': '🔐 Accedi per salvare',
+                'service-biotech': 'Biotech',
+                'biotech-desc': 'Ricerca biomedica, sviluppo farmaceutico e biotecnologie avanzate',
+                'biotech-pharma': 'Ricerca Pharma',
+                'biotech-pharma-desc': 'Nuovi farmaci',
+                'biotech-bio': 'Biotecnologie',
+                'biotech-bio-desc': 'Medicina personalizzata',
+                'biotech-devices': 'Dispositivi',
+                'biotech-devices-desc': 'Design medicale',
+                'biotech-data': 'Data Analysis',
+                'biotech-data-desc': 'AI per clinica',
+                'service-it': 'IT Services',
+                'it-desc': 'Cloud, cybersecurity e sviluppo software avanzato',
+                'it-dev': 'Development',
+                'it-dev-desc': 'Web & Mobile',
+                'it-cloud': 'Cloud',
+                'it-cloud-desc': 'AWS, Azure',
+                'it-cyber': 'Cybersecurity',
+                'it-cyber-desc': 'Protezione totale',
+                'it-ai': 'AI & ML',
+                'it-ai-desc': 'Intelligenza artificiale',
+                'service-defense': 'Difesa',
+                'defense-desc': 'Sistemi strategici e infrastrutture critiche',
+                'defense-systems': 'Sistemi',
+                'defense-systems-desc': 'Radar & controllo',
+                'defense-cyber': 'Cyber Warfare',
+                'defense-cyber-desc': 'Difesa informatica',
+                'defense-comms': 'Comunicazioni',
+                'defense-comms-desc': 'Reti criptate',
+                'defense-intel': 'Intelligence',
+                'defense-intel-desc': 'Analisi strategica',
+                'service-fintech': 'Fintech',
+                'fintech-desc': 'Token ADG, blockchain e finanza decentralizzata',
+                'fintech-token': 'Token ADG',
+                'fintech-token-desc': 'Blockchain nativa',
+                'fintech-mining': 'Mining',
+                'fintech-mining-desc': 'RTX3060',
+                'fintech-trading': 'Trading',
+                'fintech-trading-desc': 'DeFi & crypto',
+                'fintech-corporate': 'Corporate',
+                'fintech-corporate-desc': 'M&A & IPO',
+                'modal-title': '🎉 Ottimo!',
+                'modal-subtitle': 'Hai esplorato i servizi e guadagnato:',
+                'modal-cta': 'Registrati GRATIS per salvare i tuoi token!',
+                'register-btn': '🚀 Registrati',
+                'continue-btn': 'Continua'
+            },
+            en: {
+                'welcome': 'Innovation and Technological Excellence',
+                'visitors': 'Visitors',
+                'reserved-area': '🔐 Reserved Area',
+                'go-dashboard-btn': '🔐 Go to Dashboard',
+                'construction': 'Site under Construction',
+                'tokens-earned': 'Tokens earned:',
+                'dashboard-preview': '📊 Dashboard Preview',
+                'total-tokens': 'Total tokens:',
+                'services-explored': 'Services explored:',
+                'features-discovered': 'Features discovered:',
+                'go-dashboard': '🚀 Go to Dashboard',
+                'login-save': '🔐 Login to save',
+                'service-biotech': 'Biotech',
+                'biotech-desc': 'Biomedical research, pharmaceutical development and advanced biotechnologies',
+                'biotech-pharma': 'Pharma Research',
+                'biotech-pharma-desc': 'New drugs',
+                'biotech-bio': 'Biotechnology',
+                'biotech-bio-desc': 'Personalized medicine',
+                'biotech-devices': 'Devices',
+                'biotech-devices-desc': 'Medical design',
+                'biotech-data': 'Data Analysis',
+                'biotech-data-desc': 'Clinical AI',
+                'service-it': 'IT Services',
+                'it-desc': 'Cloud, cybersecurity and advanced software development',
+                'it-dev': 'Development',
+                'it-dev-desc': 'Web & Mobile',
+                'it-cloud': 'Cloud',
+                'it-cloud-desc': 'AWS, Azure',
+                'it-cyber': 'Cybersecurity',
+                'it-cyber-desc': 'Total protection',
+                'it-ai': 'AI & ML',
+                'it-ai-desc': 'Artificial intelligence',
+                'service-defense': 'Defense',
+                'defense-desc': 'Strategic systems and critical infrastructures',
+                'defense-systems': 'Systems',
+                'defense-systems-desc': 'Radar & control',
+                'defense-cyber': 'Cyber Warfare',
+                'defense-cyber-desc': 'IT defense',
+                'defense-comms': 'Communications',
+                'defense-comms-desc': 'Encrypted networks',
+                'defense-intel': 'Intelligence',
+                'defense-intel-desc': 'Strategic analysis',
+                'service-fintech': 'Fintech',
+                'fintech-desc': 'ADG Token, blockchain and decentralized finance',
+                'fintech-token': 'Token ADG',
+                'fintech-token-desc': 'Native blockchain',
+                'fintech-mining': 'Mining',
+                'fintech-mining-desc': 'RTX3060',
+                'fintech-trading': 'Trading',
+                'fintech-trading-desc': 'DeFi & crypto',
+                'fintech-corporate': 'Corporate',
+                'fintech-corporate-desc': 'M&A & IPO',
+                'modal-title': '🎉 Great!',
+                'modal-subtitle': 'You explored our services and earned:',
+                'modal-cta': 'Register FREE to save your tokens!',
+                'register-btn': '🚀 Register',
+                'continue-btn': 'Continue'
+            }
+        };
+
+        let currentLang = 'it';
+
+        function switchLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            localStorage.setItem('adelchi_lang', lang);
+        }
+
+        // Load saved language
+        const savedLang = localStorage.getItem('adelchi_lang') || 'it';
+        document.getElementById('langSelect').value = savedLang;
+        if (savedLang !== 'it') switchLanguage(savedLang);
+
+        // ===== LOGO 3D ANIMATION (4 FASI ARMONICHE) =====
+        function initLogoAnimation() {
+            const canvas = document.getElementById('canvas3d');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = 450;
+            canvas.height = 450;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const armLength = 110;
+            const armWidth = 25;
+            const armDepth = 18;
+
+            let time = 0;
+            let phase = 0;
+            let phaseTime = 0;
+            const phaseDuration = 4; // secondi per fase
+
+            class Arm {
+                constructor(baseAngle) {
+                    this.baseAngle = baseAngle;
+                    this.angle = baseAngle;
+                    this.distance = 0;
+                    this.rotation = 0;
+                    this.flipZ = 0;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+
+                    const offsetX = Math.cos(this.angle) * this.distance;
+                    const offsetY = Math.sin(this.angle) * this.distance;
+                    ctx.translate(offsetX, offsetY);
+                    ctx.rotate(this.angle + this.rotation);
+
+                    // 3D flip effect
+                    const scaleY = Math.cos(this.flipZ);
+                    const scaleX = 1;
+
+                    if (Math.abs(scaleY) < 0.1) {
+                        ctx.restore();
+                        return;
+                    }
+
+                    ctx.scale(scaleX, scaleY);
+                    const brightness = Math.abs(scaleY);
+
+                    // BLU metallizzato
+                    const blueGradient = ctx.createLinearGradient(0, -armWidth/2, 0, armWidth/2);
+                    blueGradient.addColorStop(0, `rgba(30, 90, 142, ${brightness})`);
+                    blueGradient.addColorStop(0.3, `rgba(41, 128, 185, ${brightness})`);
+                    blueGradient.addColorStop(0.5, `rgba(58, 158, 213, ${brightness})`);
+                    blueGradient.addColorStop(0.7, `rgba(36, 113, 163, ${brightness})`);
+                    blueGradient.addColorStop(1, `rgba(21, 67, 96, ${brightness})`);
+
+                    ctx.fillStyle = blueGradient;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -armWidth/2);
+                    ctx.lineTo(armLength, -armWidth/2 - 8);
+                    ctx.lineTo(armLength, armWidth/2 - 8);
+                    ctx.lineTo(0, armWidth/2);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // ORO metallizzato
+                    const goldGradient = ctx.createLinearGradient(0, armWidth/2, 0, armWidth/2 + armDepth);
+                    goldGradient.addColorStop(0, `rgba(244, 208, 63, ${brightness})`);
+                    goldGradient.addColorStop(0.3, `rgba(249, 231, 159, ${brightness})`);
+                    goldGradient.addColorStop(0.6, `rgba(212, 175, 55, ${brightness})`);
+                    goldGradient.addColorStop(1, `rgba(158, 124, 12, ${brightness})`);
+
+                    ctx.fillStyle = goldGradient;
+                    ctx.beginPath();
+                    ctx.moveTo(0, armWidth/2);
+                    ctx.lineTo(armLength, armWidth/2 - 8);
+                    ctx.lineTo(armLength, armWidth/2 + armDepth - 8);
+                    ctx.lineTo(0, armWidth/2 + armDepth);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Bordi
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -armWidth/2);
+                    ctx.lineTo(armLength, -armWidth/2 - 8);
+                    ctx.lineTo(armLength, armWidth/2 + armDepth - 8);
+                    ctx.lineTo(0, armWidth/2 + armDepth);
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    // Highlights
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 * brightness})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(5, armWidth/2 + 2);
+                    ctx.lineTo(armLength - 10, armWidth/2 - 6);
+                    ctx.stroke();
+
+                    ctx.strokeStyle = `rgba(58, 158, 213, ${0.6 * brightness})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(10, 0);
+                    ctx.lineTo(armLength - 15, -4);
+                    ctx.stroke();
+
+                    ctx.restore();
+                }
+            }
+
+            const arms = [
+                new Arm(0),
+                new Arm(Math.PI * 2/3),
+                new Arm(Math.PI * 4/3)
+            ];
+
+            function easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                time += 0.016;
+                phaseTime += 0.016;
+
+                // 4 FASI ARMONICHE
+                if (phaseTime > phaseDuration) {
+                    phaseTime = 0;
+                    phase = (phase + 1) % 4;
+                }
+
+                const progress = phaseTime / phaseDuration;
+                const eased = easeInOutCubic(progress);
+
+                // FASE 0: Chiuso, rotazione base
+                if (phase === 0) {
+                    arms.forEach(arm => {
+                        arm.angle = arm.baseAngle + time * 0.3;
+                        arm.distance = 0;
+                        arm.rotation = 0;
+                        arm.flipZ = 0;
+                    });
+                }
+
+                // FASE 1: Apertura + rotazione aperto
+                else if (phase === 1) {
+                    arms.forEach((arm, i) => {
+                        arm.angle = arm.baseAngle + time * 0.3;
+                        arm.distance = eased * 70;
+                        arm.rotation = eased * Math.PI * 0.5 * (i % 2 === 0 ? 1 : -1);
+                        arm.flipZ = 0;
+                    });
+                }
+
+                // FASE 2: Rotazione 3D in profondità (aperto)
+                else if (phase === 2) {
+                    arms.forEach((arm, i) => {
+                        arm.angle = arm.baseAngle + time * 0.3;
+                        arm.distance = 70;
+                        arm.rotation = Math.PI * 0.5 * (i % 2 === 0 ? 1 : -1);
+                        arm.flipZ = eased * Math.PI * 2;
+                    });
+                }
+
+                // FASE 3: Richiusura
+                else if (phase === 3) {
+                    arms.forEach((arm, i) => {
+                        arm.angle = arm.baseAngle + time * 0.3;
+                        arm.distance = (1 - eased) * 70;
+                        arm.rotation = (1 - eased) * Math.PI * 0.5 * (i % 2 === 0 ? 1 : -1);
+                        arm.flipZ = 0;
+                    });
+                }
+
+                // Centro hub BLU
+                const hubGradient = ctx.createRadialGradient(centerX, centerY - 5, 5, centerX, centerY, 25);
+                hubGradient.addColorStop(0, '#3a9ed5');
+                hubGradient.addColorStop(0.5, '#2980b9');
+                hubGradient.addColorStop(1, '#154360');
+
+                ctx.fillStyle = hubGradient;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#d4af37';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(centerX - 5, centerY - 5, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                arms.forEach(arm => arm.draw());
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        // ===== ADG GAMIFICATION =====
         let adgEarned = 0;
         let clickedServices = new Set();
         let clickedFeatures = new Set();
@@ -667,39 +1185,34 @@
         const adgCounter = document.getElementById('adgCounter');
         const adgAmount = document.getElementById('adgAmount');
         const modal = document.getElementById('registerModal');
-        const modalAdg = document.getElementById('modalAdg');
-        const adgBreakdown = document.getElementById('adgBreakdown');
 
-        // Click servizio principale
+        adgCounter.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.classList.toggle('expanded');
+            updateDashboardPreview();
+        });
+
         serviceBlocks.forEach(block => {
             block.addEventListener('click', function(e) {
-                // Evita doppio trigger se clicco su sub-feature
                 if (e.target.closest('.sub-feature')) return;
-
                 const serviceName = this.dataset.service;
-
                 if (!clickedServices.has(serviceName)) {
                     clickedServices.add(serviceName);
                     this.classList.add('clicked');
-
                     addADG(1, `Servizio: ${serviceName}`);
                     checkModalTrigger();
                 }
             });
         });
 
-        // Click sub-features
         document.addEventListener('click', function(e) {
             const subFeature = e.target.closest('.sub-feature');
             if (!subFeature) return;
-
             e.stopPropagation();
             const featureName = subFeature.dataset.feature;
-
             if (!clickedFeatures.has(featureName)) {
                 clickedFeatures.add(featureName);
                 subFeature.classList.add('clicked');
-
                 addADG(0.5, `Feature: ${featureName}`);
                 checkModalTrigger();
             }
@@ -708,54 +1221,44 @@
         function addADG(amount, source) {
             adgEarned += amount;
             adgAmount.textContent = adgEarned.toFixed(1);
-
-            // Salva storia
-            adgHistory.push({
-                amount: amount,
-                source: source,
-                timestamp: new Date().toISOString()
-            });
-
-            // Salva in localStorage
+            adgHistory.push({ amount, source, timestamp: new Date().toISOString() });
             saveADGData();
-
-            // Mostra counter
-            adgCounter.classList.add('show');
-            adgCounter.classList.add('pulse');
+            adgCounter.classList.add('show', 'pulse');
             setTimeout(() => adgCounter.classList.remove('pulse'), 500);
+            updateAdgTags();
+        }
+
+        function updateAdgTags() {
+            const tagsContainer = document.getElementById('adgTags');
+            tagsContainer.innerHTML = '';
+            adgHistory.slice(-5).forEach(item => {
+                const tag = document.createElement('div');
+                tag.className = 'adg-tag';
+                tag.textContent = `+${item.amount} ${item.source.split(':')[0]}`;
+                tagsContainer.appendChild(tag);
+            });
+        }
+
+        function updateDashboardPreview() {
+            document.getElementById('previewTotal').textContent = adgEarned.toFixed(1) + ' ADG';
+            document.getElementById('previewServices').textContent = `${clickedServices.size}/4`;
+            document.getElementById('previewFeatures').textContent = clickedFeatures.size;
         }
 
         function checkModalTrigger() {
-            const totalClicks = clickedServices.size + clickedFeatures.size;
-
-            if (totalClicks >= 5 && !modal.classList.contains('show')) {
-                setTimeout(() => {
-                    showModal();
-                }, 1000);
+            if (clickedServices.size + clickedFeatures.size >= 5 && !modal.classList.contains('show')) {
+                setTimeout(showModal, 1000);
             }
         }
 
         function showModal() {
-            modalAdg.textContent = adgEarned.toFixed(1);
-
-            // Genera breakdown
-            let breakdownHTML = '';
+            document.getElementById('modalAdg').textContent = adgEarned.toFixed(1);
+            let html = '';
             adgHistory.forEach(item => {
-                breakdownHTML += `
-                    <div class="adg-breakdown-item">
-                        <span>${item.source}</span>
-                        <span>+${item.amount} ADG</span>
-                    </div>
-                `;
+                html += `<div class="adg-breakdown-item"><span>${item.source}</span><span>+${item.amount} ADG</span></div>`;
             });
-            breakdownHTML += `
-                <div class="adg-breakdown-item">
-                    <span>TOTALE</span>
-                    <span>${adgEarned.toFixed(1)} ADG</span>
-                </div>
-            `;
-            adgBreakdown.innerHTML = breakdownHTML;
-
+            html += `<div class="adg-breakdown-item"><span>TOTALE</span><span>${adgEarned.toFixed(1)} ADG</span></div>`;
+            document.getElementById('adgBreakdown').innerHTML = html;
             modal.classList.add('show');
         }
 
@@ -764,13 +1267,12 @@
         }
 
         function saveADGData() {
-            const data = {
+            localStorage.setItem('adelchi_adg_data', JSON.stringify({
                 total: adgEarned,
                 history: adgHistory,
                 clickedServices: Array.from(clickedServices),
                 clickedFeatures: Array.from(clickedFeatures)
-            };
-            localStorage.setItem('adelchi_adg_data', JSON.stringify(data));
+            }));
         }
 
         function loadADGData() {
@@ -781,33 +1283,30 @@
                 adgHistory = data.history || [];
                 clickedServices = new Set(data.clickedServices || []);
                 clickedFeatures = new Set(data.clickedFeatures || []);
-
                 adgAmount.textContent = adgEarned.toFixed(1);
-                if (adgEarned > 0) adgCounter.classList.add('show');
-
-                // Ripristina stato visivo
-                clickedServices.forEach(service => {
-                    const block = document.querySelector(`[data-service="${service}"]`);
-                    if (block) block.classList.add('clicked');
+                if (adgEarned > 0) {
+                    adgCounter.classList.add('show');
+                    updateAdgTags();
+                }
+                clickedServices.forEach(s => {
+                    const b = document.querySelector(`[data-service="${s}"]`);
+                    if (b) b.classList.add('clicked');
                 });
-
-                clickedFeatures.forEach(feature => {
-                    const feat = document.querySelector(`[data-feature="${feature}"]`);
-                    if (feat) feat.classList.add('clicked');
+                clickedFeatures.forEach(f => {
+                    const fe = document.querySelector(`[data-feature="${f}"]`);
+                    if (fe) fe.classList.add('clicked');
                 });
             }
         }
 
-        // Passa dati ADG a registrazione
-        document.getElementById('registerBtn').addEventListener('click', function(e) {
+        document.getElementById('registerBtn').addEventListener('click', function() {
             const adgData = localStorage.getItem('adelchi_adg_data');
             if (adgData) {
-                // Aggiungi a URL come parametro
                 this.href = '/register?adg_data=' + encodeURIComponent(adgData);
             }
         });
 
-        // Carica dati salvati all'avvio
+        initLogoAnimation();
         loadADGData();
     </script>
 </body>
