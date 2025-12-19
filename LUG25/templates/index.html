@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adelchi Group - Innovazione Tecnologica</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-J1LPDRG3GE"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-J1LPDRG3GE');
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -592,6 +600,114 @@
                 grid-template-columns: 1fr;
             }
         }
+
+
+        /* PROMO BLOCKS */
+        .promo-block {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.5s ease;
+            animation: promoFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes promoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .promo-block:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #E7D454;
+            transform: scale(1.02);
+        }
+
+        .chatbot-promo {
+            border-left: 5px solid #E7D454;
+            animation-delay: 0s;
+        }
+
+        .register-promo {
+            border-left: 5px solid #FFD700;
+            animation-delay: 3s;
+        }
+
+        .promo-content {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .promo-icon {
+            font-size: 5rem;
+            min-width: 100px;
+            text-align: center;
+            animation: iconPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .promo-text {
+            flex: 1;
+        }
+
+        .promo-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, white, #E7D454);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .promo-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .promo-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #E7D454, #FFD700);
+            color: #005B94;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 212, 84, 0.3);
+        }
+
+        .promo-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(231, 212, 84, 0.5);
+            background: linear-gradient(45deg, #FFD700, white);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .promo-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .promo-icon {
+                font-size: 3.5rem;
+            }
+
+            .promo-title {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -640,9 +756,29 @@
         <!-- Header -->
         <header class="header">
             <!-- Logo Canvas Animato Cliccabile -->
-            <div class="logo" onclick="window.location.href='{% if current_user.is_authenticated %}/stats{% else %}/login{% endif %}'">
+            <div class="logo" onclick="window.location.href='{% if current_user.is_authenticated %}/chatbot{% else %}/login{% endif %}'">
                 <canvas id="canvas3d" width="450" height="450"></canvas>
             </div>
+
+            <!-- PROMO CHATBOT -->
+            <section class="promo-block chatbot-promo">
+                <div class="promo-content">
+                    <div class="promo-icon">🤖</div>
+                    <div class="promo-text">
+                        <h2 class="promo-title">Prova il nostro ChatBot Gratuito</h2>
+                        <p class="promo-description">
+                            Assistente AI powered by Claude con accesso a web search.
+                            Chiedi info su progetti, wallet ADG, servizi Adelchi o domande generali!
+                        </p>
+                        <a href="{% if current_user.is_authenticated %}/chatbot{% else %}/login?next=/chatbot{% endif %}"
+                           class="promo-button">
+                            Chatta Ora →
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+
 
             <h1 class="logo-text">ADELCHI GROUP</h1>
             <p class="welcome-text" data-lang-key="welcome">Innovazione e Eccellenza Tecnologica</p>
@@ -664,7 +800,28 @@
 
             <div class="construction-note" data-lang-key="construction">Site under Construction</div>
         </header>
-
+            <!-- PROMO REGISTRAZIONE -->
+            <section class="promo-block register-promo">
+                <div class="promo-content">
+                    <div class="promo-icon">💎</div>
+                    <div class="promo-text">
+                        <h2 class="promo-title">Seleziona gli argomenti e registrati</h2>
+                        <p class="promo-description">
+                            Ricevi token ADG gratuiti per ogni attività: login, upload file, note, progetti.
+                            Partecipa alla mining pool RTX3060 e alla blockchain ADG!
+                        </p>
+                        {% if current_user.is_authenticated %}
+                        <a href="/stats" class="promo-button">
+                            Dashboard →
+                        </a>
+                        {% else %}
+                        <a href="/register" class="promo-button">
+                            Registrati Gratis →
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
         <!-- Services Grid 2x2 -->
         <main class="services-container">
             <!-- Biotech -->
