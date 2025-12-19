@@ -816,7 +816,7 @@ def stats():
 # =============================================================================
 
 # Configurazione Claude API
-CLAUDE_API_KEY = "####API_SONNNET"  # ⚠️ SOSTITUISCI CON LA TUA KEY
+CLAUDE_API_KEY = "####API_SONNNETt"  # ⚠️ SOSTITUISCI CON LA TUA KEY
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
 DAILY_TOKEN_LIMIT = 10000  # 50% di una conversazione standard (4096 token)
 RESPONSE_MAX_TOKENS = 480  # Risposte concise
