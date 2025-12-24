@@ -807,7 +807,267 @@ def stats():
                            all_users=all_users,
                            current_user=current_user)
 
+#########################################
+#  CHATBOT DIC25
+#######################################
 
+# =============================================================================
+# CHATBOT CLAUDE ROUTES
+# =============================================================================
+
+# Configurazione Claude API
+CLAUDE_API_KEY = "####API_SONNNETt"  # ⚠️ SOSTITUISCI CON LA TUA KEY
+CLAUDE_MODEL = "claude-sonnet-4-20250514"
+DAILY_TOKEN_LIMIT = 10000  # 50% di una conversazione standard (4096 token)
+RESPONSE_MAX_TOKENS = 480  # Risposte concise
+
+
+# Tracciamento utilizzo giornaliero
+class ChatUsage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, default=datetime.utcnow().date)
+    tokens_used = db.Column(db.Integer, default=0)
+    messages_count = db.Column(db.Integer, default=0)
+
+    user = db.relationship('User', backref='chat_usage')
+
+
+# Storico messaggi chat
+class ChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    response = db.Column(db.Text, nullable=False)
+    tokens_used = db.Column(db.Integer, default=0)
+    model = db.Column(db.String(50), default='claude-sonnet-4')
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='chat_messages')
+
+
+def get_daily_usage(user_id):
+    """Ottieni uso token giornaliero"""
+    today = datetime.utcnow().date()
+    usage = ChatUsage.query.filter_by(
+        user_id=user_id,
+        date=today
+    ).first()
+
+    if not usage:
+        usage = ChatUsage(user_id=user_id, date=today)
+        db.session.add(usage)
+        db.session.commit()
+
+    return usage
+
+
+def check_token_limit(user_id):
+    """Verifica se l'utente ha ancora token disponibili"""
+    usage = get_daily_usage(user_id)
+    return usage.tokens_used < DAILY_TOKEN_LIMIT
+
+
+def get_user_context(user):
+    """Genera contesto personalizzato per Claude"""
+    # Progetti dell'utente
+    owned_projects = Project.query.filter_by(owner_id=user.id).all()
+    member_projects = db.session.query(Project).join(ProjectMember).filter(
+        ProjectMember.user_id == user.id
+    ).all()
+    all_projects = owned_projects + member_projects
+
+    # Note recenti
+    recent_notes = UserNote.query.filter_by(user_id=user.id) \
+        .order_by(UserNote.updated_at.desc()).limit(10).all()
+
+    # Files recenti
+    recent_files = UserFile.query.filter_by(user_id=user.id) \
+        .order_by(UserFile.uploaded_at.desc()).limit(10).all()
+
+    # Transazioni recenti
+    recent_tx = Transaction.query.filter_by(to_wallet=user.wallet_address) \
+        .order_by(Transaction.timestamp.desc()).limit(5).all()
+
+    context = f"""PROFILO UTENTE:
+- Nome: {user.username}
+- Ruolo: {user.get_role_display()}
+- Balance ADG: {user.balance:.1f} token
+- Total Earned: {user.total_earned:.1f} ADG
+- Wallet: {user.wallet_address}
+
+PROGETTI ({len(all_projects)}):
+"""
+
+    for p in all_projects[:5]:
+        context += f"- {p.name}: {len(p.notes)} note, {len(p.members)} membri\n"
+
+    context += f"\nNOTE RECENTI ({len(recent_notes)}):\n"
+    for n in recent_notes[:5]:
+        context += f"- [{n.note_type}] {n.title} (priorità: {n.priority})\n"
+
+    context += f"\nFILES ({len(recent_files)}):\n"
+    for f in recent_files[:5]:
+        context += f"- {f.original_filename} ({f.file_type}, {f.file_size / 1024:.1f}KB)\n"
+
+    context += f"\nTRANSAZIONI RECENTI:\n"
+    for tx in recent_tx:
+        context += f"- {tx.tx_type}: +{tx.amount} ADG ({tx.timestamp.strftime('%d/%m %H:%M')})\n"
+
+    return context
+
+
+@app.route('/chatbot')
+@login_required
+def chatbot():
+    """Pagina chatbot Claude con storico"""
+    usage = get_daily_usage(current_user.id)
+    remaining_tokens = DAILY_TOKEN_LIMIT - usage.tokens_used
+
+    # Carica storico ultimi 50 messaggi
+    history = ChatMessage.query.filter_by(user_id=current_user.id) \
+        .order_by(ChatMessage.timestamp.desc()) \
+        .limit(50).all()
+
+    history.reverse()  # Ordine cronologico
+
+    return render_template('chatbot.html',
+                           current_user=current_user,
+                           remaining_tokens=remaining_tokens,
+                           daily_limit=DAILY_TOKEN_LIMIT,
+                           usage=usage,
+                           history=history)
+
+
+@app.route('/api/chat', methods=['POST'])
+@login_required
+def chat_api():
+    """API per chat con Claude - con context utente + web search"""
+    try:
+        # Verifica limite giornaliero
+        if not check_token_limit(current_user.id):
+            return jsonify({
+                'success': False,
+                'message': 'Limite giornaliero raggiunto. Riprova domani o passa a Premium!',
+                'limit_reached': True
+            })
+
+        import anthropic
+
+        data = request.get_json()
+        user_message = data.get('message', '')
+
+        if not user_message:
+            return jsonify({'success': False, 'message': 'Messaggio vuoto'})
+
+        # Inizializza client Claude
+        client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+
+        # Genera context personalizzato
+        user_context = get_user_context(current_user)
+
+        # System prompt personalizzato
+        system_prompt = f"""Sei l'assistente AI di Adelchi Group, azienda tecnologica multi-settore (Biotech, IT, Difesa, Fintech).
+
+{user_context}
+
+REGOLE:
+- Risposte SEMPRE concise (max 3-4 frasi)
+- Professionale ma amichevole
+- Usa i dati utente per risposte personalizzate
+- Se chiede info su progetti/note/file, usa i dati sopra
+- Per domande generali/enciclopediche che non trovi nel context, usa web_search
+- Per azioni (creare note, upload file), spiega come fare nell'app
+- Non inventare dati non presenti nel context
+
+SERVIZI ADELCHI:
+- Biotech: ricerca farmaceutica, dispositivi medicali, AI clinica
+- IT: cloud, cybersecurity, sviluppo software, AI/ML
+- Difesa: sistemi radar, cyber warfare, comunicazioni sicure
+- Fintech: Token ADG, mining pool RTX3060, trading DeFi"""
+
+        # Chiamata API con web search
+        message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=RESPONSE_MAX_TOKENS,
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": user_message}
+            ],
+            tools=[{
+                "type": "web_search_20250305",
+                "name": "web_search"
+            }]
+        )
+
+        # Estrai testo dalla risposta (gestisce tool_use)
+        response_text = ""
+        for block in message.content:
+            if hasattr(block, 'text'):
+                response_text += block.text
+            elif block.type == 'tool_use':
+                # Ignora i tool use blocks, prendi solo il testo finale
+                continue
+
+        if not response_text:
+            response_text = "Scusa, non ho trovato informazioni rilevanti."
+
+        # Calcola token usati
+        input_tokens = message.usage.input_tokens
+        output_tokens = message.usage.output_tokens
+        total_tokens = input_tokens + output_tokens
+
+        # Salva messaggio nel database
+        chat_message = ChatMessage(
+            user_id=current_user.id,
+            message=user_message,
+            response=response_text,
+            tokens_used=total_tokens,
+            model=CLAUDE_MODEL
+        )
+        db.session.add(chat_message)
+
+        # Aggiorna usage
+        usage = get_daily_usage(current_user.id)
+        usage.tokens_used += total_tokens
+        usage.messages_count += 1
+        db.session.commit()
+
+        remaining = DAILY_TOKEN_LIMIT - usage.tokens_used
+
+        return jsonify({
+            'success': True,
+            'response': response_text,
+            'tokens_used': total_tokens,
+            'remaining_tokens': remaining,
+            'messages_today': usage.messages_count
+        })
+
+    except anthropic.APIError as e:
+        return jsonify({
+            'success': False,
+            'message': f'Errore API Claude: {str(e)}'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Errore: {str(e)}'
+        })
+
+@app.route('/api/chat/usage')
+@login_required
+def chat_usage():
+    """Statistiche uso chatbot"""
+    usage = get_daily_usage(current_user.id)
+    remaining = DAILY_TOKEN_LIMIT - usage.tokens_used
+
+    return jsonify({
+        'tokens_used': usage.tokens_used,
+        'tokens_remaining': remaining,
+        'daily_limit': DAILY_TOKEN_LIMIT,
+        'messages_today': usage.messages_count,
+        'percentage_used': round((usage.tokens_used / DAILY_TOKEN_LIMIT) * 100, 1)
+    })
 # =============================================================================
 # AUTHENTICATION ROUTES
 # =============================================================================
