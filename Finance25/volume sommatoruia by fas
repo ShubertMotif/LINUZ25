@@ -1,0 +1,219 @@
+//@version=6
+indicator("Cumulative Volume", "R: Σ Volume", overlay=false, max_lines_count=500, scale=scale.right)
+
+
+// Versione stabile: 134
+
+//  Aggiungere:
+//  -Weekend switch
+//  -Curva che interpola i punti finali di ogni giorno
+//  -Comandi tabella (Stampa, Posizione / theme)
+//  -Filtrare i segnali inutili sul colore azzurro scuro (il giorno prima ha passato solo poche
+//   candele sopra il massimo dinamico e / o solo nelle prime ore di trading.
+//   Il filtro potrebbe essere messo anche non sul'orario ma sul percentile di volumi tipo se è sopra
+//   ma diamo sotto il 10emo percentile non considerare questi punti)
+
+
+
+
+// Versione stabile: 154
+
+
+
+//  INPUT   //
+tf              = input.timeframe("1D", "Anchor period", options=["1D","1W","2W","1M","3M","6M","1Y"], group = "Horizon setup")
+horizon         = input.int(5, "Sessioni per min/max volume cumulato", minval=1, group = "Horizon setup")
+SessionsLen     = input.int(5, "Sessioni per media cumulata", minval=1, group = "Horizon setup")
+showRange       = input.bool(true, "Mostra min/max dinamico ultime sessioni", group = "Historical data")
+showStaticRange = input.bool(true, "Mostra min/max statico ultime sessioni (finali)", group = "Historical data")
+showTable       = input.bool(true, "Show Table", group = "Table", inline = "1")
+pos_table       = input.string("Bottom", title = " ", options=["Top","Center","Bottom"], group = "Table", inline = "1")
+
+//
+storeSessions = math.max(horizon, SessionsLen)
+
+
+
+//  VOLUME CUMULATO PER SESSIONE   //
+var float   volume_cum        = na
+isNewPeriod = ta.change(time(tf)) != 0
+
+var int      sessBar          = 0
+var float[]  currSession      = array.new_float()
+var float[]  sessDB           = array.new_float()
+var int[]    sessLens         = array.new_int()
+var float[]  sessFinals       = array.new_float()
+
+var bool prevSessionBrokeMax  = false
+var bool thisSessionBrokeMax  = false
+
+if na(volume_cum)
+    volume_cum := volume
+    sessBar := 0
+    array.clear(currSession)
+    array.push(currSession, volume_cum)
+else
+    if isNewPeriod
+        int lenPrev = array.size(currSession)
+        if lenPrev > 0
+            for i = 0 to lenPrev - 1
+                array.push(sessDB, array.get(currSession, i))
+            array.push(sessLens, lenPrev)
+
+            if array.size(sessLens) > storeSessions
+                int lenOld = array.shift(sessLens)
+                for _i = 0 to lenOld - 1
+                    array.shift(sessDB)
+
+            float lastFinal = array.get(currSession, lenPrev - 1)
+            array.unshift(sessFinals, lastFinal)
+            if array.size(sessFinals) > storeSessions
+                array.pop(sessFinals)
+
+        prevSessionBrokeMax := thisSessionBrokeMax
+        thisSessionBrokeMax := false
+
+        volume_cum := volume
+        sessBar := 0
+        array.clear(currSession)
+        array.push(currSession, volume_cum)
+    else
+        volume_cum += volume
+        sessBar += 1
+        array.push(currSession, volume_cum)
+
+
+
+//  MEDIA ULTIME X SESSIONI (CURVA CUMULATA) //
+float volume_cum_avg = na
+if array.size(sessLens) > 0
+    float sum = 0.0
+    int count = 0
+    int ptr = 0
+    for s = 0 to array.size(sessLens) - 1
+        int L = array.get(sessLens, s)
+        if sessBar < L and ptr + sessBar < array.size(sessDB)
+            float v = array.get(sessDB, ptr + sessBar)
+            sum += v
+            count += 1
+        ptr += L
+    if count > 0
+        volume_cum_avg := sum / count
+
+
+
+//  STATICO: MIN/MAX dei finali delle ultime horizon sessioni //
+float sessMaxStatic = na
+float sessMinStatic = na
+
+int nStatic = array.size(sessFinals)
+if nStatic > 0
+    sessMaxStatic := array.get(sessFinals, 0)
+    sessMinStatic := sessMaxStatic
+    if nStatic > 1
+        for i = 1 to nStatic - 1
+            float v = array.get(sessFinals, i)
+            sessMaxStatic := math.max(sessMaxStatic, v)
+            sessMinStatic := math.min(sessMinStatic, v)
+
+
+
+//  DINAMICO: MIN/MAX barra-per-barra + PERCENTILE nelle ultime horizon sessioni //
+float sessMaxDyn   = na
+float sessMinDyn   = na
+float percDyn      = na
+
+int totalSess = array.size(sessLens)
+if totalSess > 0
+    int useCount = math.min(horizon, totalSess)
+    int startIdx = totalSess - useCount
+
+    int ptr2 = 0
+    for s = 0 to startIdx - 1
+        ptr2 += array.get(sessLens, s)
+
+    bool first = true
+    int  countVals = 0
+    int  countLE   = 0
+
+    for s = startIdx to totalSess - 1
+        int L = array.get(sessLens, s)
+        if sessBar < L and ptr2 + sessBar < array.size(sessDB)
+            float v = array.get(sessDB, ptr2 + sessBar)
+            if first
+                sessMaxDyn := v
+                sessMinDyn := v
+                first := false
+            else
+                sessMaxDyn := math.max(sessMaxDyn, v)
+                sessMinDyn := math.min(sessMinDyn, v)
+            countVals += 1
+            if v <= volume_cum
+                countLE += 1
+        ptr2 += L
+
+    if countVals > 0
+        percDyn := 100.0 * countLE / countVals
+
+
+
+//  PLOT    //
+bgcolor(isNewPeriod ? color.new(color.black, 85) : na)
+
+// statico (finale)
+pMaxStatic = plot(showStaticRange and not na(sessMaxStatic) ? sessMaxStatic : na, title="Static Max", color=color.new(color.green, 70), linewidth=2)
+pMinStatic = plot(showStaticRange and not na(sessMinStatic) ? sessMinStatic : na, title="Static Min", color=color.new(color.red, 70), linewidth=2)
+
+// dinamico (barra‐per‐barra)
+pMaxDyn = plot(showRange and not na(sessMaxDyn) ? sessMaxDyn : na, title="Dynamic Max", color=color.new(color.green, 25), linewidth=1, linestyle = plot.linestyle_dotted)
+pMinDyn = plot(showRange and not na(sessMinDyn) ? sessMinDyn : na, title="Dynamic Min", color=color.new(color.red, 25), linewidth=1, linestyle = plot.linestyle_dotted)
+
+pAvg  = plot(volume_cum_avg, title="Daily Accum Avg Vol", color=color.gray, linewidth=1)
+pCum  = plot(volume_cum,     title="Daily Accum Vol",     color=color.black, linewidth=2)
+// fill azzurro / blu scuro tra cumulativo e massimo dinamico
+bool crossedNow = showRange and not na(sessMaxDyn) and volume_cum > sessMaxDyn
+if crossedNow
+    thisSessionBrokeMax := true
+
+fillColor = crossedNow ? (prevSessionBrokeMax ? color.new(color.blue, 70) : color.new(color.aqua, 80)) : na
+fill(pCum, pMaxDyn, color=fillColor)
+
+
+
+// --- TABELLA --- //
+var table t = na
+var string lastPos = ""
+
+if barstate.islast
+    if showTable
+        // converte Top/Center/Bottom in posizione Pine
+        string pos =
+             pos_table == "Top"    ? position.top_right :
+             pos_table == "Center" ? position.middle_right :
+                                     position.bottom_right
+
+        // crea o ricrea la tabella se cambia posizione
+        if na(t) or pos != lastPos
+            if not na(t)
+                table.delete(t)
+            t := table.new(pos, 2, 6, border_width = 1, bgcolor = color.gray)
+            lastPos := pos
+
+        // aggiorna valori tabella
+        table.cell(t, 0, 0, "Σ Volume",               text_color = color.white)
+        table.cell(t, 1, 0, str.tostring(volume_cum,        format.volume),  text_color = color.white)
+        table.cell(t, 0, 1, "Σ Volume (Avg)",         text_color = color.white)
+        table.cell(t, 1, 1, str.tostring(volume_cum_avg,    format.volume),  text_color = color.white)
+        table.cell(t, 0, 2, "Max Static / Dyn",       text_color = color.white)
+        table.cell(t, 1, 2, str.tostring(sessMaxDyn,        format.volume) + " / " + str.tostring(sessMaxStatic, format.volume), text_color = color.white)
+        table.cell(t, 0, 3, "Min Static / Dyn",       text_color = color.white)
+        table.cell(t, 1, 3, str.tostring(sessMinDyn,        format.volume) + " / " + str.tostring(sessMinStatic, format.volume), text_color = color.white)
+        table.cell(t, 0, 4, "Percentile",             text_color = color.white)
+        table.cell(t, 1, 4, str.tostring(percDyn,          format.percent),  text_color = color.white)
+
+    else
+        // table OFF → elimina tabella se esiste
+        if not na(t)
+            table.delete(t)
+            t := na
+            lastPos := ""

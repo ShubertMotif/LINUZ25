@@ -69,6 +69,53 @@ class User(UserMixin, db.Model):
         return 'Manager' if self.role == 'manager' else 'Employee'
 
 
+# ===== CHATBOT v2.0 MODELS =====
+
+class ChatFeedback(db.Model):
+    """Feedback su risposte AI"""
+    id = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('chat_message.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    rating = db.Column(db.String(10))  # 'positive', 'negative'
+    comment = db.Column(db.Text, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    message = db.relationship('ChatMessage', backref='feedbacks')
+    user = db.relationship('User')
+
+
+class UserChatPreferences(db.Model):
+    """Preferenze conversazione utente"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True)
+    tone = db.Column(db.String(50), default='professional')  # professional, casual, technical
+    response_length = db.Column(db.String(20), default='concise')  # concise, detailed, brief
+    custom_instructions = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='chat_prefs', uselist=False)
+
+
+class SharedKnowledge(db.Model):
+    """Database condiviso Q&A approvate"""
+    id = db.Column(db.Integer, primary_key=True)
+    question = db.Column(db.Text, nullable=False)
+    answer = db.Column(db.Text, nullable=False)
+    category = db.Column(db.String(50))  # 'biotech', 'it', 'defense', 'fintech', 'general'
+    usage_count = db.Column(db.Integer, default=0)
+    positive_feedback_count = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_approved = db.Column(db.Boolean, default=False)  # Manager approval
+
+    def similarity_score(self, query):
+        """Calcolo similarità semplice (per matching veloce)"""
+        q_words = set(query.lower().split())
+        k_words = set(self.question.lower().split())
+        if not q_words or not k_words:
+            return 0
+        return len(q_words & k_words) / len(q_words | k_words)
+
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tx_hash = db.Column(db.String(64), unique=True, nullable=False)
@@ -327,6 +374,108 @@ def save_visits(visits_data):
         json.dump(visits_data, f, indent=2)
 
 
+@app.route('/api/chat/feedback', methods=['POST'])
+@login_required
+def chat_feedback():
+    """Salva feedback su risposta"""
+    data = request.get_json()
+    message_id = data.get('message_id')
+    rating = data.get('rating')  # 'positive' o 'negative'
+    comment = data.get('comment', '')
+
+    # Salva feedback
+    feedback = ChatFeedback(
+        message_id=message_id,
+        user_id=current_user.id,
+        rating=rating,
+        comment=comment
+    )
+    db.session.add(feedback)
+
+    # Se positivo, proponi per Knowledge Base
+    if rating == 'positive':
+        message = ChatMessage.query.get(message_id)
+        if message:
+            # Cerca se esiste già
+            existing = SharedKnowledge.query.filter_by(
+                question=message.message,
+                answer=message.response
+            ).first()
+
+            if existing:
+                existing.positive_feedback_count += 1
+            else:
+                # Crea nuova entry (non approvata)
+                knowledge = SharedKnowledge(
+                    question=message.message,
+                    answer=message.response,
+                    category=_detect_category(message.message),
+                    positive_feedback_count=1
+                )
+                db.session.add(knowledge)
+
+    db.session.commit()
+
+    # Ricompensa per feedback
+    blockchain.reward_user(current_user, 0.1, 'chat_feedback')
+
+    return jsonify({'success': True, 'message': 'Grazie per il feedback! +0.1 ADG'})
+
+
+def _detect_category(question):
+    """Categoria automatica da keywords"""
+    q_lower = question.lower()
+    if any(k in q_lower for k in ['biotech', 'pharma', 'medical', 'clinica']):
+        return 'biotech'
+    elif any(k in q_lower for k in ['cloud', 'software', 'code', 'cyber']):
+        return 'it'
+    elif any(k in q_lower for k in ['defense', 'difesa', 'radar', 'militar']):
+        return 'defense'
+    elif any(k in q_lower for k in ['adg', 'token', 'mining', 'crypto', 'blockchain']):
+        return 'fintech'
+    return 'general'
+
+
+@app.route('/api/chat/preferences', methods=['GET', 'POST'])
+@login_required
+def chat_preferences():
+    """Gestisci preferenze chat"""
+    prefs = UserChatPreferences.query.filter_by(user_id=current_user.id).first()
+
+    if request.method == 'POST':
+        data = request.get_json()
+
+        if not prefs:
+            prefs = UserChatPreferences(user_id=current_user.id)
+            db.session.add(prefs)
+
+        prefs.tone = data.get('tone', 'professional')
+        prefs.response_length = data.get('response_length', 'concise')
+        prefs.custom_instructions = data.get('custom_instructions', '')
+        prefs.updated_at = datetime.utcnow()
+
+        db.session.commit()
+        return jsonify({'success': True})
+
+    # GET
+    if not prefs:
+        return jsonify({
+            'tone': 'professional',
+            'response_length': 'concise',
+            'custom_instructions': ''
+        })
+
+    return jsonify({
+        'tone': prefs.tone,
+        'response_length': prefs.response_length,
+        'custom_instructions': prefs.custom_instructions or ''
+    })
+
+
+
+
+
+
 # =============================================================================
 # PROJECT
 # =============================================================================
@@ -481,6 +630,8 @@ def project_detail(project_id):
                            available_users=available_users,
                            project_files=project_files_rel,  # ⭐ NUOVO
                            available_user_files=available_user_files)  # ⭐ NUOVO
+
+
 
 
 @app.route('/project/<int:project_id>/add_member', methods=['POST'])
@@ -942,117 +1093,140 @@ def chatbot():
 @app.route('/api/chat', methods=['POST'])
 @login_required
 def chat_api():
-    """API per chat con Claude - con context utente + web search"""
-    try:
-        # Verifica limite giornaliero
-        if not check_token_limit(current_user.id):
-            return jsonify({
-                'success': False,
-                'message': 'Limite giornaliero raggiunto. Riprova domani o passa a Premium!',
-                'limit_reached': True
-            })
+    """Chat con Knowledge Base integrato"""
 
-        import anthropic
+    if not check_token_limit(current_user.id):
+        return jsonify({'success': False, 'message': 'Limite giornaliero raggiunto', 'limit_reached': True})
 
-        data = request.get_json()
-        user_message = data.get('message', '')
+    import anthropic
 
-        if not user_message:
-            return jsonify({'success': False, 'message': 'Messaggio vuoto'})
+    data = request.get_json()
+    user_message = data.get('message', '').strip()
 
-        # Inizializza client Claude
-        client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+    if not user_message:
+        return jsonify({'success': False, 'message': 'Messaggio vuoto'})
 
-        # Genera context personalizzato
-        user_context = get_user_context(current_user)
+    # 1. CERCA IN KNOWLEDGE BASE
+    kb_matches = SharedKnowledge.query.filter_by(is_approved=True).all()
+    best_match = None
+    best_score = 0
 
-        # System prompt personalizzato
-        system_prompt = f"""Sei l'assistente AI di Adelchi Group, azienda tecnologica multi-settore (Biotech, IT, Difesa, Fintech).
+    for kb in kb_matches:
+        score = kb.similarity_score(user_message)
+        if score > best_score and score > 0.5:  # Soglia 50% similarità
+            best_score = score
+            best_match = kb
 
-{user_context}
+    # Se match trovato, usa risposta cached
+    if best_match:
+        best_match.usage_count += 1
+        db.session.commit()
 
-REGOLE:
-- Risposte SEMPRE concise (max 3-4 frasi)
-- Professionale ma amichevole
-- Usa i dati utente per risposte personalizzate
-- Se chiede info su progetti/note/file, usa i dati sopra
-- Per domande generali/enciclopediche che non trovi nel context, usa web_search
-- Per azioni (creare note, upload file), spiega come fare nell'app
-- Non inventare dati non presenti nel context
-
-SERVIZI ADELCHI:
-- Biotech: ricerca farmaceutica, dispositivi medicali, AI clinica
-- IT: cloud, cybersecurity, sviluppo software, AI/ML
-- Difesa: sistemi radar, cyber warfare, comunicazioni sicure
-- Fintech: Token ADG, mining pool RTX3060, trading DeFi"""
-
-        # Chiamata API con web search
-        message = client.messages.create(
-            model=CLAUDE_MODEL,
-            max_tokens=RESPONSE_MAX_TOKENS,
-            system=system_prompt,
-            messages=[
-                {"role": "user", "content": user_message}
-            ],
-            tools=[{
-                "type": "web_search_20250305",
-                "name": "web_search"
-            }]
-        )
-
-        # Estrai testo dalla risposta (gestisce tool_use)
-        response_text = ""
-        for block in message.content:
-            if hasattr(block, 'text'):
-                response_text += block.text
-            elif block.type == 'tool_use':
-                # Ignora i tool use blocks, prendi solo il testo finale
-                continue
-
-        if not response_text:
-            response_text = "Scusa, non ho trovato informazioni rilevanti."
-
-        # Calcola token usati
-        input_tokens = message.usage.input_tokens
-        output_tokens = message.usage.output_tokens
-        total_tokens = input_tokens + output_tokens
-
-        # Salva messaggio nel database
+        # Salva nel log
         chat_message = ChatMessage(
             user_id=current_user.id,
             message=user_message,
-            response=response_text,
-            tokens_used=total_tokens,
-            model=CLAUDE_MODEL
+            response=best_match.answer,
+            tokens_used=0,  # Gratis da cache
+            model='knowledge-base'
         )
         db.session.add(chat_message)
-
-        # Aggiorna usage
-        usage = get_daily_usage(current_user.id)
-        usage.tokens_used += total_tokens
-        usage.messages_count += 1
         db.session.commit()
-
-        remaining = DAILY_TOKEN_LIMIT - usage.tokens_used
 
         return jsonify({
             'success': True,
-            'response': response_text,
-            'tokens_used': total_tokens,
-            'remaining_tokens': remaining,
-            'messages_today': usage.messages_count
+            'response': best_match.answer,
+            'from_kb': True,
+            'tokens_used': 0,
+            'message_id': chat_message.id
         })
 
-    except anthropic.APIError as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore API Claude: {str(e)}'
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Errore: {str(e)}'
-        })
+    # 2. ALTRIMENTI CHIAMA CLAUDE CON PREFERENZE
+    client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+
+    # Carica preferenze
+    prefs = UserChatPreferences.query.filter_by(user_id=current_user.id).first()
+
+    # System prompt personalizzato
+    tone_map = {
+        'professional': 'professionale e formale',
+        'casual': 'amichevole e colloquiale',
+        'technical': 'tecnico e dettagliato'
+    }
+
+    length_map = {
+        'brief': 'brevissime (max 2 frasi)',
+        'concise': 'concise (3-4 frasi)',
+        'detailed': 'dettagliate ma chiare'
+    }
+
+    tone = tone_map.get(prefs.tone if prefs else 'professional', 'professionale')
+    length = length_map.get(prefs.response_length if prefs else 'concise', 'concise')
+    custom = prefs.custom_instructions if prefs and prefs.custom_instructions else ''
+
+    user_context = get_user_context(current_user)
+
+    system_prompt = f"""Sei l'assistente AI di Adelchi Group.
+
+{user_context}
+
+STILE RISPOSTA:
+- Tono: {tone}
+- Lunghezza: {length}
+- Istruzioni personalizzate: {custom if custom else 'Nessuna'}
+
+REGOLE:
+- Risposte sempre utili, pratiche, concrete
+- Se non sai, usa web_search
+- Per azioni nell'app, spiega come fare
+- Mai inventare dati non presenti nel context
+
+SERVIZI ADELCHI: Biotech, IT, Difesa, Fintech"""
+
+    # Chiamata Claude
+    message = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=RESPONSE_MAX_TOKENS,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}],
+        tools=[{"type": "web_search_20250305", "name": "web_search"}]
+    )
+
+    # Estrai risposta
+    response_text = ""
+    for block in message.content:
+        if hasattr(block, 'text'):
+            response_text += block.text
+
+    if not response_text:
+        response_text = "Mi dispiace, non ho trovato informazioni rilevanti."
+
+    # Salva
+    total_tokens = message.usage.input_tokens + message.usage.output_tokens
+
+    chat_message = ChatMessage(
+        user_id=current_user.id,
+        message=user_message,
+        response=response_text,
+        tokens_used=total_tokens,
+        model=CLAUDE_MODEL
+    )
+    db.session.add(chat_message)
+
+    usage = get_daily_usage(current_user.id)
+    usage.tokens_used += total_tokens
+    usage.messages_count += 1
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'response': response_text,
+        'from_kb': False,
+        'tokens_used': total_tokens,
+        'remaining_tokens': DAILY_TOKEN_LIMIT - usage.tokens_used,
+        'message_id': chat_message.id
+    })
+
 
 @app.route('/api/chat/usage')
 @login_required

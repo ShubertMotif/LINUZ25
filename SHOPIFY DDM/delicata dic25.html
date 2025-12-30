@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crema Viso DELICATA - Doni del Mare</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Garamond', serif;
+            color: #2c5f4f;
+            line-height: 1.6;
+            background: white;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 0;
+            margin: 0 auto;
+            background: white;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* PAGINA 1 - COVER */
+        .cover {
+            background: linear-gradient(135deg, #1a5545 0%, #2c7a65 50%, #6eb89f 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            padding: 60px;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            border: 3px solid rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            margin-bottom: 40px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .brand-name {
+            font-size: 28px;
+            letter-spacing: 4px;
+            font-weight: 300;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+        }
+
+        .product-name {
+            font-size: 72px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            font-family: 'Garamond', serif;
+        }
+
+        .tagline {
+            font-size: 24px;
+            font-weight: 300;
+            margin-bottom: 20px;
+            opacity: 0.95;
+            max-width: 600px;
+            line-height: 1.4;
+        }
+
+        .sub-tagline {
+            font-size: 16px;
+            opacity: 0.85;
+            font-style: italic;
+            max-width: 500px;
+        }
+
+        /* PAGINA 2 - HERO */
+        .hero {
+            background: linear-gradient(to bottom, #f8faf9 0%, white 100%);
+            padding: 80px 60px;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            color: #1a5545;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 300;
+        }
+
+        .hero-intro {
+            font-size: 20px;
+            color: #2c5f4f;
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 50px;
+            line-height: 1.8;
+        }
+
+        .key-benefits {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 30px;
+            border-left: 4px solid #6eb89f;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .benefit-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .benefit-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a5545;
+            margin-bottom: 10px;
+        }
+
+        .benefit-text {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* PAGINA 3 - INGREDIENTI */
+        .ingredients-page {
+            padding: 80px 60px;
+            background: white;
+        }
+
+        .section-title {
+            font-size: 42px;
+            color: #1a5545;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .section-subtitle {
+            font-size: 16px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 50px;
+            font-style: italic;
+        }
+
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .ingredient-card {
+            background: #f8faf9;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e0e8e5;
+        }
+
+        .ingredient-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .ingredient-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a5545;
+            margin-bottom: 8px;
+        }
+
+        .ingredient-benefit {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* PAGINA 4 - TEXTURE & UTILIZZO */
+        .usage-page {
+            padding: 80px 60px;
+            background: linear-gradient(to bottom, white 0%, #f8faf9 100%);
+        }
+
+        .texture-section {
+            margin-bottom: 60px;
+        }
+
+        .texture-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .usage-steps {
+            display: flex;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: #6eb89f;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 auto 20px;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a5545;
+            margin-bottom: 10px;
+        }
+
+        .step-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* PAGINA 5 - INCI */
+        .inci-page {
+            padding: 80px 60px;
+            background: white;
+        }
+
+        .inci-box {
+            background: #f8faf9;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #e0e8e5;
+        }
+
+        .inci-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a5545;
+            margin-bottom: 20px;
+        }
+
+        .inci-text {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.8;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .certifications {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 50px;
+        }
+
+        .cert-badge {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #6eb89f;
+        }
+
+        .cert-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .cert-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a5545;
+        }
+
+        /* BACK COVER */
+        .back-cover {
+            background: linear-gradient(135deg, #6eb89f 0%, #2c7a65 50%, #1a5545 100%);
+            color: white;
+            padding: 80px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .product-info {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .product-detail {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .contact-info {
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .contact-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .contact-detail {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        @media print {
+            .page {
+                margin: 0;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- PAGINA 1: COVER -->
+<div class="page cover">
+    <div class="logo">🍃</div>
+    <div class="brand-name">Doni del Mare</div>
+    <h1 class="product-name">DELICATA</h1>
+    <p class="tagline">Rigenerazione naturale con Alga Spirulina,<br>Niacinamide e Peptidi</p>
+    <p class="sub-tagline">Un elisir di giovinezza che risveglia la naturale luminosità della pelle</p>
+</div>
+
+<!-- PAGINA 2: HERO & BENEFICI -->
+<div class="page hero">
+    <h2 class="hero-title">Nutri. Rigenera. Illumina.</h2>
+    <p class="hero-intro">
+        Una crema viso dall'efficacia straordinaria che coccola la pelle con la purezza dell'Alga Spirulina
+        e l'azione sinergica di ingredienti naturali sapientemente dosati. Una texture leggera che si fonde
+        sulla pelle, donando idratazione profonda e protezione quotidiana contro i segni del tempo.
+    </p>
+
+    <div class="key-benefits">
+        <div class="benefit-card">
+            <div class="benefit-icon">💧</div>
+            <div class="benefit-title">Idratazione Profonda</div>
+            <div class="benefit-text">
+                L'acido ialuronico e il burro di karitè avvolgono la pelle in un velo di comfort,
+                donando morbidezza e nutrimento che durano tutto il giorno.
+            </div>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">✨</div>
+            <div class="benefit-title">Luminosità Naturale</div>
+            <div class="benefit-text">
+                La niacinamide uniforma l'incarnato riducendo discromie e opacità, mentre l'Alga Spirulina
+                dona una luce radiosa e sana al viso.
+            </div>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">🛡️</div>
+            <div class="benefit-title">Protezione Antiossidante</div>
+            <div class="benefit-text">
+                Un potente cocktail di antiossidanti contrasta i radicali liberi e lo stress ossidativo,
+                prevenendo i primi segni dell'invecchiamento.
+            </div>
+        </div>
+
+        <div class="benefit-card">
+            <div class="benefit-icon">🌿</div>
+            <div class="benefit-title">Delicatezza Assoluta</div>
+            <div class="benefit-text">
+                Formulazione naturale senza parabeni, ideale anche per le pelli più sensibili.
+                Leggero filtro UV integrato per una protezione quotidiana.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PAGINA 3: INGREDIENTI PRINCIPALI -->
+<div class="page ingredients-page">
+    <h2 class="section-title">Gli Ingredienti della Natura</h2>
+    <p class="section-subtitle">Una selezione accurata di principi attivi vegetali dalla tradizione italiana</p>
+
+    <div class="ingredients-grid">
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🌊</div>
+            <div class="ingredient-name">Alga Spirulina</div>
+            <div class="ingredient-benefit">
+                Antiossidante e rivitalizzante, ricca di proteine vegetali per mantenere giovane il viso
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">💎</div>
+            <div class="ingredient-name">Niacinamide</div>
+            <div class="ingredient-benefit">
+                Vitamina B3 che uniforma l'incarnato e riduce le imperfezioni cutanee
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🧬</div>
+            <div class="ingredient-name">Peptidi</div>
+            <div class="ingredient-benefit">
+                Proteine idrolizzate che stimolano la produzione di collagene ed elasticità
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">💧</div>
+            <div class="ingredient-name">Acido Ialuronico</div>
+            <div class="ingredient-benefit">
+                Idratazione intensa e rimpolpante per una pelle tonica e levigata
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🌿</div>
+            <div class="ingredient-name">Estratto di Edera</div>
+            <div class="ingredient-benefit">
+                Tonificante e purificante, dona elasticità e tonicità ai tessuti
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🌻</div>
+            <div class="ingredient-name">Iperico</div>
+            <div class="ingredient-benefit">
+                Lenitivo e antinfiammatorio naturale per pelli stressate
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🥥</div>
+            <div class="ingredient-name">Olio di Nocciola</div>
+            <div class="ingredient-benefit">
+                Protettivo ed emolliente, leviga la pelle con elasticità
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🌰</div>
+            <div class="ingredient-name">Burro di Karité</div>
+            <div class="ingredient-benefit">
+                Nutrimento profondo e film protettivo molto elastico
+            </div>
+        </div>
+
+        <div class="ingredient-card">
+            <div class="ingredient-icon">🧴</div>
+            <div class="ingredient-name">Pantenolo</div>
+            <div class="ingredient-benefit">
+                Pro-vitamina B5 che lenisce, ripara e idrata in profondità
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 30px; background: white; border-left: 4px solid #6eb89f; border-radius: 8px;">
+        <p style="font-size: 15px; color: #1a5545; line-height: 1.8;">
+            <strong>Oli preziosi dell'Amazzonia:</strong> Açaí, Andiroba e Balsamo di Copaiba –
+            ingredienti della tradizione con proprietà antiossidanti, ristrutturanti e lenitive uniche.
+            Un tocco esotico che rigenera la pelle donandole una texture vellutata.
+        </p>
+    </div>
+</div>
+
+<!-- PAGINA 4: TEXTURE & UTILIZZO -->
+<div class="page usage-page">
+    <h2 class="section-title">Texture Leggera, Risultati Straordinari</h2>
+
+    <div class="texture-section">
+        <div class="texture-box">
+            <h3 style="font-size: 24px; color: #1a5545; margin-bottom: 20px;">
+                Un'Esperienza Sensoriale Unica
+            </h3>
+            <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                La formulazione leggera si assorbe rapidamente senza ungere, lasciando la pelle
+                morbida al tatto e visibilmente più luminosa già dalle prime applicazioni.
+                L'effetto opacizzante la rende perfetta come base trucco quotidiana.
+            </p>
+            <p style="font-size: 16px; color: #555; line-height: 1.8;">
+                <strong style="color: #1a5545;">Filtro UV integrato</strong> per una protezione quotidiana
+                contro i danni dei raggi solari, mantenendo la pelle giovane e sana più a lungo.
+            </p>
+        </div>
+    </div>
+
+    <h3 style="font-size: 28px; color: #1a5545; text-align: center; margin: 60px 0 40px;">
+        Come Utilizzarla
+    </h3>
+
+    <div class="usage-steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-title">Detergi</div>
+            <div class="step-text">
+                Detergere delicatamente il viso con un detergente neutro.
+                Tamponare con un asciugamano senza strofinare.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-title">Applica</div>
+            <div class="step-text">
+                Prelevare una piccola quantità di crema.
+                Stendere uniformemente su viso e collo con movimenti delicati.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-title">Massaggia</div>
+            <div class="step-text">
+                Massaggiare con leggeri movimenti circolari dal basso verso l'alto
+                fino a completo assorbimento.
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 60px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        <h4 style="font-size: 18px; color: #1a5545; margin-bottom: 15px;">💡 Consiglio Professionale</h4>
+        <p style="font-size: 14px; color: #666; line-height: 1.8;">
+            Per risultati ottimali, consigliamo l'utilizzo <strong>mattina e sera</strong> dopo aver
+            deterso il viso. Al mattino, attendere 1-2 minuti prima del trucco per ottenere l'effetto
+            primer perfetto. Utilizzare anche dopo il <em>Latte Detergente Viso Doni del Mare</em>
+            per un rituale di bellezza completo.
+        </p>
+    </div>
+</div>
+
+<!-- PAGINA 5: INCI & CERTIFICAZIONI -->
+<div class="page inci-page">
+    <h2 class="section-title">Formulazione Completa</h2>
+    <p class="section-subtitle">Trasparenza e qualità certificata</p>
+
+    <div class="inci-box">
+        <div class="inci-title">INCI (International Nomenclature of Cosmetic Ingredients)</div>
+        <div class="inci-text">
+            AQUA, CETEARYL ISONONANOATE, C13-15 ALKANE, CETEARYL ALCOHOL,
+            POLYGLYCERYL-3 METHYLGLUCOSE DISTEARATE, GLYCERIN, CELLULOSE, CETYL ALCOHOL,
+            COPAIFERA OFFICINALIS (BALSAM COPAIBA) RESIN, CARAPA GUAIANENSIS SEED OIL,
+            EUTERPE OLERACEA FRUIT OIL, HYPERICUM PERFORATUM FLOWER/LEAF/STEM EXTRACT,
+            HEDERA HELIX LEAF EXTRACT, SACCHAROMYCES LYSATE, PANTHENOL, SODIUM HYALURONATE,
+            HYDROLYZED YEAST PROTEIN, THREONINE, ALLANTOIN, VALINE, BIOTIN,
+            SPIRULINA MAXIMA EXTRACT, BUTYROSPERMUM PARKII (SHEA) BUTTER,
+            CORYLUS AVELLANA SEED OIL, GLUTAMIC ACID, GLYCINE, PYRIDOXINE HCL, NIACINAMIDE,
+            DISODIUM SUCCINATE, TOCOPHERYL ACETATE, SODIUM PHYTATE, XANTHAN GUM,
+            AROMA/FLAVOUR, POTASSIUM CETYL PHOSPHATE, STEARIC ACID, CARBOMER,
+            PHENOXYETHANOL, ETHYLHEXYLGLYCERIN, PENTAERYTHRITYL TETRA-DI-T-BUTYL
+            HYDROXYHYDROCINNAMATE, ETHYLHEXYL METHOXYCINNAMATE, SODIUM HYDROXIDE, CITRIC ACID.
+        </div>
+    </div>
+
+    <div class="certifications">
+        <div class="cert-badge">
+            <div class="cert-icon">🌿</div>
+            <div class="cert-text">+95% Ingredienti<br>Naturali</div>
+        </div>
+
+        <div class="cert-badge">
+            <div class="cert-icon">🇮🇹</div>
+            <div class="cert-text">Made in Italy<br>Con Passione</div>
+        </div>
+
+        <div class="cert-badge">
+            <div class="cert-icon">🐰</div>
+            <div class="cert-text">Cruelty Free<br>Non testato</div>
+        </div>
+
+        <div class="cert-badge">
+            <div class="cert-icon">🚫</div>
+            <div class="cert-text">Senza Parabeni<br>Dermatologicamente testato</div>
+        </div>
+
+        <div class="cert-badge">
+            <div class="cert-icon">♻️</div>
+            <div class="cert-text">Flacone Airless<br>Ecologico</div>
+        </div>
+
+        <div class="cert-badge">
+            <div class="cert-icon">☀️</div>
+            <div class="cert-text">Leggero Filtro UV<br>Protezione quotidiana</div>
+        </div>
+    </div>
+
+    <div style="margin-top: 60px; padding: 30px; background: #f8faf9; border-radius: 12px; border: 1px solid #e0e8e5;">
+        <h4 style="font-size: 18px; color: #1a5545; margin-bottom: 15px; text-align: center;">
+            La Nostra Filosofia
+        </h4>
+        <p style="font-size: 14px; color: #666; line-height: 1.8; text-align: center; max-width: 700px; margin: 0 auto;">
+            <em>"Cosmetici naturali basati sulla proprietà dell'Alga Spirulina, realizzati in Italia
+            con metodi all'avanguardia a cura artigianale."</em><br><br>
+            Nel 2018 abbiamo iniziato la nostra missione per sviluppare prodotti cosmetici che siano
+            al contempo <strong>naturali</strong> e <strong>scientificamente all'avanguardia</strong>.
+            Combiniamo un'attenta ricerca negli ingredienti della tradizione con tecniche di estrazione
+            e formulazione che permettono di sfruttare al massimo il loro potenziale.
+        </p>
+    </div>
+</div>
+
+<!-- PAGINA 6: BACK COVER -->
+<div class="page back-cover">
+    <div class="product-info">
+        <h2 style="font-size: 48px; margin-bottom: 30px; font-weight: 300;">CREMA VISO<br>DELICATA</h2>
+        <div class="product-detail">📦 Formato: 30 ml – Flacone Airless</div>
+        <div class="product-detail">💚 Ideale per: Pelli giovani e sensibili</div>
+        <div class="product-detail">🌿 Formulazione: >95% naturale</div>
+        <div class="product-detail" style="font-size: 24px; margin-top: 30px; font-weight: 600;">
+            € 18,90
+        </div>
+    </div>
+
+    <div class="contact-info">
+        <div class="contact-title">Doni del Mare Cosmetica</div>
+        <div class="contact-detail">📧 info@donidelmarecosmetica.it</div>
+        <div class="contact-detail">📱 @donidelmarecosmetica_</div>
+        <div class="contact-detail">🌐 www.donidelmare.it</div>
+        <div style="margin-top: 40px; font-size: 12px; opacity: 0.7;">
+            Made in Italy with love 🇮🇹 | © 2024 Doni del Mare Cosmetica
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

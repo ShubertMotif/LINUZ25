@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Ibrido - Configurazione Tecnica</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff41;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1a1f3a;
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            padding: 2rem;
+        }
+        h1 {
+            text-align: center;
+            color: #ffaa00;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .specs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        .spec-box {
+            background: #0f1229;
+            padding: 1.5rem;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+        }
+        .spec-box h2 {
+            color: #ffaa00;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .spec-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #00ff4133;
+        }
+        .spec-label { color: #00aaff; }
+        .spec-value { color: #00ff41; font-weight: bold; }
+
+        /* Schema Drone ASCII */
+        .drone-schema {
+            background: #000;
+            padding: 2rem;
+            border: 2px solid #ffaa00;
+            border-radius: 5px;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+        .ascii-art {
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            color: #00ff41;
+            white-space: pre;
+        }
+
+        /* Component List */
+        .components {
+            background: #0f1229;
+            padding: 1.5rem;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            margin-top: 2rem;
+        }
+        .components h2 {
+            color: #ffaa00;
+            margin-bottom: 1rem;
+        }
+        .component-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 0.5rem;
+            border-bottom: 1px solid #00ff4133;
+        }
+        .component-item:hover {
+            background: #1a1f3a;
+        }
+
+        /* ArduPilot Config */
+        .ardupilot-config {
+            background: #000;
+            padding: 1.5rem;
+            border: 2px solid #00aaff;
+            border-radius: 5px;
+            margin-top: 2rem;
+        }
+        .ardupilot-config h2 {
+            color: #00aaff;
+            margin-bottom: 1rem;
+        }
+        .config-code {
+            background: #0a0e27;
+            padding: 1rem;
+            border-left: 3px solid #00aaff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #00ff41;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+            .ascii-art {
+                font-size: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚁 Drone Ibrido Tandem-Wing + Jet</h1>
+
+        <!-- Specifiche Generali -->
+        <div class="specs-grid">
+            <div class="spec-box">
+                <h2>📐 DIMENSIONI</h2>
+                <div class="spec-item">
+                    <span class="spec-label">Lunghezza:</span>
+                    <span class="spec-value">2.5 m</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Ali Anteriori Span:</span>
+                    <span class="spec-value">2.5 m</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Ali Posteriori Span:</span>
+                    <span class="spec-value">1.0 m</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Distanza Ali:</span>
+                    <span class="spec-value">1.3 m</span>
+                </div>
+            </div>
+
+            <div class="spec-box">
+                <h2>⚖️ PESI</h2>
+                <div class="spec-item">
+                    <span class="spec-label">Peso a Vuoto:</span>
+                    <span class="spec-value">23.36 kg</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Peso a Pieno:</span>
+                    <span class="spec-value">31.86 kg</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Carburante Max:</span>
+                    <span class="spec-value">8.5 kg</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Centro di Gravità:</span>
+                    <span class="spec-value">1.2 m (48%)</span>
+                </div>
+            </div>
+
+            <div class="spec-box">
+                <h2>⚡ PROPULSIONE</h2>
+                <div class="spec-item">
+                    <span class="spec-label">Motori Anteriori:</span>
+                    <span class="spec-value">2×20kg thrust</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Motori Posteriori:</span>
+                    <span class="spec-value">2×8kg thrust</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Jet Coda:</span>
+                    <span class="spec-value">1×10kg thrust</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Thrust Totale:</span>
+                    <span class="spec-value">66 kg</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">T/W Ratio (pieno):</span>
+                    <span class="spec-value">2.07</span>
+                </div>
+            </div>
+
+            <div class="spec-box">
+                <h2>🔋 ELETTRONICA</h2>
+                <div class="spec-item">
+                    <span class="spec-label">Batteria:</span>
+                    <span class="spec-value">7.8 kg LiPo</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Flight Controller:</span>
+                    <span class="spec-value">X6 + GPS</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">ECU Jet:</span>
+                    <span class="spec-value">1 unità</span>
+                </div>
+                <div class="spec-item">
+                    <span class="spec-label">Trasmettitore:</span>
+                    <span class="spec-value">GPS/Telemetry</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schema ASCII Drone -->
+        <div class="drone-schema">
+            <div class="ascii-art">
+╔════════════════════════════════════════════════════════════════════╗
+║                    VISTA SUPERIORE - TANDEM WING                   ║
+╚════════════════════════════════════════════════════════════════════╝
+
+        [M1: 20kg]◄──────────────────────────►[M2: 20kg]
+              ╲                                    ╱
+               ╲          ALI ANTERIORI           ╱
+                ╲        (Span: 2.5m)            ╱
+                 ╲                              ╱
+                  ═══════════════════════════════
+                         │         │
+                    ┌────┴────┬────┴────┐
+                    │ Battery │Computer │  ← 1.0-1.2m dal naso
+                    │  7.8kg  │  1.0kg  │
+                    └────┬────┴────┬────┘
+                         │Serbatoio│
+                         │ 10.0kg  │  ← 1.3m dal naso
+                         └─────────┘
+                              │
+                  ═══════════════════════════════
+                 ╱                              ╲
+                ╱        ALI POSTERIORI          ╲
+               ╱         (Span: 1.0m)             ╲
+              ╱                                    ╲
+        [M3: 8kg]                            [M4: 8kg]
+                              │
+                              │
+                         ┌────┴────┐
+                         │   JET   │  ← 2.4m dal naso
+                         │  10kg   │
+                         └─────────┘
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║                        VISTA LATERALE                              ║
+╚════════════════════════════════════════════════════════════════════╝
+
+        ▲                           ▲
+        │M1                         │M3              ╔═══╗
+    ════╪════               ════════╪════            ║JET║
+    0.6m│                       1.9m│             2.4m╚═╗║
+        │      ┌──────────────┐     │                  ║║
+    ────┴──────┤ BAT │ TANK  ├─────┴──────────────────╚╝
+        NASO   └──────────────┘                    CODA
+        0m        1.1m   1.3m                       2.5m
+
+                    ├──────────── CG: 1.2m ─────────────┤
+
+
+╔════════════════════════════════════════════════════════════════════╗
+║                      DISTRIBUZIONE PESI                            ║
+╚════════════════════════════════════════════════════════════════════╝
+
+Posizione (dal naso)    Componente              Peso
+─────────────────────────────────────────────────────────
+0.6m (±1.25m lat)      Motori Ant. (2x)        5.16 kg   ████████
+1.0m                   Batteria LiPo           7.80 kg   ████████████
+1.15m                  Computer X6 + GPS       1.00 kg   ██
+1.3m                   Serbatoio (pieno)      10.00 kg   ████████████████
+1.9m (±0.5m lat)       Motori Post. (2x)       2.50 kg   ████
+2.4m                   Jet Engine              0.90 kg   ██
+Distribuito            Telaio                  3.50 kg   ██████
+Vari                   Extra (ECU, pompa)      1.00 kg   ██
+                                              ─────────
+                       TOTALE A PIENO:        31.86 kg
+            </div>
+        </div>
+
+        <!-- Lista Componenti Dettagliata -->
+        <div class="components">
+            <h2>🔧 LISTA COMPONENTI</h2>
+            <div class="component-item" style="font-weight: bold; color: #ffaa00;">
+                <span>Componente</span>
+                <span>Peso</span>
+                <span>Posizione</span>
+            </div>
+            <div class="component-item">
+                <span>2× Motore Elettrico Anteriore (T-Motor tipo)</span>
+                <span>5.16 kg</span>
+                <span>Ali ant. ±1.25m</span>
+            </div>
+            <div class="component-item">
+                <span>2× Motore Elettrico Posteriore</span>
+                <span>2.50 kg</span>
+                <span>Ali post. ±0.5m</span>
+            </div>
+            <div class="component-item">
+                <span>1× Jet Engine (es. SW60B)</span>
+                <span>0.90 kg</span>
+                <span>Coda 2.4m</span>
+            </div>
+            <div class="component-item">
+                <span>Batteria LiPo (6S/12S)</span>
+                <span>7.80 kg</span>
+                <span>Centro 1.0m</span>
+            </div>
+            <div class="component-item">
+                <span>Flight Controller X6</span>
+                <span>0.50 kg</span>
+                <span>Centro 1.15m</span>
+            </div>
+            <div class="component-item">
+                <span>GPS + Trasmettitore</span>
+                <span>0.30 kg</span>
+                <span>Centro 1.15m</span>
+            </div>
+            <div class="component-item">
+                <span>Computer di Bordo</span>
+                <span>0.20 kg</span>
+                <span>Centro 1.15m</span>
+            </div>
+            <div class="component-item">
+                <span>Serbatoio Carburante (vuoto → pieno)</span>
+                <span>1.5 → 10 kg</span>
+                <span>Centro 1.3m</span>
+            </div>
+            <div class="component-item">
+                <span>ECU Jet</span>
+                <span>0.40 kg</span>
+                <span>Coda 2.2m</span>
+            </div>
+            <div class="component-item">
+                <span>Pompa Carburante</span>
+                <span>0.30 kg</span>
+                <span>Centro 1.3m</span>
+            </div>
+            <div class="component-item">
+                <span>Telaio Fibra Carbonio</span>
+                <span>3.50 kg</span>
+                <span>Distribuito</span>
+            </div>
+            <div class="component-item">
+                <span>Extra (cavi, connettori, sensori)</span>
+                <span>1.00 kg</span>
+                <span>Vari</span>
+            </div>
+        </div>
+
+        <!-- Configurazione ArduPilot -->
+        <div class="ardupilot-config">
+            <h2>⚙️ CONFIGURAZIONE ARDUPILOT</h2>
+            <div class="config-code">
+# ArduPlane - Configurazione Tandem-Wing Hybrid VTOL
+
+# FRAME TYPE
+FRAME_CLASS = 10            # QuadPlane
+FRAME_TYPE = 3              # X Configuration (for motors)
+Q_FRAME_CLASS = 1           # Quad
+Q_FRAME_TYPE = 1            # X layout
+
+# MOTOR MAPPING
+SERVO1_FUNCTION = 33        # Motor1 - Anteriore Sinistro (20kg thrust)
+SERVO2_FUNCTION = 34        # Motor2 - Anteriore Destro (20kg thrust)
+SERVO3_FUNCTION = 35        # Motor3 - Posteriore Destro (8kg thrust)
+SERVO4_FUNCTION = 36        # Motor4 - Posteriore Sinistro (8kg thrust)
+SERVO5_FUNCTION = 70        # Jet Throttle (10kg thrust)
+
+# CENTER OF GRAVITY
+Q_M_BAT_CURR_TC = 5         # Battery monitoring
+BATT_CAPACITY = 22000       # mAh (stimato per 7.8kg LiPo)
+
+# WEIGHT & BALANCE
+Q_M_THST_EXPO = 0.65        # Thrust curve
+Q_M_HOVER_LEARN = 2         # Learn hover thrust
+Q_M_SPIN_MIN = 0.10         # Min motor spin
+Q_M_SPIN_MAX = 0.95         # Max motor spin
+
+# VTOL TRANSITIONS
+Q_TRANSITION_MS = 5000      # 5 sec transition
+Q_ASSIST_SPEED = 21         # 21 m/s assist speed
+Q_RTL_ALT = 15              # 15m RTL altitude
+
+# FORWARD FLIGHT (Jet Mode)
+ARSPD_FBW_MIN = 12          # Min airspeed 12 m/s
+ARSPD_FBW_MAX = 35          # Max airspeed 35 m/s
+CRUISE_THROTTLE = 65        # Jet cruise at 65%
+
+# TANDEM WING SETUP
+ELEVON_MIXING = 1           # Enable elevon mixing
+ELEVON_REVERSE = 0          # Normal elevons
+ELEVON_CH1_REVERSE = 0      # Front wing
+ELEVON_CH2_REVERSE = 0      # Rear wing
+
+# DIFFERENTIAL THRUST
+Q_YAW_RATE_MAX = 60         # Max yaw rate
+Q_M_YAW_HEADROOM = 200      # Yaw headroom
+
+# SAFETY
+Q_OPTIONS = 1               # Level on exit
+FS_SHORT_ACTN = 2           # RTL on short failsafe
+FS_LONG_ACTN = 2            # RTL on long failsafe
+BATT_FS_LOW_ACT = 2         # RTL on low battery
+
+# TUNING (Initial values - requires flight testing)
+Q_A_RAT_RLL_P = 0.135
+Q_A_RAT_RLL_I = 0.090
+Q_A_RAT_RLL_D = 0.0036
+Q_A_RAT_PIT_P = 0.135
+Q_A_RAT_PIT_I = 0.090
+Q_A_RAT_PIT_D = 0.0036
+Q_A_RAT_YAW_P = 0.180
+Q_A_RAT_YAW_I = 0.018
+
+# NOTES:
+# - CG at 48% MAC (1.2m from nose)
+# - Front motors: 40kg total thrust
+# - Rear motors: 16kg total thrust
+# - Jet: 10kg cruise thrust
+# - Total VTOL thrust: 56kg (T/W = 1.76 empty, 1.76 full)
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem; padding: 1rem; border-top: 2px solid #00ff41;">
+            <p style="color: #ffaa00; font-weight: bold;">
+                ⚠️ PROTOTIPO V0 - RICHIEDE TEST E CALIBRAZIONE
+            </p>
+            <p style="color: #00aaff; margin-top: 0.5rem;">
+                Configurazione ibrida sperimentale tandem-wing + jet propulsion
+            </p>
+        </div>
+    </div>
+</body>
+</html>

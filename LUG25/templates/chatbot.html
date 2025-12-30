@@ -138,6 +138,8 @@
         line-height: 1.6;
     }
 
+
+
     .message.user .message-content {
         background: rgba(231, 212, 84, 0.2);
         border: 1px solid rgba(231, 212, 84, 0.3);
@@ -268,6 +270,9 @@
     <!-- CHAT PRINCIPALE -->
     <div class="chat-container">
         <div class="chat-header">
+            <button onclick="openSettings()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer;">
+    ⚙️ Impostazioni
+</button>
             <div>
                 <h1 class="page-title" style="margin: 0;">🤖 AI Assistant</h1>
                 <p style="opacity: 0.8; margin-top: 0.5rem; font-size: 0.9rem;">Powered by Claude + Web Search</p>
@@ -320,9 +325,135 @@
         </div>
     </div>
 </div>
+
+<!-- FEEDBACK BUTTONS -->
+<div class="message-actions" style="display: none; margin-top: 0.5rem; gap: 0.5rem;">
+    <button onclick="giveFeedback(MESSAGE_ID, 'positive')"
+            style="background: rgba(16, 185, 129, 0.3); border: 1px solid #10B981; color: white; padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
+        👍 Utile
+    </button>
+    <button onclick="giveFeedback(MESSAGE_ID, 'negative')"
+            style="background: rgba(239, 68, 68, 0.3); border: 1px solid #EF4444; color: white; padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
+        👎 Non utile
+    </button>
+</div>
+
+<div id="settingsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: linear-gradient(135deg, #005B94, #2980B9); padding: 2rem; border-radius: 20px; max-width: 500px; width: 90%;">
+        <h3>⚙️ Preferenze Chatbot</h3>
+
+        <label>Tono:</label>
+        <select id="prefTone" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 8px;">
+            <option value="professional">Professionale</option>
+            <option value="casual">Casual</option>
+            <option value="technical">Tecnico</option>
+        </select>
+
+        <label>Lunghezza risposte:</label>
+        <select id="prefLength" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 8px;">
+            <option value="brief">Brevi</option>
+            <option value="concise">Concise</option>
+            <option value="detailed">Dettagliate</option>
+        </select>
+
+        <label>Istruzioni personalizzate:</label>
+        <textarea id="prefCustom" rows="3" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border-radius: 8px;" placeholder="Es: Usa sempre esempi pratici"></textarea>
+
+        <button onclick="saveSettings()" style="background: #E7D454; color: #005B94; padding: 0.8rem 1.5rem; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">Salva</button>
+        <button onclick="closeSettings()" style="background: rgba(255,255,255,0.2); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 10px; cursor: pointer; margin-left: 0.5rem;">Annulla</button>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
+
+
+function giveFeedback(msgId, rating) {
+    fetch('/api/chat/feedback', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message_id: msgId, rating: rating})
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert(d.message);
+            // Nascondi pulsanti feedback
+            event.target.closest('.message-actions').style.display = 'none';
+        }
+    });
+}
+
+function openSettings() {
+    fetch('/api/chat/preferences')
+    .then(r => r.json())
+    .then(prefs => {
+        document.getElementById('prefTone').value = prefs.tone;
+        document.getElementById('prefLength').value = prefs.response_length;
+        document.getElementById('prefCustom').value = prefs.custom_instructions;
+        document.getElementById('settingsModal').style.display = 'flex';
+    });
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+
+function saveSettings() {
+    const prefs = {
+        tone: document.getElementById('prefTone').value,
+        response_length: document.getElementById('prefLength').value,
+        custom_instructions: document.getElementById('prefCustom').value
+    };
+
+    fetch('/api/chat/preferences', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(prefs)
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert('✅ Preferenze salvate!');
+            closeSettings();
+        }
+    });
+}
+
+// Mostra feedback su risposte AI
+function addMessage(text, role, msgId) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.textContent = text;
+
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(content);
+
+    // Aggiungi feedback solo su risposte assistant
+    if (role === 'assistant' && msgId) {
+        const actions = document.createElement('div');
+        actions.className = 'message-actions';
+        actions.style.display = 'flex';
+        actions.innerHTML = `
+            <button onclick="giveFeedback(${msgId}, 'positive')" style="background: rgba(16, 185, 129, 0.3); border: 1px solid #10B981; color: white; padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">👍 Utile</button>
+            <button onclick="giveFeedback(${msgId}, 'negative')" style="background: rgba(239, 68, 68, 0.3); border: 1px solid #EF4444; color: white; padding: 0.3rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">👎 Non utile</button>
+        `;
+        messageDiv.appendChild(actions);
+    }
+
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+
 <script>
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');

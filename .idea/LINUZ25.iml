@@ -14,7 +14,7 @@
       <excludeFolder url="file://$MODULE_DIR$/15MAR/training_data/text" />
       <excludeFolder url="file://$MODULE_DIR$/LUG25/ADELCHIvenv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (LINUZ25)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 (LINUZ25)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
